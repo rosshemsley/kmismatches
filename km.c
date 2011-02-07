@@ -8,6 +8,7 @@
 #include <string.h>
 #include "km.h"
 #include "km_FFT.h"
+#include "sais.h"
 
 /******************************************************************************/
 
@@ -100,13 +101,13 @@ void markMatches                 (       int  *matches,
 } 
 
 /******************************************************************************/
-void count_frequent_symbols(int threshold, const int *frequency_table, int n)
+int count_frequent_symbols(int threshold, const int *frequency_table, int n)
 {
    int count = 0;
    
    for (int i=0; i<n; i++)
       if (frequency_table[i] > n) count ++;
-
+   return count;
 }
 
 /******************************************************************************/
@@ -125,37 +126,46 @@ void sp_km_unbounded_kmismatch      ( const char   *text,
    int frequency_table[ALPHABET_SIZE];
 
    // Number of appearances required for a character to be classed 'frequent'.
-   int FREQ_CHAR_THRESHOLD = sqrt(m)*3.5;
+   int FREQ_CHAR_THRESHOLD = sqrt(m);
+   
+   int MATCH_THRESHOLD     = 2 * sqrt(k);
 
    // Count the number of occurences of each symbol.
    sp_km_count_symbols(text, n, frequency_table);
 
-   // CASE 1: pattern contains fewer than 2.sqrt{k} frequent symbols.
+   // CASE 1: pattern contains fewer than 2.sqrt{k} frequent symbols. //
 
-   count_frequent_symbols(FREQ_CHAR_THRESHOLD, frequency_table, n);
-
-   // This will become a look up for each frequent character.
-   int pattern_lookup[FREQ_CHAR_THRESHOLD];
-
-   // Go through every symbol, looking for frequent symbols.
-   // then perform FFT matching on each one.
-   for (i=0; i<ALPHABET_SIZE; i++)
+   if (count_frequent_symbols(FREQ_CHAR_THRESHOLD, frequency_table, n) > MATCH_THRESHOLD)
    {
-      if (frequency_table[i] >= FREQ_CHAR_THRESHOLD)
+      // This will become a look up for each frequent character.
+      int pattern_lookup[FREQ_CHAR_THRESHOLD];
+
+      // Go through every symbol, looking for frequent symbols.
+      // then perform FFT matching on each one.
+      for (i=0; i<ALPHABET_SIZE; i++)
       {
-         match_with_FFT(matches,i, text, pattern,  n, m);
-         printf("method 1\n");
-      }
-         else if (frequency_table[i] > 0)
-      {
-         printf("method 2\n");
-         // Create lookup for this symbol.
-         createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
-      
-         // match this symbol in the text.
-         markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+         if (frequency_table[i] >= FREQ_CHAR_THRESHOLD)
+         {
+            match_with_FFT(matches,i, text, pattern,  n, m);
+            printf("method 1\n");
+         }
+            else if (frequency_table[i] > 0)
+         {
+            printf("method 2\n");
+            // Create lookup for this symbol.
+            createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
+         
+            // match this symbol in the text.
+            markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+         }
       }
    }
+      else
+   {
+   
+
+   
+   }  
 }
 
 /******************************************************************************/
@@ -187,15 +197,19 @@ void naive_matcher(const char *t, const char *p, int n, int m, int *A)
 void randomStrings(char *text, char *pattern ,int n, int m)
 {
    int i;
-   
-   srand( time(NULL) );
+  
    
    for (i=0; i<n;i++)
       // random letter from a..i
-      text[i] =  (char)(rand() % 27 + 97);
-      
+      text[i] =  (char)(rand() % 26 + 97);
+   
+   text[n-1] = 0;   
+   
    for (i=0;i<m;i++)
-      pattern[i] = (char)(rand() % 27 + 97);
+      pattern[i] = (char)(rand() % 26 + 97);
+      
+      
+   pattern[m-1] = 0;
 
 }
 
@@ -204,6 +218,8 @@ void randomStrings(char *text, char *pattern ,int n, int m)
 
 int main(int argc, char **argv)
 {
+
+   srand( time(NULL) );
    //-------------------------------------------------------------------------//
    // Testing parameters.
    //-------------------------------------------------------------------------//
@@ -211,8 +227,8 @@ int main(int argc, char **argv)
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 5234;
-   int n       = 293783;
+   int m       = 10;
+   int n       = 200;
 
    //-------------------------------------------------------------------------//
  
@@ -221,10 +237,24 @@ int main(int argc, char **argv)
 
 
    // The text and pattern strings.
-   char t[n+1];
-   char p[m+1];
-   p[m] = '\0';
-   t[n] = '\0';
+   char t[n];
+   char p[m];
+
+
+   randomStrings(t,p, n, m);
+   
+   t[n-1] = 0;
+   
+   
+   
+   int SA[n+1];
+   int LCP[n+1];
+   
+      printf("%s\n", t);
+   
+      sais(t, SA, LCP, n);
+   
+   exit(0);
    
    // The output arrays.
    int matches_FFT  [n-m+1];
@@ -235,7 +265,7 @@ int main(int argc, char **argv)
    {  
       // Generate random text and pattern of length n and m respectively.
       // These will consist only of the letters a and b.
-      randomStrings(t,p, n,m);
+      randomStrings(t, p, n,m);
       
       // zero the FFT matches array.
       for (i=0;i<n-m+1;i++)
@@ -290,7 +320,7 @@ int main(int argc, char **argv)
    status += test_FFT_Matching();
    
    if (status==0)
-   printf("All test ran successfully.\n");
+   printf("All tests ran successfully.\n");
    
    return status;
   
