@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 #include <fftw3.h>
 #include <assert.h>
 #include <string.h>
 #include "km.h"
-
+#include "km_FFT.h"
 
 /******************************************************************************/
 
@@ -26,7 +27,7 @@ void sp_km_count_symbols(const char *t, int n, int *A)
       A[i] = 0;
    
    for (i=0; i<n; i++)
-      A[t[i]] ++;
+      A[(int)t[i]] ++;
 }
 
 /******************************************************************************/
@@ -90,18 +91,27 @@ void markMatches                 (       int  *matches,
          for (j=0; j<l; j++)
          {
             // TODO: can we do this better?
-            if (lookup[j]==-1) break;
+            if (lookup[j] == -1) break;
             if ( i - lookup[j] >= 0 )
                matches[i-lookup[j]] ++;
          }
       }      
    }
-
 } 
 
 /******************************************************************************/
+void count_frequent_symbols(int threshold, const int *frequency_table, int n)
+{
+   int count = 0;
+   
+   for (int i=0; i<n; i++)
+      if (frequency_table[i] > n) count ++;
 
-int sp_km_unbounded_kmismatch      ( const char   *text, 
+}
+
+/******************************************************************************/
+
+void sp_km_unbounded_kmismatch      ( const char   *text, 
                                      const char   *pattern, 
                                      int           n, 
                                      int           m,
@@ -112,31 +122,31 @@ int sp_km_unbounded_kmismatch      ( const char   *text,
    int i;
 
    // This will be a count of the occurences of symbols.
-   int SYMBOL_FREQUENCIES[ALPHABET_SIZE];
+   int frequency_table[ALPHABET_SIZE];
 
    // Number of appearances required for a character to be classed 'frequent'.
    int FREQ_CHAR_THRESHOLD = sqrt(m)*3.5;
 
    // Count the number of occurences of each symbol.
-   sp_km_count_symbols(pattern, m, SYMBOL_FREQUENCIES);
+   sp_km_count_symbols(text, n, frequency_table);
 
-   // CASE 1: pattern contains fewer than 2.sqrt{k} symbols.
+   // CASE 1: pattern contains fewer than 2.sqrt{k} frequent symbols.
+
+   count_frequent_symbols(FREQ_CHAR_THRESHOLD, frequency_table, n);
 
    // This will become a look up for each frequent character.
    int pattern_lookup[FREQ_CHAR_THRESHOLD];
-
-   // This is where we store the matches for this block.
-   int j;
 
    // Go through every symbol, looking for frequent symbols.
    // then perform FFT matching on each one.
    for (i=0; i<ALPHABET_SIZE; i++)
    {
-      if (SYMBOL_FREQUENCIES[i] >= FREQ_CHAR_THRESHOLD)
+      if (frequency_table[i] >= FREQ_CHAR_THRESHOLD)
       {
          match_with_FFT(matches,i, text, pattern,  n, m);
          printf("method 1\n");
-      }else if (SYMBOL_FREQUENCIES[i] > 0)
+      }
+         else if (frequency_table[i] > 0)
       {
          printf("method 2\n");
          // Create lookup for this symbol.
@@ -150,7 +160,7 @@ int sp_km_unbounded_kmismatch      ( const char   *text,
 
 /******************************************************************************/
 
-int naive_matcher(const char *t, const char *p, int n, int m, int *A)
+void naive_matcher(const char *t, const char *p, int n, int m, int *A)
 {
    int i,j;
   
@@ -174,7 +184,7 @@ int naive_matcher(const char *t, const char *p, int n, int m, int *A)
 
 // Create random pattern and text.
 
-randomStrings(char *text, char *pattern ,int n, int m)
+void randomStrings(char *text, char *pattern ,int n, int m)
 {
    int i;
    
@@ -218,7 +228,7 @@ int main(int argc, char **argv)
    
    // The output arrays.
    int matches_FFT  [n-m+1];
-  // int matches_naive[n-m+1];
+   // int matches_naive[n-m+1];
    
    // Test the FFT Matching.  
    for (x=0; x < repeats; x++)
@@ -232,16 +242,16 @@ int main(int argc, char **argv)
          matches_FFT[i]=0; 
          
          
-     //  printf("%s\n", t);
-     //  printf("%s\n", p);
+      //  printf("%s\n", t);
+      //  printf("%s\n", p);
          
       sp_km_unbounded_kmismatch(t, p, n, m, 0, matches_FFT, 0);
 
 
 
       // Perform naive matching for testing.
-  //    naive_matcher(t, p, n, m, matches_naive);
-   /*
+      //    naive_matcher(t, p, n, m, matches_naive);
+     /*
       // Check that the two outputs are the same.
       for (i=0;i<n-m+1;i++)
       {

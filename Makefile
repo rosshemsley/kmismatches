@@ -1,7 +1,7 @@
 CC    = gcc
-flags = -Wall -pedantic -std=c99 -03
+flags = -std=c99 -Wall -pedantic -o3
 libs  = -lm -lfftw3
 
 all:
-	$(CC) -o km ./km.c ./km.h ./km_FFT.c $(libs)
+	$(CC) $(flags) -o km ./km.c ./km.h ./km_FFT.c $(libs)
 

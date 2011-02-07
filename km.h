@@ -23,7 +23,7 @@ typedef struct _MATCH
 /******************************************************************************
 * Functions.
 *******************************************************************************/
-int sp_km_unbounded_kmismatch      ( const char   *text, 
+void sp_km_unbounded_kmismatch      ( const char   *text, 
                                      const char   *pattern, 
                                      int           n, 
                                      int           m,
