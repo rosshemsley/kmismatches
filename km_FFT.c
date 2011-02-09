@@ -20,16 +20,17 @@
 
 // Start off N as an impossible value.
 int      N = -1;
+double * x       = NULL; 
+double *_p       = NULL; 
+double *_t       = NULL; 
+double *_r       = NULL; 
+double *t_masked = NULL; 
 
-double * x;
-double *_p;
-double *_t;
-double *_r;
 
 // FFT Plans which we can re-use.
-fftw_plan plan_pattern_FFT;
-fftw_plan plan_text_FFT;
-fftw_plan plan_FFT_inverse;
+fftw_plan plan_pattern_FFT=NULL;
+//fftw_plan plan_text_FFT;
+fftw_plan plan_FFT_inverse=NULL;
 
 /******************************************************************************/
 
@@ -39,14 +40,14 @@ fftw_plan plan_FFT_inverse;
 void maskText(double *r, char symbol, const char *text, int n, int N)
 {
    int i;
-   
+ //  printf("masking text\n");
    // Assume for now that the text is always the same slength as the buffer.
-   for (i=0; i<n && i<N; i++)
+   for (i=0; i<n; i++)
       r[i] = (text[i] == symbol) ? 1 : 0;
       
    for (i=n; i<N; i++)
       r[i] = 0;
-
+ //  printf("done masking text\n");
 }
 
 /******************************************************************************/
@@ -55,16 +56,16 @@ void maskText(double *r, char symbol, const char *text, int n, int N)
 // We assume that the pattern is half the length of the buffer.
 // To perform matching, we need the pattern to be reversed.
 
-void maskPattern(double *r, char symbol, const char *pattern, int N)
+void maskPattern(double *r, char symbol, const char *pattern, int m, int N)
 {
    int i;
    
    // Copy the pattern into the bottom half of the buffer.
-   for (i=0; i<N/2; i++)
-      r[N/2-i-1] = (pattern[i] == symbol) ? 1 : 0;
+   for (i=0; i<m; i++)
+      r[m-i-1] = (pattern[i] == symbol) ? 1 : 0;
       
    // Fill the top half of the buffer with zeros.
-   for (i=N/2; i<N; i++)
+   for (i=m; i<N; i++)
       r[i] = 0;
 
 }
@@ -74,15 +75,16 @@ void maskPattern(double *r, char symbol, const char *pattern, int N)
 // This will multiply two vectors in half-complex notation, when they are of
 // length N and N is even.
 
-void multiply_half_complex(       double  *r, 
-                            const double  *a, 
-                            const double  *b, 
-                                  int      N  )
+static inline void multiply_half_complex(       double  *r, 
+                                   const double  *a, 
+                                   const double  *b, 
+                                         int      N  )
 {
    int i;
    
    // The first entry is real.
    r[0] = a[0] * b[0];
+
 
    // TODO: make this faster using clever complex multiplcation.
    for (i=1; i<N/2; i++)
@@ -131,56 +133,62 @@ void match_with_FFT(        int  *matches,
 {
    int i,j;
    
-   // ---- PRECOMPUTATION ---- //
+   int transformSize = 2*m;
    
-   // Store these vectors as globals, and re-use them to save re-allocating
-   // memory on every run.
-   if (2*m != N)
+	if(transformSize < 2048 && n > 4096){
+	   transformSize = 2048;
+	}
+   
+   if (N != transformSize)
    {
-      // We perform all our FFT manipulations with vectors twice as long as 
-      // the length of the pattern.
-      N = 2*m;
-      
-      // A temporary variable to store intermediate vectors.
-      x = realloc( x, sizeof(double) * N );
-
-      // the FFT representation of the pattern, text, and pattern*text.
-      _p = realloc( _p, sizeof(double) * N );
-      _t = realloc( _t, sizeof(double) * N );
-      _r = realloc( _r, sizeof(double) * N );
-      
-      fftw_destroy_plan( plan_pattern_FFT );    
-      fftw_destroy_plan( plan_text_FFT    );    
-      fftw_destroy_plan( plan_FFT_inverse );    
-      
+      N = transformSize;
+   
+   
+    x       =  realloc( x, sizeof(double) * N);
+   _p       =  realloc(_p, sizeof(double) * N);
+   _t       =  realloc(_t, sizeof(double) * N);
+   _r       =  realloc(_r, sizeof(double) * N);
+   t_masked =  realloc(t_masked, sizeof(double) * n + transformSize-m+1);
+    
+    }       
+    
+    
+   maskText(t_masked,symbol,text, n, n+transformSize-m);
+   
+   maskPattern(x, symbol, pattern, m, N);
+   
+   //printf("FFT'ing pattern\n");
+   // Compute the FFT of x (the pattern) and put it in _p.
+   if (plan_pattern_FFT == NULL)
+   {
       plan_pattern_FFT = fftw_plan_r2r_1d(N,  x, _p, FFTW_R2HC, FFTW_ESTIMATE);
-      plan_text_FFT    = fftw_plan_r2r_1d(N,  x, _t, FFTW_R2HC, FFTW_ESTIMATE);
-      plan_FFT_inverse = fftw_plan_r2r_1d(N, _r,  x, FFTW_HC2R, FFTW_ESTIMATE);
+      fftw_execute(plan_pattern_FFT);
+   } else {
+      fftw_execute_r2r(plan_pattern_FFT, x, _p);
    }
    
-   // ---- END OF PRECOMPUTATION ---- //
 
-   // This will copy the pattern into the buffer x.
-   maskPattern(x, symbol, pattern, N);
-   
-   // Compute the FFT of x (the pattern) and put it in _p.
-   fftw_execute(plan_pattern_FFT);
-
-   for (i=0; i<n; i += m)
+   for (i=0; i<n-m; i += transformSize-m+1)
    {
       // Copy the text into the buffer x.
-      maskText(x, symbol, text+i, n-i,  N);
+      memcpy(x, t_masked + i, sizeof(double) *  N); 
 
       // FFT x (this block of text) and store it in _t.
-	   fftw_execute(plan_text_FFT);
-
+	   fftw_execute_r2r(plan_pattern_FFT, x, _t);
+      
 	   // Point-wise multiply the two vectors _p and _t.
       multiply_half_complex(_r, _t, _p, N);
-      
-      // FFTW invert _r and put it into x.
-	   fftw_execute(plan_FFT_inverse);
 
+      // FFTW invert _r and put it into x.
+      if (plan_FFT_inverse == NULL)
+      {
+         plan_FFT_inverse = fftw_plan_r2r_1d(N, _r,  x, FFTW_HC2R, FFTW_ESTIMATE);
+         fftw_execute(plan_FFT_inverse);
+	  } else
+	   fftw_execute_r2r(plan_FFT_inverse, _r, x); 
+	   
       // x now contains the matches.
+      /*
       for (j=0; j<N/2; j++)
       {
          if (i+j > n-m+1) break;
@@ -189,7 +197,10 @@ void match_with_FFT(        int  *matches,
          // The matches we are interested in start half way into the array.
          matches[i+j] += (int)(x[j+N/2-1]/N + 0.5);
       }
+      */
    }
+   
+
 } 
 
 /*******************************************************************************

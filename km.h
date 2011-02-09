@@ -11,6 +11,16 @@
 
 /******************************************************************************/
 
+// This structure will be used to store the p-representation.
+typedef struct _p_triple
+{
+   int i;
+   int j;
+   int l;
+} p_triple;
+
+/******************************************************************************/
+
 typedef struct _MATCH
 {
    int            k;
