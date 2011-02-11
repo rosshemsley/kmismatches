@@ -222,7 +222,7 @@ void abrahamson_kosaraju( const char *text,
    
       if (1) //frequency_table[i] >= FREQ_CHAR_THRESHOLD)
       {
-         if (!(i >= 97 && i < 123)) continue;
+         if (!(i >= 97 && i < 101)) continue;
          
          printf("method 1\n");      
          printf("%c\n", i);

@@ -78,12 +78,12 @@ static inline void multiply_half_complex(       double  *r,
                                           const double  *b, 
                                                 int      N  )
 {
-
+   // TODO: CHECK THIS IS RIGHT...
    // The first entry is real.
    r[0] = a[0] * b[0];
 
    // TODO: make this faster using clever complex multiplcation.
-   for (int i=1; i<N/2; i++)
+   for (int i=1; i<=N/2; i++)
    {
      // Multiply the FFTW half-complex vectors.
      r[i]   = a[i]   * b[i] - a[N-i] * b[N-i];
@@ -93,6 +93,10 @@ static inline void multiply_half_complex(       double  *r,
    // If the length is even, the middle entry is also real.
    if (N % 2 == 0)
      r[N/2] = a[N/2] * b[N/2];
+     
+   //printf("%lf, %lf\n", r[6], r[7]);  
+
+        
 }                        
 
 
@@ -129,7 +133,7 @@ void match_with_FFT(        int  *matches,
                             int   m        )
 {
    
-   int transformSize = 2*m;
+   int transformSize = 13; //2*m;
    
 	//if(transformSize < 2048 && n > 4096){
 	//   transformSize = 2048;
@@ -149,7 +153,12 @@ void match_with_FFT(        int  *matches,
       _p       =  malloc(sizeof(double) * N);
       _t       =  malloc(sizeof(double) * N);
       _r       =  malloc(sizeof(double) * N);
-      t_masked =  malloc(sizeof(double) * (n + N - m));
+      t_masked =  malloc(sizeof(double) * (n + N - m ));
+      
+      
+    
+         
+         
 
       // Any overflow over the end of the text should be set to zero.
       for (int i=n; i < n + N - m; i++)
@@ -189,6 +198,7 @@ void match_with_FFT(        int  *matches,
       multiply_half_complex(_r, _t, _p, N);
 
 
+
       // FFTW invert _r and put it into x.
       if (plan_FFT_inverse == NULL)
       {
@@ -198,6 +208,10 @@ void match_with_FFT(        int  *matches,
 	      fftw_execute_r2r(plan_FFT_inverse, _r, x); 
 	   } 
 	   
+
+
+
+
       // x now contains the matches.
       for (int j=0; j < N-m; j+=1)
       {
@@ -206,12 +220,8 @@ void match_with_FFT(        int  *matches,
          // Add to matches array.
          // The matches we are interested in start half way into the array.
 
-         if ( j >= N) printf("BIGGER %d\n", j+N-m-1);
-         if ( j < 0 ) printf("SMALLER\n");
-         
-        // printf("%d\n", (int)(x[j+N-m-1]/N + 0.5));
         
-         matches[i+j] += (int)(x[j+N-m-1]/N + 0.5);
+         matches[i+j] += (int)(x[j+m-1]/N + 0.5);
       }
 
    }
