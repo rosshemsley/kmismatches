@@ -171,7 +171,7 @@ void match_with_FFT(        int  *matches,
    }
    
    
-   for (int i=0; i<n; i += m)
+   for (int i=0; i<n; i += N-m)
    {
       // Copy the text into the buffer x.
       memcpy(x, t_masked+i, sizeof(double)*N);
@@ -199,7 +199,7 @@ void match_with_FFT(        int  *matches,
 	   } 
 	   
       // x now contains the matches.
-      for (int j=0; j < N-m+1; j++)
+      for (int j=0; j < N-m; j+=1)
       {
          if (i+j >= n-m+1) break;
          

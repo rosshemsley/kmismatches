@@ -392,14 +392,14 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 26 + 97);
+      text[i]    = (char)(rand() % 4 + 97);
    
-   text[n-1] = 0;   
+   text[n] = 0;   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 26 + 97);
+      pattern[i] = (char)(rand() % 4 + 97);
    
-   pattern[m-1] = 0;
+   pattern[m] = 0;
 
 }
 
@@ -425,8 +425,8 @@ int main(int argc, char **argv)
    int i,x;
 
    // The text and pattern strings.
-   char *t = malloc(sizeof(char) * n);
-   char *p = malloc(sizeof(char) * m);
+   char *t = malloc(sizeof(char) * (n+1));
+   char *p = malloc(sizeof(char) * (m+1));
 
    randomStrings(t,p, n, m);
 
