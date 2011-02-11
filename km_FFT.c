@@ -42,7 +42,7 @@ fftw_plan plan_FFT_inverse = NULL;
 
 static inline void maskText(double *r, char symbol, const char *text, int n)
 {
-
+   printf("text length: %d\n",n);
    for (int i=0; i<n; i++)
       r[i] = (text[i] == symbol) ? 1.0 : 0.0;
 
@@ -54,7 +54,7 @@ static inline void maskText(double *r, char symbol, const char *text, int n)
 // We assume that the pattern is half the length of the buffer.
 // To perform matching, we need the pattern to be reversed.
 
-void maskPattern(double *r, char symbol, const char *pattern, int m, int N)
+static void maskPattern(double *r, char symbol, const char *pattern, int m, int N)
 
 {
    // Copy the pattern into the bottom of the buffer.
@@ -133,11 +133,11 @@ void match_with_FFT(        int  *matches,
                             int   m        )
 {
    
-   int transformSize = 13; //2*m;
+   int transformSize = 2*m;
    
-	//if(transformSize < 2048 && n > 4096){
-	//   transformSize = 2048;
-   //	}
+	if(transformSize < 2048 && n > 4096){
+	   transformSize = 2048;
+   	}
 	
 	if(!fftw_import_system_wisdom()){
       printf("Failed to read system wisdom!\n");
@@ -149,11 +149,11 @@ void match_with_FFT(        int  *matches,
    {
       N = transformSize;
       
-       x       =  malloc(sizeof(double) * N);
-      _p       =  malloc(sizeof(double) * N);
-      _t       =  malloc(sizeof(double) * N);
-      _r       =  malloc(sizeof(double) * N);
-      t_masked =  malloc(sizeof(double) * (n + N - m ));
+       x       =  fftw_malloc(sizeof(double) * N);
+      _p       =  fftw_malloc(sizeof(double) * N);
+      _t       =  fftw_malloc(sizeof(double) * N);
+      _r       =  fftw_malloc(sizeof(double) * N);
+      t_masked =  fftw_malloc(sizeof(double) * (n + N - m ));
       
       
     
@@ -211,7 +211,7 @@ void match_with_FFT(        int  *matches,
 
 
 
-
+   
       // x now contains the matches.
       for (int j=0; j < N-m; j+=1)
       {
