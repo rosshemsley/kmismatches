@@ -131,18 +131,18 @@ int extend     (          char   t,
                      const char *pattern, 
                      const int  *SA, 
                      const int  *LCP, 
-                           int   n,     int m   )
+                           int   n,     
+                           int   m         )
 {
 
-   printf("Extending\n");   
+   //printf("Extending\n");   
    // Go through the Suffix Array until LCP[i] < l or pattern[SA[i]+l] = t.
    
-
    // Check to see whether or not we can extend the current suffix.   
-   if (SA[*x]+l <m && pattern[SA[*x] + l] == t)
+   if ( (SA[*x]+l < m) && (pattern[SA[*x] + l] == t) )
    {
-      printf("Succeeded with current\n");
-      printf("'%s'\n", pattern + SA[*x]); 
+      // printf("Succeeded with current\n");
+      // printf("'%s'\n", pattern + SA[*x]); 
       return 1;
    }
    
@@ -151,28 +151,23 @@ int extend     (          char   t,
    {
       // There are no sufficies with this prefix.
       if (LCP[i] < l ) {
-         printf("Ran out of values\n");
+         //printf("Ran out of values\n");
          return 0;
       }
       
       // Check this character match.
-      if (SA[*x]+l <m && pattern[SA[i] + l] == t)
+      if ( (SA[*x]+l < m) && (pattern[SA[i] + l] == t) )
       {
-          printf("Changing to '%s'\n", pattern + SA[i]); 
-          *x = i;
+         //printf("Changing to '%s'\n", pattern + SA[i]); 
+         *x = i;
          return 1;
       }
-
    }
 
    return -1;
 }
 
 /******************************************************************************/
-
-
-
-
 
 int findStart(char c, const char *pattern, const int *SA, int m)
 {
@@ -182,68 +177,61 @@ int findStart(char c, const char *pattern, const int *SA, int m)
       if (pattern[SA[i]] == c) {
          return i;
       }
+      printf("Couldn't find: %c\n", c);
    return -1;
 }
 
 /******************************************************************************/
 
 
-void construct_pRepresentation(       pTriple *P,
-                                const char    *text, 
-                                const char    *pattern, 
-                                const int     *SA, 
-                                const int     *LCP, 
-                                      int      n,
-                                      int      m              )
+void construct_pRepresentation(       pTriple   *P,
+                                const char      *text, 
+                                const char      *pattern, 
+                                const int       *SA, 
+                                const int       *LCP, 
+                                      int        n,
+                                      int        m              )
 {
 
-   // The current p-triple we are on.
-   int p = 0;
-   pTriple *current;
+   int p=0;
+   int i=0;
+   int x=0;
+   int l=0;
 
-   int i,l;
-   
-   i=0;
-   
-   // This stores the current suffix in the suffix array we are considering.
-   int x = 0;
-   
-   // Now, go through keeping i as the most recent char. in the text.
+   // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
       printf("\nStarting new Suffix: '%s'\n", text + i);
-      
-      current = &P[p];
+      l = 0;      
       
       // Find the first suffix which starts with the current symbol
       x = findStart(text[i], pattern, SA, m);
-      l = 0;
       
+      if (x<0)
+      {
+         P[p].j = -1;
+         ++p;
+         ++i;
+         continue;
+      }
+
       printf("Starting with suffix: '%s'\n", pattern + SA[x]);
-      
-      current->i = i;
+      P[p].i = i;
       
       // Extend the value as far as possible.
-      while ( extend(text[++i], ++l, &x, pattern, SA, LCP, n, m));
-      
-      
-      
-      current->l = l;
-      current->j = SA[x];
+      while ( extend( text[++i], ++l, &x, pattern, SA, LCP, n, m ) );
+            
+      P[p].l = l;
+      P[p].j = SA[x];
    
-      printf("Extended to length %d, using suffix:\n", current->l);
+      printf("Extended to length %d, using suffix:\n", P[p].l);
       printf("'%s'\n", pattern + SA[x]);
    
-   
-   
       ++p;
-      
    }  
    
-   if (p<n-1)
-   {
-      P[p].j=-1;
-   }
+   if (p < n-1)
+      P[p].j=-2;
    
 }
 
@@ -367,14 +355,23 @@ void kmismatches(         const char *text,
 
 void display_pRepresentation(pTriple *P, const char *pattern, int n)
 {
-   for (int i=0; i<n && P[i].j >=0; i++)
+   printf("'");
+   for (int i=0; i<n && P[i].j >=-1; i++)
    {
+      // If the char wasn't in the text
+      if (P[i].j == -1)
+      {
+         printf(" ");
+         continue;
+      } 
+        
+         
       for (int j=P[i].j; j< P[i].j + P[i].l; j++)
       {
          printf("%c", pattern[j]);
       }
    }
-
+   printf("'");
 }
 
 /******************************************************************************/
@@ -420,7 +417,7 @@ void case2(               const char *text,
    
    construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
      
-   printf("Actual: '\n%s'\n", text);  
+   printf("Actual: \n'%s'\n", text);  
      
      
    display_pRepresentation(pRepresentation, pattern, n);
@@ -522,12 +519,12 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 2 + 97);
+      text[i]    = (char)(rand() % 26 + 97);
    
    text[n-1] = 0;   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 2 + 97);
+      pattern[i] = (char)(rand() % 26 + 97);
    
    pattern[m-1] = 0;
 
