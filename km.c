@@ -209,7 +209,7 @@ void construct_pRepresentation(       pTriple *P,
    int x = 0;
    
    // Now, go through keeping i as the most recent char. in the text.
-   while (i+l+1 < n)
+   while (i+1 < n)
    {
       printf("\nStarting new Suffix: '%s'\n", text + i);
       
@@ -239,6 +239,12 @@ void construct_pRepresentation(       pTriple *P,
       ++p;
       
    }  
+   
+   if (p<n-1)
+   {
+      P[p].j=-1;
+   }
+   
 }
 
 /******************************************************************************/
@@ -361,7 +367,7 @@ void kmismatches(         const char *text,
 
 void display_pRepresentation(pTriple *P, const char *pattern, int n)
 {
-   for (int i=0; i<n; i++)
+   for (int i=0; i<n && P[i].j >=0; i++)
    {
       for (int j=P[i].j; j< P[i].j + P[i].l; j++)
       {
