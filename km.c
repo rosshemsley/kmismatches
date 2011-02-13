@@ -131,7 +131,7 @@ int extend     (          char   t,
                      const char *pattern, 
                      const int  *SA, 
                      const int  *LCP, 
-                           int   n        )
+                           int   n,     int m   )
 {
 
    printf("Extending\n");   
@@ -139,7 +139,7 @@ int extend     (          char   t,
    
 
    // Check to see whether or not we can extend the current suffix.   
-   if (pattern[SA[*x] + l] == t)
+   if (SA[*x]+l <m && pattern[SA[*x] + l] == t)
    {
       printf("Succeeded with current\n");
       printf("'%s'\n", pattern + SA[*x]); 
@@ -156,7 +156,7 @@ int extend     (          char   t,
       }
       
       // Check this character match.
-      if (pattern[SA[i] + l] == t)
+      if (SA[*x]+l <m && pattern[SA[i] + l] == t)
       {
           printf("Changing to '%s'\n", pattern + SA[i]); 
           *x = i;
@@ -209,7 +209,7 @@ void construct_pRepresentation(       pTriple *P,
    int x = 0;
    
    // Now, go through keeping i as the most recent char. in the text.
-   while (i+l < n)
+   while (i+l+1 < n)
    {
       printf("\nStarting new Suffix: '%s'\n", text + i);
       
@@ -224,7 +224,8 @@ void construct_pRepresentation(       pTriple *P,
       current->i = i;
       
       // Extend the value as far as possible.
-      while ( extend(text[++i], ++l, &x, pattern, SA, LCP, m));
+      while ( extend(text[++i], ++l, &x, pattern, SA, LCP, n, m));
+      
       
       
       current->l = l;
@@ -362,7 +363,7 @@ void display_pRepresentation(pTriple *P, const char *pattern, int n)
 {
    for (int i=0; i<n; i++)
    {
-      for (int j=P[i].j; j<P[i].l; j++)
+      for (int j=P[i].j; j< P[i].j + P[i].l; j++)
       {
          printf("%c", pattern[j]);
       }
@@ -412,6 +413,9 @@ void case2(               const char *text,
    displaySA(SA, LCP, pattern, m);
    
    construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
+     
+   printf("Actual: '\n%s'\n", text);  
+     
      
    display_pRepresentation(pRepresentation, pattern, n);
    
