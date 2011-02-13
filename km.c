@@ -115,76 +115,129 @@ int count_frequent_symbols(       int  threshold,
 }
 
 
+
 /******************************************************************************/
-// We binary-search the SA until we find any string that starts with t.
-/*
-int start_p_triple(       char  t, 
-                    const char *pattern, 
-                    const int  *SA, 
-                    const int  *LCP, 
-                          int   n        )
-{
-   // For now we are lazy and do a linear search.
-   for (int i=0; i<n;i++)
-      if (pattern[SA[i]] == t) return i;
-      
-   return -1;
-}
-*/
-/******************************************************************************/
-/*
-int extend_p_triple(       char  t, 
+
+// This will take the current position in the SA, x and the current
+// pTriple p and the next letter in the text. It will then loop through the 
+// following sufficies until the first suffix which has the correct next letter
+// If this is found, we return the suffix and extend l by one. If the LCP becomes
+// to small (i.e. the preceeding chars don't match) then we return -1, 
+// and must start a new pTriple.
+
+int extend     (          char   t, 
+                           int   l,
+                           int  *x,
                      const char *pattern, 
                      const int  *SA, 
                      const int  *LCP, 
-                           int   n)
+                           int   n        )
 {
-   return 0;
+
+   printf("Extending\n");   
+   // Go through the Suffix Array until LCP[i] < l or pattern[SA[i]+l] = t.
+   
+
+   // Check to see whether or not we can extend the current suffix.   
+   if (pattern[SA[*x] + l] == t)
+   {
+      printf("Succeeded with current\n");
+      printf("'%s'\n", pattern + SA[*x]); 
+      return 1;
+   }
+   
+   // Look for other possible sufficies which may match.
+   for (int i = *x+1; i<n; i++)
+   {
+      // There are no sufficies with this prefix.
+      if (LCP[i] < l ) {
+         printf("Ran out of values\n");
+         return 0;
+      }
+      
+      // Check this character match.
+      if (pattern[SA[i] + l] == t)
+      {
+          printf("Changing to '%s'\n", pattern + SA[i]); 
+          *x = i;
+         return 1;
+      }
+
+   }
+
+   return -1;
 }
-*/
 
 /******************************************************************************/
-/*
-void construct_p_representation( const char *text, 
-                                 const char *pattern, 
-                                 const int  *SA, 
-                                 const int  *LCP, 
-                                       int   n        )
-{
-   p_triple *p_representation = malloc(sizeof(p_triple) * n);
 
-   int i=0;
+
+
+
+
+int findStart(char c, const char *pattern, const int *SA, int m)
+{
+
+   // For now we are lazy and do a linear search.
+   for (int i=0; i<m; i++)
+      if (pattern[SA[i]] == c) {
+         return i;
+      }
+   return -1;
+}
+
+/******************************************************************************/
+
+
+void construct_pRepresentation(       pTriple *P,
+                                const char    *text, 
+                                const char    *pattern, 
+                                const int     *SA, 
+                                const int     *LCP, 
+                                      int      n,
+                                      int      m              )
+{
+
+   // The current p-triple we are on.
+   int p = 0;
+   pTriple *current;
+
+   int i,l;
    
-   p_representation[0].i = 0;
-   p_representation[0].j = start_p_triple(text[i], pattern, SA, LCP, n);
-   p_representation[0].l = 1;
+   i=0;
    
-   while (i < n)
+   // This stores the current suffix in the suffix array we are considering.
+   int x = 0;
+   
+   // Now, go through keeping i as the most recent char. in the text.
+   while (i+l < n)
    {
+      printf("\nStarting new Suffix: '%s'\n", text + i);
+      
+      current = &P[p];
+      
+      // Find the first suffix which starts with the current symbol
+      x = findStart(text[i], pattern, SA, m);
+      l = 0;
+      
+      printf("Starting with suffix: '%s'\n", pattern + SA[x]);
+      
+      current->i = i;
+      
+      // Extend the value as far as possible.
+      while ( extend(text[++i], ++l, &x, pattern, SA, LCP, m));
+      
+      
+      current->l = l;
+      current->j = SA[x];
+   
+      printf("Extended to length %d, using suffix:\n", current->l);
+      printf("'%s'\n", pattern + SA[x]);
+   
+   
+   
+      ++p;
       
    }  
-}
-
-
-*/
-/******************************************************************************/
-
-void constructSA( const char *text, 
-                  const char *pattern, 
-                        int   n, 
-                        int   m       )
-{
-   // First: construct the SA/LCP for the pattern.
-   
-   int *SA  = malloc(sizeof(int) * n+1);
-   int *LCP = malloc(sizeof(int) * n  );
-   
-   sais(text, SA, LCP, n);
-  
- //  // Now, construct the p-representation for the text.  
-   //construct_p_representation(text, pattern, SA, LCP, n);  
-     
-
 }
 
 /******************************************************************************/
@@ -215,14 +268,14 @@ void abrahamson_kosaraju( const char *text,
    
    // This will become a look up for each frequent character.
     
-   int pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
+   int *pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
 
    // Go through every symbol, looking for frequent symbols.
    // then perform FFT matching on each one.
    for (int i=0; i<ALPHABET_SIZE; i++)
    {
    
-      if (frequency_table[i] >= FREQ_CHAR_THRESHOLD)
+      if (1) //frequency_table[i] >= FREQ_CHAR_THRESHOLD)
       {
          if (!(i >= 97 && i < 123)) continue;
          
@@ -237,7 +290,7 @@ void abrahamson_kosaraju( const char *text,
          printf("method 2\n");
          
          // Create lookup for this symbol.
-          createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
+         createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
       
          // match this symbol in the text.
           markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
@@ -247,7 +300,7 @@ void abrahamson_kosaraju( const char *text,
 
 
 /******************************************************************************/
-void abrahamson_kosaraju2( const char *text, 
+void kmismatches(         const char *text, 
                           const char *pattern,
                                 int   n,
                                 int   m,
@@ -265,7 +318,6 @@ void abrahamson_kosaraju2( const char *text,
    sp_km_count_symbols(pattern, m, frequency_table);
 
    printf("Performing Matching\n");
-   
    // Number of appearances required for a character to be classed 'frequent'.
    int FREQ_CHAR_THRESHOLD =  0.3*sqrt(m * log(m)/log(2) );
    
@@ -273,14 +325,14 @@ void abrahamson_kosaraju2( const char *text,
    
    // This will become a look up for each frequent character.
     
-   int pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
+   int *pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
 
    // Go through every symbol, looking for frequent symbols.
    // then perform FFT matching on each one.
    for (int i=0; i<ALPHABET_SIZE; i++)
    {
    
-      if (frequency_table[i] >= FREQ_CHAR_THRESHOLD)
+      if (1 ) //frequency_table[i] >= FREQ_CHAR_THRESHOLD)
       {
          if (!(i >= 97 && i < 123)) continue;
          
@@ -302,6 +354,73 @@ void abrahamson_kosaraju2( const char *text,
       }
    }
 }                                
+
+
+/******************************************************************************/
+
+void display_pRepresentation(pTriple *P, const char *pattern, int n)
+{
+   for (int i=0; i<n; i++)
+   {
+      for (int j=P[i].j; j<P[i].l; j++)
+      {
+         printf("%c", pattern[j]);
+      }
+   }
+
+}
+
+/******************************************************************************/
+void displaySA(int *SA, int *LCP, const char *pattern, int m)
+{
+   for (int i=0; i<m; i++)
+   {
+      printf("%d %s\n", LCP[i], pattern + SA[i]);
+   
+   }
+   
+   
+   
+}
+
+/******************************************************************************/
+
+// This is the second case in the k-mismatches algorithm.
+
+void case2(               const char *text, 
+                          const char *pattern,
+                                int   n,
+                                int   m,
+                                int  *matches  )
+{
+
+   // Construct SA/LCP
+   
+
+   int *SA  = malloc(sizeof(int) * (m+1));
+   int *LCP = malloc(sizeof(int) * (m+1));
+   
+   
+   
+   pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
+ 
+   // Construct SA and LCP
+   sais((unsigned char*)pattern, SA, LCP, m);
+
+   printf("Made SA/LCP\n");
+   
+   displaySA(SA, LCP, pattern, m);
+   
+   construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
+     
+   display_pRepresentation(pRepresentation, pattern, n);
+   
+   printf("\n\n");
+   
+
+}
+
+
 
 /******************************************************************************/
 
@@ -393,16 +512,17 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 26 + 97);
+      text[i]    = (char)(rand() % 2 + 97);
    
-   text[n] = 0;   
+   text[n-1] = 0;   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 26 + 97);
+      pattern[i] = (char)(rand() % 2 + 97);
    
-   pattern[m] = 0;
+   pattern[m-1] = 0;
 
 }
+
 
 /******************************************************************************/
 
@@ -418,24 +538,32 @@ int main(int argc, char **argv)
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 200;
-   int n       = 506;
+   int m       = 10;
+   int n       = 20;
 
    //-------------------------------------------------------------------------//
  
-   int i,x;
+   int x;
 
    // The text and pattern strings.
    char *t = malloc(sizeof(char) * (n+1));
    char *p = malloc(sizeof(char) * (m+1));
 
-   randomStrings(t,p, n, m);
+
+   randomStrings(t, p, n, m);
+   printf("%s\n%s\n",t,p);
+
+
+   
+   case2(t,p,n,m,0);
+
+   exit(0);
 
    //printf("%s\n", t);
    printf("%s\n", p);
 
-    //n = loadData(&t, "./dna.50MB");
-    //printf("loaded, %d bytes\n", n);
+  n = loadData(&t, "./dna.50MB");
+  printf("loaded, %d bytes\n", n);
    
    int * matches_FFT   = malloc(sizeof(int) * (n-m+1));
    int * matches_naive = malloc(sizeof(int) * (n-m+1));
@@ -453,18 +581,18 @@ int main(int argc, char **argv)
       naive_matcher(t, p, n, m, matches_naive);
   
       // Check that the two outputs are the same.
-      for (i=0; i<n-m+1; i++)
-         printf("%d ", matches_FFT[i]);
+      //   for (i=0; i<n-m+1; i++)
+      //     printf("%d ", matches_FFT[i]);
       
-      printf("\n");
+      // printf("\n");
       
-      for (i=0; i<n-m+1; i++)
-         printf("%d ", matches_naive[i]);
+      //  for (i=0; i<n-m+1; i++)
+      //    printf("%d ", matches_naive[i]);
       
-      for (i=0; i<n-m+1; i++)
-       assert(matches_naive[i] == matches_FFT[i]);   
+      //  for (i=0; i<n-m+1; i++)
+      //  assert(matches_naive[i] == matches_FFT[i]);   
 
-      printf("\n");
+      //printf("\n");
    }
         
 

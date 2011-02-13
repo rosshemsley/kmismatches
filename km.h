@@ -11,17 +11,18 @@
 
 /******************************************************************************/
 
-typedef struct _MATCH
+typedef struct _pTriple
 {
-   int            k;
-   int            index;
-   struct _MATCH *next;
-} MATCH;
+   int i;
+   int j;
+   int l;
+}  pTriple;
 
 #define ALPHABET_SIZE (1 << CHAR_BIT)
 
 /******************************************************************************
 * Functions.
+
 *******************************************************************************/
 void sp_km_unbounded_kmismatch      ( const char   *text, 
                                      const char   *pattern, 
