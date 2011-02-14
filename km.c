@@ -177,7 +177,6 @@ int findStart(char c, const char *pattern, const int *SA, int m)
       if (pattern[SA[i]] == c) {
          return i;
       }
-      printf("Couldn't find: %c\n", c);
    return -1;
 }
 
@@ -201,7 +200,7 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
-      printf("\nStarting new Suffix: '%s'\n", text + i);
+     // printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
       
       // Find the first suffix which starts with the current symbol
@@ -215,7 +214,7 @@ void construct_pRepresentation(       pTriple   *P,
          continue;
       }
 
-      printf("Starting with suffix: '%s'\n", pattern + SA[x]);
+      // printf("Starting with suffix: '%s'\n", pattern + SA[x]);
       P[p].i = i;
       
       // Extend the value as far as possible.
@@ -224,9 +223,9 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].l = l;
       P[p].j = SA[x];
    
-      printf("Extended to length %d, using suffix:\n", P[p].l);
-      printf("'%s'\n", pattern + SA[x]);
-   
+      //  printf("Extended to length %d, using suffix:\n", P[p].l);
+      //  printf("'%s'\n", pattern + SA[x]);
+    
       ++p;
    }  
    
@@ -380,11 +379,7 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
    for (int i=0; i<m; i++)
    {
       printf("%d %s\n", LCP[i], pattern + SA[i]);
-   
-   }
-   
-   
-   
+   } 
 }
 
 /******************************************************************************/

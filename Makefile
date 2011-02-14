@@ -1,4 +1,4 @@
-CC    = gcc
+CC    = g++
 flags = -std=c99 -Wall -pedantic -o2 -pg -g
 libs  = -lm -lfftw3
 
