@@ -88,6 +88,7 @@ void markMatches(       int  *matches,
 } 
 
 /******************************************************************************/
+
 int count_frequent_symbols(       
                             const int *frequency_table, 
                                   int  threshold, 
@@ -99,8 +100,6 @@ int count_frequent_symbols(
       if (frequency_table[i] > n) count ++;
    return count;
 }
-
-
 
 /******************************************************************************/
 
@@ -296,7 +295,7 @@ void kmismatches(         const char *text,
    sp_km_count_symbols(pattern, m, frequency_table);
 
    // Number of appearances required for a character to be classed 'frequent'.
-   int FREQ_CHAR_THRESHOLD = sqrt(k);
+   int FREQ_CHAR_THRESHOLD = (int)(sqrt((double)k) + 0.5);
    
    // printf("threshold: %d\n", FREQ_CHAR_THRESHOLD);
 
@@ -336,7 +335,7 @@ void kmismatches(         const char *text,
    
    } else {
    
-      printf("CASE 2\n");
+      printf("CASE 2, k = %d\n", k);
       k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
    
    }
@@ -498,20 +497,22 @@ void k_mismatches_case2(  const char *text,
 
    // Find the positions where the pattern may match. 
    // We do this first for memory efficiency
-   int sqrt_k = sqrt(k);
+   int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
-   printf("%d, sqrt k\n", sqrt_k);
+   printf("sqrt k: %d\n", sqrt_k);
    
    int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
    // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
    // where they match.
    
+   printf("Finding first %d characters and choosing first %d instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
    for (int i=0, j=0; i<ALPHABET_SIZE &&  j< 2*sqrt_k; i++)
    {
       // Symbols that appear more than 
-      if ( frequency_table[i] > sqrt_k )
+      if ( frequency_table[i] >= sqrt_k )
       {
+         printf("%c is one of them\n", i);
          // Create lookup for this symbol.
          createLookup(pattern_lookup, i, pattern, m, sqrt_k);
       
@@ -672,12 +673,12 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 2 + 97);
+      text[i]    = (char)(rand() % 4 + 97);
    
    text[n-1] = 0;   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 2 + 97);
+      pattern[i] = (char)(rand() % 4 + 97);
    
    pattern[m-1] = 0;
 
@@ -715,7 +716,7 @@ int main(int argc, char **argv)
    
       int * matches  = malloc(sizeof(int) * (n-m+1));
 
-   kmismatches(t,p,m/3,n,m,matches);
+   kmismatches(t,p,1,n,m,matches);
 
    exit(0);
 
