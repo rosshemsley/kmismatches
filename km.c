@@ -337,6 +337,7 @@ void kmismatches(         const char *text,
    
    } else {
    
+      printf("CASE 2\n");
       k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
    
    }
@@ -378,6 +379,41 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 
 /******************************************************************************/
 
+// j gives the location in the pattern, 
+// the pair (x,t) give the location in the text (t is the index into the text
+// where the x'th p-triple starts). 
+
+int verifyMatch(  const int  *pRepresentation
+                  const char *text
+                  const char *pattern
+                         int x,
+                         int t,
+                         int j,
+                         int k,
+                         int n,
+                         int m                )
+{
+   // This implements the 'Kangarooing' method.
+   
+   
+   // Call _i the position in the text, _j the position in the pattern.
+   int _j=0;
+   int _i=0;
+   // The number of mismatches so far.
+   int _k;
+   
+   while (_j < m)
+   {
+   
+   
+   }
+   
+   
+}
+
+
+/******************************************************************************/
+
 // This is the second case in the k-mismatches algorithm.
 
 void k_mismatches_case2(  const char *text, 
@@ -392,6 +428,8 @@ void k_mismatches_case2(  const char *text,
    // Find the positions where the pattern may match. 
    // We do this first for memory efficiency
    int sqrt_k = sqrt(k);
+   
+   printf("%d, sqrt k\n", sqrt_k);
    
    int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
@@ -421,15 +459,46 @@ void k_mismatches_case2(  const char *text,
  
    // Construct SA and LCP
    sais((unsigned char*)pattern, SA, LCP, m);
-
-   printf("Made SA/LCP\n");
-   
-   displaySA(SA, LCP, pattern, m);
    
    construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
      
+   
+   for (int i=0; i<n-m+1; i++)
+   {
+      printf("%d ", matches[i]);
+   }  
+   printf("\n");
      
-   // Construct list of possible matches 
+   
+   // We need to keep track of our location in the p-representation
+   // AND the text.
+
+   // The value t will keep track of the i position of the previously
+   // seen p-triple.
+   // The x value will keep track of the current position in the triple
+   // array.
+   int t=0;
+   
+   for (int i=0,x=0; i<n; i++)
+   {
+      if (x+1<n && (t + pRepresentation[x+1].l <= i))
+      {
+         ++x;
+         t += pRepresentation[x].l;
+      }
+      
+      // If there could be a possible match here.
+      if (matches[i] >= k)
+      {
+      
+         // Verify this location
+         for (int ]
+      
+      }
+      
+   
+   
+   }
      
      
    // printf("Actual: \n'%s'\n", text);  
@@ -532,12 +601,12 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 26 + 97);
+      text[i]    = (char)(rand() % 2 + 97);
    
    text[n-1] = 0;   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 26 + 97);
+      pattern[i] = (char)(rand() % 2 + 97);
    
    pattern[m-1] = 0;
 
@@ -572,10 +641,10 @@ int main(int argc, char **argv)
 
    randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
-
-
    
-  // k_mismatches_case2(t,p,n,m,0);
+      int * matches  = malloc(sizeof(int) * (n-m+1));
+
+   kmismatches(t,p,m/3,n,m,matches);
 
    exit(0);
 
