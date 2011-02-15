@@ -35,22 +35,6 @@ void sp_km_count_symbols( const char *t,
 
 /******************************************************************************/
 
-// Function to count the number of infrequent symbols.
-int sp_km_count_infrequent_symbols( const char *A, 
-                                          int   n, 
-                                          int   t  )
-{
-  int count = 0;
-  
-  for (int i=0; i<n; i++)
-    if (A[i] >t) 
-      count ++;
-      
-  return count;
-}
-
-/******************************************************************************/
-
 // This assumes that the symbol occurs no more than |lookup| times.
 // The idea is to store the indicies where the symbol occurs at each location
 // in the lookup table.
@@ -103,8 +87,9 @@ void markMatches(       int  *matches,
 } 
 
 /******************************************************************************/
-int count_frequent_symbols(       int  threshold, 
+int count_frequent_symbols(       
                             const int *frequency_table, 
+                                  int  threshold, 
                                   int  n                )
 {
    int count = 0;
@@ -296,57 +281,66 @@ void abrahamson_kosaraju( const char *text,
 /******************************************************************************/
 void kmismatches(         const char *text, 
                           const char *pattern,
+                                int   k,
                                 int   n,
                                 int   m,
                                 int  *matches  )
 {
          
-   // zero the FFT matches array.
+   // zero the matches array.
    memset(matches, 0, sizeof(int)*(n-m+1));
 
    // This will be a count of the occurences of symbols.
    int frequency_table[ALPHABET_SIZE];
    
-   printf("Counting Symbols\n");
-   
+   // Count the number of occurences of each syumbol.
    sp_km_count_symbols(pattern, m, frequency_table);
 
-   printf("Performing Matching\n");
    // Number of appearances required for a character to be classed 'frequent'.
-   int FREQ_CHAR_THRESHOLD =  0.3*sqrt(m * log(m)/log(2) );
+   int FREQ_CHAR_THRESHOLD = sqrt(k);
    
-    printf("threshold: %d\n", FREQ_CHAR_THRESHOLD);
-   
-   // This will become a look up for each frequent character.
-    
-   int *pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
+   // printf("threshold: %d\n", FREQ_CHAR_THRESHOLD);
 
-   // Go through every symbol, looking for frequent symbols.
-   // then perform FFT matching on each one.
-   for (int i=0; i<ALPHABET_SIZE; i++)
+
+   // Which k-mismatches case to perform.
+   if ( count_frequent_symbols(frequency_table, FREQ_CHAR_THRESHOLD, n) > 2*sqrt(k) )
    {
    
-      if (1 ) //frequency_table[i] >= FREQ_CHAR_THRESHOLD)
-      {
-         if (!(i >= 97 && i < 123)) continue;
-         
-         printf("method 1\n");      
-         printf("%c\n", i);
+      // This will become a look up for each frequent character.
+      int *pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
 
-         match_with_FFT(matches, i, text, pattern,  n, m);
-      }
-         else if (frequency_table[i] > 0)
+      // Go through every symbol, looking for frequent symbols.
+      // then perform FFT matching on each one.
+      for (int i=0; i<ALPHABET_SIZE; i++)
       {
-         printf("%c\n", i);
-         printf("method 2\n");
-         
-         // Create lookup for this symbol.
-         createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
+         if ( frequency_table[i] <= 0 ) continue;
       
-         // match this symbol in the text.
-         markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+         if ( frequency_table[i] > FREQ_CHAR_THRESHOLD )
+         {
+            printf("method 1\n");      
+            printf("%c\n", i);
+
+            match_with_FFT(matches, i, text, pattern,  n, m);
+         }
+            else
+         {
+            printf("%c\n", i);
+            printf("method 2\n");
+            
+            // Create lookup for this symbol.
+            createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
+         
+            // match this symbol in the text.
+            markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+         }
       }
+   
+   } else {
+   
+      k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
+   
    }
+
 }                                
 
 
@@ -386,20 +380,42 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 
 // This is the second case in the k-mismatches algorithm.
 
-void case2(               const char *text, 
+void k_mismatches_case2(  const char *text, 
                           const char *pattern,
+                          const int  *frequency_table,
+                                int   k,
                                 int   n,
                                 int   m,
-                                int  *matches  )
+                                int  *matches          )
 {
 
-   // Construct SA/LCP
+   // Find the positions where the pattern may match. 
+   // We do this first for memory efficiency
+   int sqrt_k = sqrt(k);
    
+   int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
+   // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
+   // where they match.
+   
+   for (int i=0, j=0; i<ALPHABET_SIZE &&  j< 2*sqrt_k; i++)
+   {
+      // Symbols that appear more than 
+      if ( frequency_table[i] > sqrt_k )
+      {
+         // Create lookup for this symbol.
+         createLookup(pattern_lookup, i, pattern, m, sqrt_k);
+      
+         // match this symbol in the text.
+         markMatches(matches, text, i, pattern_lookup, n, sqrt_k);
+      }
+   }
+
+   //---------------//
+
+   // Construct SA/LCP
    int *SA  = malloc(sizeof(int) * (m+1));
    int *LCP = malloc(sizeof(int) * (m+1));
-   
-   
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
  
@@ -412,12 +428,14 @@ void case2(               const char *text,
    
    construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
      
-   printf("Actual: \n'%s'\n", text);  
+     
+   // Construct list of possible matches 
      
      
-   display_pRepresentation(pRepresentation, pattern, n);
+   // printf("Actual: \n'%s'\n", text);  
+   // display_pRepresentation(pRepresentation, pattern, n);
    
-   printf("\n\n");
+   // printf("\n\n");
    
 
 }
@@ -557,7 +575,7 @@ int main(int argc, char **argv)
 
 
    
-   case2(t,p,n,m,0);
+  // k_mismatches_case2(t,p,n,m,0);
 
    exit(0);
 

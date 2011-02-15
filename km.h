@@ -37,7 +37,15 @@ void sp_km_FFT_match_symbol        ( char         *A,
                                      const char   *text, 
                                      const char   *pattern, 
                                      int           n, 
-                                     int           m           );		                               
+                                     int           m           );		
+//----------------------------------------------------------------------------//                                     
+void k_mismatches_case2(  const char *text, 
+                          const char *pattern,
+                          const int  *frequency_table,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches          );                                                                 
 /******************************************************************************/
 #endif
 /******************************************************************************/

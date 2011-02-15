@@ -1,3 +1,13 @@
+
+
+/*******************************************************************************
+*
+* Ported to C by Ross Hemsley.
+*
+*
+*******************************************************************************/
+
+
 #ifndef _RMQ_succinct_h_
 #define _RMQ_succinct_h_
 
@@ -29,11 +39,13 @@ typedef unsigned short DTsucc2;
 
 /******************************************************************************/
 // Globals
+//
+// These should be tidied away into a struct or somesuch.
+//
 /******************************************************************************/
 
 	// table M for the out-of-block queries (contains indices of block-minima)
 	DTsucc** M;
-
 
 	// depth of table M:
 	DTidx M_depth;
@@ -68,11 +80,4 @@ typedef unsigned short DTsucc2;
 	// number of microblocks (always n/s)
 	DTidx nmb;
 	
-
-
-
-
-
-
-
 #endif
