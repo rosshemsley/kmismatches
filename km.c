@@ -9,6 +9,7 @@
 #include "km.h"
 #include "km_FFT.h"
 #include "sais.h"
+#include "RMQ_succinct.h"
 
 /******************************************************************************/
 
@@ -114,8 +115,7 @@ int extend     (          char   t,
                            int   l,
                            int  *x,
                      const char *pattern, 
-                     const int  *SA, 
-                     const int  *LCP, 
+                     const  ESA *esa,
                            int   n,     
                            int   m         )
 {
@@ -124,7 +124,7 @@ int extend     (          char   t,
    // Go through the Suffix Array until LCP[i] < l or pattern[SA[i]+l] = t.
    
    // Check to see whether or not we can extend the current suffix.   
-   if ( (SA[*x]+l < m) && (pattern[SA[*x] + l] == t) )
+   if ( (esa->SA[*x]+l < m) && (pattern[esa->SA[*x] + l] == t) )
    {
       // printf("Succeeded with current\n");
       // printf("'%s'\n", pattern + SA[*x]); 
@@ -135,13 +135,13 @@ int extend     (          char   t,
    for (int i = *x+1; i<n; i++)
    {
       // There are no sufficies with this prefix.
-      if (LCP[i] < l ) {
+      if (esa->LCP[i] < l ) {
          //printf("Ran out of values\n");
          return 0;
       }
       
       // Check this character match.
-      if ( (SA[*x]+l < m) && (pattern[SA[i] + l] == t) )
+      if ( (esa->SA[*x]+l < m) && (pattern[esa->SA[i] + l] == t) )
       {
          //printf("Changing to '%s'\n", pattern + SA[i]); 
          *x = i;
@@ -171,8 +171,7 @@ int findStart(char c, const char *pattern, const int *SA, int m)
 void construct_pRepresentation(       pTriple   *P,
                                 const char      *text, 
                                 const char      *pattern, 
-                                const int       *SA, 
-                                const int       *LCP, 
+                                const ESA       *esa,
                                       int        n,
                                       int        m              )
 {
@@ -189,7 +188,7 @@ void construct_pRepresentation(       pTriple   *P,
       l = 0;      
       
       // Find the first suffix which starts with the current symbol
-      x = findStart(text[i], pattern, SA, m);
+      x = findStart(text[i], pattern, esa->SA, m);
       
       if (x<0)
       {
@@ -203,10 +202,10 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].i = i;
       
       // Extend the value as far as possible.
-      while ( extend( text[++i], ++l, &x, pattern, SA, LCP, n, m ) );
+      while ( extend( text[++i], ++l, &x, pattern, esa, n, m ) );
             
       P[p].l = l;
-      P[p].j = SA[x];
+      P[p].j = esa->SA[x];
    
       //  printf("Extended to length %d, using suffix:\n", P[p].l);
       //  printf("'%s'\n", pattern + SA[x]);
@@ -383,34 +382,106 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 // the pair (x,t) give the location in the text (t is the index into the text
 // where the x'th p-triple starts). 
 
-int verifyMatch(  const int  *pRepresentation
-                  const char *text
-                  const char *pattern
-                         int x,
-                         int t,
-                         int j,
-                         int k,
-                         int n,
-                         int m                )
+int verifyMatch(  const pTriple  *pRepresentation,
+                  const char *text,
+                  const char *pattern,
+                  const  ESA *esa,
+                         int  x,
+                         int  t,
+                         int  i,
+                         int  k,
+                         int  n,
+                         int  m                )
 {
    // This implements the 'Kangarooing' method.
-   
-   
+  
    // Call _i the position in the text, _j the position in the pattern.
-   int _j=0;
-   int _i=0;
+   int _j = 0;
+   
+   // Get the index of the text substring.
+   // note that i-t gives the 'lag' between the current text
+   // position and the current p-block.
+   int _i = pRepresentation[x].j + i-t;
+
    // The number of mismatches so far.
-   int _k;
+   int _k = 0;
    
    while (_j < m)
    {
-   
-   
+
+      // jump to the next point where the text and pattern do not match.
+      int temp = query(esa->SAi[_i]+1, esa->SAi[_j], esa->LCP, esa->n);
+      int l    = esa->LCP[temp];
+     
+      // Does this run over the end of this p-triple? 
+      // - if yes, we have found a mismatch, and need to 
+      
+      // Does this match carry on beyond the length of the pattern?
+      // if yes then we are done.
+      if ( l + _j >= m ) 
+         return _k;
+
+      // Does this run over the end of this p-triple?
+      // If yes, then we know there is a mismatch, and 
+      // we have to move to the next p-triple. (this happens at most three
+      // times for any given verification).
+      else if ( l > pRepresentation[x].l - (i-t))
+      {
+         // Increment number of mismatches found so far.
+         _k ++;
+         
+         // Move to the next p-block.
+         t += pRepresentation[x].l;
+         x ++;
+         
+         // We are starting from the beginning of the next block, so there 
+         // is no longer any lag between the text position and the start of
+         // this block.
+         i = t;
+         
+         // _i becomes the value j from the current p-block,
+         // as we are starting from the beginning of it.
+         _i = pRepresentation[x].j;
+         
+         // _j moves forwards one to go past this mismatching point.
+         _j += l+1;
+         
+      }
+      
+      // We stopped because there was a mismatch. Remain in this p-block, 
+      // increment k and continue.
+      else 
+      {  
+         // Increment number of mismatches found so far.
+         _k++;         
+         
+         // Move _j,_i along past this mismatch.
+         _i += l+1;
+         _j += l+1;  
+      }
    }
    
-   
+   return _k;
 }
 
+/******************************************************************************/
+
+// Construct an extended suffix array for some string of length n.s
+void constructESA(const char *s, int n, ESA *esa)
+{
+   esa->n   = n;
+   esa->SA  = malloc(sizeof(int) * (n+1));
+   esa->SAi = malloc(sizeof(int) *  n   );
+   esa->LCP = malloc(sizeof(int) *  n   );
+     
+   // Construct the SA and LCP in linear time.
+   sais((unsigned char*)s, esa->SA, esa->LCP, n);
+   
+   // Construct SAi.
+   for (int i=0; i<n; i++)
+      esa->SAi[esa->SA[i]] = i;
+
+}
 
 /******************************************************************************/
 
@@ -451,16 +522,14 @@ void k_mismatches_case2(  const char *text,
 
    //---------------//
 
-   // Construct SA/LCP
-   int *SA  = malloc(sizeof(int) * (m+1));
-   int *LCP = malloc(sizeof(int) * (m+1));
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
- 
-   // Construct SA and LCP
-   sais((unsigned char*)pattern, SA, LCP, m);
+
+   // Construct the extended suffix array.
+   ESA esa;   
+   constructESA(pattern, m, &esa);
    
-   construct_pRepresentation(pRepresentation, text, pattern, SA, LCP, n,m);
+   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
      
    
    for (int i=0; i<n-m+1; i++)
@@ -469,7 +538,9 @@ void k_mismatches_case2(  const char *text,
    }  
    printf("\n");
      
-   
+   // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
+   RMQ_succinct(esa.LCP, esa.n);  
+     
    // We need to keep track of our location in the p-representation
    // AND the text.
 
@@ -492,7 +563,7 @@ void k_mismatches_case2(  const char *text,
       {
       
          // Verify this location
-         for (int ]
+         //for (int ]
       
       }
       

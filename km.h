@@ -11,6 +11,15 @@
 
 /******************************************************************************/
 
+// This is a container for an Extended Suffix Array.
+typedef struct _ESA
+{
+   int   n;
+   int *SA;
+   int *SAi;
+   int *LCP;
+} ESA;
+
 typedef struct _pTriple
 {
    int i;
