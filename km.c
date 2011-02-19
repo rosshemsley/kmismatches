@@ -124,30 +124,38 @@ int extend     (          char   t,
                            int   m         )
 {
 
-   //printf("Extending\n");   
+   printf("Extending\n");  
+   printf("l: %d\n", l); 
    // Go through the Suffix Array until LCP[i] < l or pattern[SA[i]+l] = t.
    
    // Check to see whether or not we can extend the current suffix.   
    if ( (esa->SA[*x]+l < m) && (pattern[esa->SA[*x] + l] == t) )
    {
-      // printf("Succeeded with current\n");
-      // printf("'%s'\n", pattern + SA[*x]); 
+       printf("Succeeded with current\n");
+       printf("'%s'\n", pattern + esa->SA[*x]); 
       return 1;
    }
    
    // Look for other possible sufficies which may match.
    for (int i = *x+1; i<n; i++)
    {
+      // If we have run out of sufficies.
+      if (i>=m) return 0;
+      
+      printf("Checking against: %d\n", i);
       // There are no sufficies with this prefix.
-      if (i>=m || esa->LCP[i] < l ) {
-         //printf("Ran out of values\n");
+      if (esa->LCP[i] < l ) {
+      
+         printf("Ran out of values\n");
          return 0;
       }
       
       // Check this character match.
-      if ( (esa->SA[*x]+l < m) && (pattern[esa->SA[i] + l] == t) )
+      printf("Comparing '%c' against '%c'\n", pattern[esa->SA[i]+l], t);
+      printf("%d, %d, l: %d. x: %d, SA[x]: %d", esa->SA[*x]+l, m, l, *x, esa->SA[*x]);
+      if ( (esa->SA[i]+l < m) && (pattern[esa->SA[i] + l] == t) )
       {
-         //printf("Changing to '%s'\n", pattern + SA[i]); 
+         printf("Changing to '%s'\n", pattern + esa->SA[i]); 
          *x = i;
          return 1;
       }
@@ -188,7 +196,7 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
-     // printf("\nStarting new Suffix: '%s'\n", text + i);
+      printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
       
       // Find the first suffix which starts with the current symbol
@@ -202,8 +210,9 @@ void construct_pRepresentation(       pTriple   *P,
          continue;
       }
 
-      // printf("Starting with suffix: '%s'\n", pattern + SA[x]);
+      printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
       P[p].i = i;
+      
       
       // Extend the value as far as possible.
       while ( extend( text[++i], ++l, &x, pattern, esa, n, m ) );
@@ -211,8 +220,8 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].l = l;
       P[p].j = esa->SA[x];
    
-      //  printf("Extended to length %d, using suffix:\n", P[p].l);
-      //  printf("'%s'\n", pattern + SA[x]);
+     printf("Extended to length %d, using suffix:\n", P[p].l);
+        printf("'%s'\n", pattern + esa->SA[x]);
     
       ++p;
    }  
@@ -406,11 +415,13 @@ int verifyMatch(  const pTriple  *pRepresentation,
    // note that i-t gives the 'lag' between the current text
    // position and the current p-block.
    int _i = pRepresentation[x].j + i-t;
+   printf("i: %d, t: %d, x: %d\n", i, t,x);
 
    // The number of mismatches so far.
    int _k = 0;
-      printf("\n\n");
-         display_pRepresentation(pRepresentation, pattern, n);
+   
+   printf("\n\n");
+   display_pRepresentation(pRepresentation, pattern, n);
    
 
 
@@ -422,10 +433,10 @@ int verifyMatch(  const pTriple  *pRepresentation,
       printf("\nCurrent block: \n");
       // Display the current block //
       //for (int i=0;i<pRepresentation[x].l; i++)
-     // {
-     //    printf("%c", pattern[pRepresentation[x].j + i]);
-     // }
-     // printf("\n");
+      // {
+      //    printf("%c", pattern[pRepresentation[x].j + i]);
+      // }
+      // printf("\n");
          printf("_j: %d, _i: %d\n", _j, _i);
          printf("   text: %s\n", pattern + _i);         
          printf("pattern: %s\n", pattern + _j);
@@ -440,7 +451,18 @@ int verifyMatch(  const pTriple  *pRepresentation,
       int temp = query_naive( esa->SAi[_i]+1, esa->SAi[_j], esa->LCP, esa->n);
       int l    = esa->LCP[temp];
      
-      if (_i == _j) l = m - _j;
+     
+      if (_i == _j+1) l = esa->LCP[_i];
+      if (_i == _j)
+         { 
+            l = (m-_j);     
+            
+            // If the length goes over the length of this block.
+            if (l > pRepresentation[x].l - (i-t)+1)   
+               l = pRepresentation[x].l - (i-t)+1;
+      
+      }
+     
      
       printf("Found %d matching characters\n", l);
      
@@ -449,17 +471,12 @@ int verifyMatch(  const pTriple  *pRepresentation,
       
       // Does this match carry on beyond the length of the pattern?
       // if yes then we are done.
-      if ( l + _j >= m ) 
-      {
-         printf("Ran over end of the pattern\n");
-         exit(0);
-         return _k;
-      }
+
       // Does this run over the end of this p-triple?
       // If yes, then we know there is a mismatch, and 
       // we have to move to the next p-triple. (this happens at most three
       // times for any given verification).
-      else if (l > pRepresentation[x].l-(i-t)+1)
+      if (l > pRepresentation[x].l-(i-t)+1)
       {
          printf("Mismatch at end of block\n");
          _k ++;
@@ -480,7 +497,12 @@ int verifyMatch(  const pTriple  *pRepresentation,
          // _j moves forwards one to go past this mismatching point.
          _j += l+1;
       }
-      
+      else if ( l + _j >= m ) 
+      {
+         printf("Ran over end of the pattern\n");
+         exit(0);
+         return _k;
+      }
       else //if ( l > pRepresentation[x].l - (i-t))
       {
          printf("Mismatch within block\n");
@@ -506,9 +528,11 @@ int verifyMatch(  const pTriple  *pRepresentation,
 void constructESA(const char *s, int n, ESA *esa)
 {
    esa->n   = n;
-   esa->SA  = calloc( (n+1),sizeof(int) );
-   esa->SAi = calloc( (n+1),sizeof(int) );
-   esa->LCP = calloc( (n+1),sizeof(int) );
+   
+   // TODO: Change these to malloc's later.
+   esa->SA  = calloc( (n+1), sizeof(int) );
+   esa->SAi = calloc( (n+1), sizeof(int) );
+   esa->LCP = calloc( (n+1), sizeof(int) );
      
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
@@ -582,9 +606,8 @@ void k_mismatches_case2(  const char *text,
    
    printf("%s\n", text);
    display_pRepresentation(pRepresentation, pattern, n);
-   
+
    exit(0);
-   
    for (int i=0; i<n-m+1; i++)
    {
       printf("%d ", matches[i]);
@@ -760,11 +783,11 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = malloc(sizeof(char) * (n+1));
-   char *p = malloc(sizeof(char) * (m+1));
+   char *t = "abcabcabbccaabaabbab"; //malloc(sizeof(char) * (n+1));
+   char *p = "abcabcadda";//malloc(sizeof(char) * (m+1));
 
 
-   randomStrings(t, p, n, m);
+//   randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
    
       int * matches  = malloc(sizeof(int) * (n-m+1));
