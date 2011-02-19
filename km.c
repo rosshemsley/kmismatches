@@ -48,7 +48,7 @@ void createLookup(       int   *lookup,
 {
    int x = 0;
    
-   for (int i=0; i<m; i++)
+   for (int i=0; i<l; i++)
    {
       if (pattern[i] == symbol)
       {
@@ -57,6 +57,7 @@ void createLookup(       int   *lookup,
       }
    }
 
+   if (x<l)
    lookup[x]=-1;
    
 }
@@ -66,7 +67,8 @@ void markMatches(       int  *matches,
                   const char *text, 
                         char  symbol, 
                   const int  *lookup, 
-                        int   n, 
+                        int   n,
+                        int   m, 
                         int   l       )
    {
    int i,j;
@@ -80,8 +82,11 @@ void markMatches(       int  *matches,
          {
             // TODO: can we do this better?
             if (lookup[j] == -1) break;
-            if ( i - lookup[j] >= 0 )
+            if ( i - lookup[j] >= 0 && i-lookup[j] < n-m+1 )
+            {
+
                matches[i-lookup[j]] ++;
+            }
          }
       }      
    }
@@ -134,7 +139,7 @@ int extend     (          char   t,
    for (int i = *x+1; i<n; i++)
    {
       // There are no sufficies with this prefix.
-      if (esa->LCP[i] < l ) {
+      if (i>=m || esa->LCP[i] < l ) {
          //printf("Ran out of values\n");
          return 0;
       }
@@ -270,7 +275,7 @@ void abrahamson_kosaraju( const char *text,
          createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
       
          // match this symbol in the text.
-          markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+          markMatches(matches, text, i, pattern_lookup, n, m, FREQ_CHAR_THRESHOLD);
       }
    }
 }                                
@@ -329,7 +334,7 @@ void kmismatches(         const char *text,
             createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
          
             // match this symbol in the text.
-            markMatches(matches, text, i, pattern_lookup, n, FREQ_CHAR_THRESHOLD);
+            markMatches(matches, text, i, pattern_lookup, n,m, FREQ_CHAR_THRESHOLD);
          }
       }
    
@@ -345,25 +350,25 @@ void kmismatches(         const char *text,
 
 /******************************************************************************/
 
-void display_pRepresentation(pTriple *P, const char *pattern, int n)
+void display_pRepresentation(const pTriple *P, const char *pattern, int n)
 {
-   printf("'");
+
    for (int i=0; i<n && P[i].j >=-1; i++)
    {
       // If the char wasn't in the text
       if (P[i].j == -1)
       {
-         printf(" ");
+         printf("_");
          continue;
       } 
         
-         
       for (int j=P[i].j; j< P[i].j + P[i].l; j++)
       {
          printf("%c", pattern[j]);
       }
+      printf("|");
    }
-   printf("'");
+   printf("\n");
 }
 
 /******************************************************************************/
@@ -404,13 +409,40 @@ int verifyMatch(  const pTriple  *pRepresentation,
 
    // The number of mismatches so far.
    int _k = 0;
+      printf("\n\n");
+         display_pRepresentation(pRepresentation, pattern, n);
    
+
+
+   printf("Theoretical match: %s\n", text + i);
+   printf("Against:           %s\n", pattern);
+
    while (_j < m)
    {
+      printf("\nCurrent block: \n");
+      // Display the current block //
+      //for (int i=0;i<pRepresentation[x].l; i++)
+     // {
+     //    printf("%c", pattern[pRepresentation[x].j + i]);
+     // }
+     // printf("\n");
+         printf("_j: %d, _i: %d\n", _j, _i);
+         printf("   text: %s\n", pattern + _i);         
+         printf("pattern: %s\n", pattern + _j);
 
+   
+   
+      printf("Going around loop\n");
+      
+      printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[_i]+1, esa->SAi[_j]);
+      
       // jump to the next point where the text and pattern do not match.
-      int temp = query(esa->SAi[_i]+1, esa->SAi[_j], esa->LCP, esa->n);
+      int temp = query_naive( esa->SAi[_i]+1, esa->SAi[_j], esa->LCP, esa->n);
       int l    = esa->LCP[temp];
+     
+      if (_i == _j) l = m - _j;
+     
+      printf("Found %d matching characters\n", l);
      
       // Does this run over the end of this p-triple? 
       // - if yes, we have found a mismatch, and need to 
@@ -418,19 +450,22 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // Does this match carry on beyond the length of the pattern?
       // if yes then we are done.
       if ( l + _j >= m ) 
+      {
+         printf("Ran over end of the pattern\n");
+         exit(0);
          return _k;
-
+      }
       // Does this run over the end of this p-triple?
       // If yes, then we know there is a mismatch, and 
       // we have to move to the next p-triple. (this happens at most three
       // times for any given verification).
-      else if ( l > pRepresentation[x].l - (i-t))
+      else if (l > pRepresentation[x].l-(i-t)+1)
       {
-         // Increment number of mismatches found so far.
+         printf("Mismatch at end of block\n");
          _k ++;
          
          // Move to the next p-block.
-         t += pRepresentation[x].l;
+         t += pRepresentation[x].l;      
          x ++;
          
          // We are starting from the beginning of the next block, so there 
@@ -444,21 +479,23 @@ int verifyMatch(  const pTriple  *pRepresentation,
          
          // _j moves forwards one to go past this mismatching point.
          _j += l+1;
-         
       }
       
-      // We stopped because there was a mismatch. Remain in this p-block, 
-      // increment k and continue.
-      else 
-      {  
+      else //if ( l > pRepresentation[x].l - (i-t))
+      {
+         printf("Mismatch within block\n");
          // Increment number of mismatches found so far.
-         _k++;         
+         i +=l+1;
          
-         // Move _j,_i along past this mismatch.
-         _i += l+1;
-         _j += l+1;  
+         _j +=l+1;
+         _i +=l+1;
+
+            
       }
+      
+
    }
+   exit(0);
    
    return _k;
 }
@@ -469,9 +506,9 @@ int verifyMatch(  const pTriple  *pRepresentation,
 void constructESA(const char *s, int n, ESA *esa)
 {
    esa->n   = n;
-   esa->SA  = malloc(sizeof(int) * (n+1));
-   esa->SAi = malloc(sizeof(int) *  n   );
-   esa->LCP = malloc(sizeof(int) *  n   );
+   esa->SA  = calloc( (n+1),sizeof(int) );
+   esa->SAi = calloc( (n+1),sizeof(int) );
+   esa->LCP = calloc( (n+1),sizeof(int) );
      
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
@@ -479,6 +516,15 @@ void constructESA(const char *s, int n, ESA *esa)
    // Construct SAi.
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
+
+   for (int i=0; i<n; i++)
+   {
+      printf("%d: %d   (%d)%s\n", i, esa->LCP[i], esa->SA[i], s + esa->SA[i]);
+   }
+   printf("\n");
+   for (int i=0; i<n; i++)
+      printf("%d: %d\n", i, esa->SAi[i]);
+
 
 }
 
@@ -517,7 +563,7 @@ void k_mismatches_case2(  const char *text,
          createLookup(pattern_lookup, i, pattern, m, sqrt_k);
       
          // match this symbol in the text.
-         markMatches(matches, text, i, pattern_lookup, n, sqrt_k);
+         markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
       }
    }
 
@@ -526,12 +572,18 @@ void k_mismatches_case2(  const char *text,
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
 
+
+
    // Construct the extended suffix array.
    ESA esa;   
    constructESA(pattern, m, &esa);
    
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
-     
+   
+   printf("%s\n", text);
+   display_pRepresentation(pRepresentation, pattern, n);
+   
+   exit(0);
    
    for (int i=0; i<n-m+1; i++)
    {
@@ -540,7 +592,7 @@ void k_mismatches_case2(  const char *text,
    printf("\n");
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   RMQ_succinct(esa.LCP, esa.n);  
+   // RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -551,7 +603,7 @@ void k_mismatches_case2(  const char *text,
    // array.
    int t=0;
    
-   for (int i=0,x=0; i<n; i++)
+   for (int i=0,x=0; i<n-m+1; i++)
    {
       if (x+1<n && (t + pRepresentation[x+1].l <= i))
       {
@@ -562,10 +614,11 @@ void k_mismatches_case2(  const char *text,
       // If there could be a possible match here.
       if (matches[i] >= k)
       {
-      
-         // Verify this location
-         //for (int ]
-      
+         printf("Verifying position %d\n", i);
+         // Verify this location    
+         if (verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m) <=k)
+            printf("Found k-mismatch\n");
+     
       }
       
    

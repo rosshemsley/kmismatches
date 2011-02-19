@@ -36,6 +36,7 @@ typedef unsigned short DTsucc2;
 	DTidx query(DTidx i, DTidx j, DT* a, DTidx n);
 	void RMQ_succinct(DT* a, DTidx n);
 	void FreeRMQ_succinct();
+	int query_naive(int i, int j, int *a, int n);
 
 /******************************************************************************/
 // Globals

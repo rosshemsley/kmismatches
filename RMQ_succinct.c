@@ -16,6 +16,7 @@
 
 
 
+
 const DTidx Catalan[17][17] = {
 	{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
@@ -98,6 +99,29 @@ const DTsucc HighestBitsSet[8] = {~0, ~1, ~3, ~7, ~15, ~31, ~63, ~127};
 static inline DTsucc clearbits(DTsucc n, DTidx x) {
 	return n & HighestBitsSet[x];
 }
+
+
+
+int query_naive(int i, int j, int *a, int n)
+{
+   int min = j;
+   for (int x=i; x<j; x++)
+   {
+      if (a[x] < a[min])
+         min = x;   
+   }
+   
+   return min;
+
+}
+
+
+
+
+
+
+
+
 
 DTidx query(DTidx i, DTidx j, DT* a, DTidx n) {
 	DTidx mb_i = microblock(i);     // i's microblock
