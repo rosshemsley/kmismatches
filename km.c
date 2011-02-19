@@ -124,15 +124,15 @@ int extend     (          char   t,
                            int   m         )
 {
 
-   printf("Extending\n");  
-   printf("l: %d\n", l); 
+   //printf("Extending\n");  
+   //printf("l: %d\n", l); 
    // Go through the Suffix Array until LCP[i] < l or pattern[SA[i]+l] = t.
    
    // Check to see whether or not we can extend the current suffix.   
    if ( (esa->SA[*x]+l < m) && (pattern[esa->SA[*x] + l] == t) )
    {
-       printf("Succeeded with current\n");
-       printf("'%s'\n", pattern + esa->SA[*x]); 
+       //printf("Succeeded with current\n");
+       //printf("'%s'\n", pattern + esa->SA[*x]); 
       return 1;
    }
    
@@ -142,20 +142,20 @@ int extend     (          char   t,
       // If we have run out of sufficies.
       if (i>=m) return 0;
       
-      printf("Checking against: %d\n", i);
+      //printf("Checking against: %d\n", i);
       // There are no sufficies with this prefix.
       if (esa->LCP[i] < l ) {
       
-         printf("Ran out of values\n");
+         //printf("Ran out of values\n");
          return 0;
       }
       
       // Check this character match.
-      printf("Comparing '%c' against '%c'\n", pattern[esa->SA[i]+l], t);
-      printf("%d, %d, l: %d. x: %d, SA[x]: %d", esa->SA[*x]+l, m, l, *x, esa->SA[*x]);
+      //printf("Comparing '%c' against '%c'\n", pattern[esa->SA[i]+l], t);
+      //printf("%d, %d, l: %d. x: %d, SA[x]: %d", esa->SA[*x]+l, m, l, *x, esa->SA[*x]);
       if ( (esa->SA[i]+l < m) && (pattern[esa->SA[i] + l] == t) )
       {
-         printf("Changing to '%s'\n", pattern + esa->SA[i]); 
+         //printf("Changing to '%s'\n", pattern + esa->SA[i]); 
          *x = i;
          return 1;
       }
@@ -196,7 +196,7 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
-      printf("\nStarting new Suffix: '%s'\n", text + i);
+     // printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
       
       // Find the first suffix which starts with the current symbol
@@ -210,7 +210,7 @@ void construct_pRepresentation(       pTriple   *P,
          continue;
       }
 
-      printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
+     // printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
       P[p].i = i;
       
       
@@ -220,8 +220,8 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].l = l;
       P[p].j = esa->SA[x];
    
-     printf("Extended to length %d, using suffix:\n", P[p].l);
-        printf("'%s'\n", pattern + esa->SA[x]);
+      //printf("Extended to length %d, using suffix:\n", P[p].l);
+      //  printf("'%s'\n", pattern + esa->SA[x]);
     
       ++p;
    }  
