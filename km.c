@@ -527,7 +527,8 @@ int verifyMatch(  const pTriple  *pRepresentation,
      
       // If this takes us to the end, then return: 
       // Otherwise we might end up incrementing mismatches too many times.
-      if (j + l  == m) break;
+      // TODO: CHECK THIS DOESN'T RESULT IN OFF-BY-ONE errors.
+      if (j + l  == m-1) break;
      
      
      
@@ -575,7 +576,13 @@ int verifyMatch(  const pTriple  *pRepresentation,
   printf("Found %d Mismatches\n", mismatches);
   printf("Actual: %d\n", actual);
   printf("--------------------------------------------------------------\n");
- exit(0);
+
+if (actual != mismatches) 
+{
+   printf("HALT\n");
+
+}exit(0);
+
 
 
 }
@@ -824,7 +831,7 @@ void randomStrings( char *text,
 
 /******************************************************************************/
 //
-// NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca'
+// NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
 //
 //
 
@@ -848,11 +855,11 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = "ccdbccdcdcdbbcbdcaa";// malloc(sizeof(char) * n);
-   char *p = "bccbccaab";// malloc(sizeof(char) * m);
+   char *t = "aacdcdbcddbcdbbccbb"; //malloc(sizeof(char) * n);
+   char *p = "dcacdadcc"; //malloc(sizeof(char) * m);
 
 
-//   randomStrings(t, p, n, m);
+  // randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
    
   // exit(0);
