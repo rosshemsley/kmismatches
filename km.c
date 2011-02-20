@@ -55,7 +55,7 @@ void createLookup(       int   *lookup,
       if (pattern[i] == symbol)
       {
          lookup[x] = i;
-         x++;
+         ++x;
       }
    }
 
@@ -65,6 +65,7 @@ void createLookup(       int   *lookup,
 }
 
 /******************************************************************************/
+
 void markMatches(       int  *matches, 
                   const char *text, 
                         char  symbol, 
@@ -117,13 +118,13 @@ int count_frequent_symbols(
 // to small (i.e. the preceeding chars don't match) then we return -1, 
 // and must start a new pTriple.
 
-int extend     (          char   t, 
-                           int   l,
-                           int  *x,
-                     const char *pattern, 
-                     const  ESA *esa,
-                           int   n,     
-                           int   m         )
+int extend     (           char   t, 
+                           int    l,
+                           int   *x,
+                     const char  *pattern, 
+                     const  ESA  *esa,
+                           int    n,     
+                           int    m         )
 {
 
    //printf("Extending\n");  
@@ -190,10 +191,10 @@ void construct_pRepresentation(       pTriple   *P,
                                       int        m              )
 {
 
-   int p=0;
-   int i=0;
-   int x=0;
-   int l=0;
+   int p = 0;
+   int i = 0;
+   int x = 0;
+   int l = 0;
 
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
@@ -215,20 +216,16 @@ void construct_pRepresentation(       pTriple   *P,
 
      // printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
       P[p].i = i;
-      
-      
+        
       // Extend the value as far as possible.
       while ( extend( text[++i], ++l, &x, pattern, esa, n, m ) );
             
       P[p].l = l;
       P[p].j = esa->SA[x];
-   
-      //printf("Extended to length %d, using suffix:\n", P[p].l);
-      //  printf("'%s'\n", pattern + esa->SA[x]);
-    
       ++p;
    }  
    
+   // Mark the end of the p-representation.
    if (p < n-1)
       P[p].j=-2;
    
@@ -287,7 +284,7 @@ void abrahamson_kosaraju( const char *text,
          createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
       
          // match this symbol in the text.
-          markMatches(matches, text, i, pattern_lookup, n, m, FREQ_CHAR_THRESHOLD);
+         markMatches(matches, text, i, pattern_lookup, n, m, FREQ_CHAR_THRESHOLD);
       }
    }
 }                                
@@ -417,37 +414,36 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 // where the x'th p-triple starts). 
 
 int verifyMatch(  const pTriple  *pRepresentation,
-                  const char *text,
-                  const char *pattern,
-                  const  ESA *esa,
-                         int  x,
-                         int  t,
-                         int  i,
-                         int  k,
-                         int  n,
-                         int  m                )
+                  const char     *text,
+                  const char     *pattern,
+                  const ESA      *esa,
+                        int       x,
+                        int       t,
+                        int       i,
+                        int       k,
+                        int       n,
+                        int       m                )
 {
 
-   int mismatches=0;
-   
+   // The count of the mismatches found.
+   int mismatches = 0;
    
    // The start and end of the p-block representation for this part of 
    // the text.
    int block_start = pRepresentation[x].j + (i-t);
    int block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
    
-   
    // The positions in the patterh between which we calculuate the LCE
    int j = 0;
    
    
    
-   printf("Theoretical match: %s\n", text + i);
-   printf("Against:           %s\n", pattern);
+   //printf("Theoretical match: %s\n", text + i);
+   //printf("Against:           %s\n", pattern);
    
-   printf("P[x].j: %d\n", pRepresentation[x].j);
+   //printf("P[x].j: %d\n", pRepresentation[x].j);
    
-   printf("i: %d, t: %d, x: %d\n", i, t,x);   
+  // printf("i: %d, t: %d, x: %d\n", i, t,x);   
    
    
    
@@ -467,7 +463,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       if (block_start == -1)
       {
       
-         printf("IGNORING CHARACTER\n");
+        // printf("IGNORING CHARACTER\n");
          ++x;
          block_start = pRepresentation[x].j;
          i += 1;
@@ -479,21 +475,21 @@ int verifyMatch(  const pTriple  *pRepresentation,
          continue;
       }
    
-    printf("j: %d, block_start: %d\n", j, block_start);
-         printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
-        printf(" suffix: %s\n", pattern + block_start);
-         printf("   text: ");
-       for (int z = block_start; z <= block_end; z++)
-       {
-          printf("%c", pattern[z]);
-        }
-       printf("\n");
+  //  printf("j: %d, block_start: %d\n", j, block_start);
+     //    printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
+    //    printf(" suffix: %s\n", pattern + block_start);
+    //     printf("   text: ");
+     //  for (int z = block_start; z <= block_end; z++)
+   //    {
+   //       printf("%c", pattern[z]);
+    //    }
+    //   printf("\n");
          
             
-        printf("pattern: %s\n", pattern + j);
+      //  printf("pattern: %s\n", pattern + j);
    
    
-        printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
+     //   printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
    
    
    
@@ -522,7 +518,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
             if (l + block_start > block_end)
                l = block_end - block_start+1;
 
-        printf("Found %d matching characters\n", l);
+    //    printf("Found %d matching characters\n", l);
      
      
       // If this takes us to the end, then return: 
@@ -538,7 +534,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // We just start the next block and continue.
       if (block_start + l > block_end)
       {
-        printf("CASE 1: End of block reached\n");
+       // printf("CASE 1: End of block reached\n");
          ++x;
          i += l;
          
@@ -555,7 +551,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          // We increment k and continue in this block.
          else
       {
-       printf("CASE 2: Within block\n");  
+      // printf("CASE 2: Within block\n");  
          i +=           l+1;
          
          block_start += l+1;
@@ -566,7 +562,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          
       }
       
-    printf("\n\n");
+  //  printf("\n\n");
 
    
    }
@@ -670,8 +666,8 @@ void k_mismatches_case2(  const char *text,
    
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
-   printf("%s\n", text);
-   display_pRepresentation(pRepresentation, pattern, n);
+   //printf("%s\n", text);
+   //display_pRepresentation(pRepresentation, pattern, n);
 
   // exit(0);
    for (int i=0; i<n-m+1; i++)
@@ -847,8 +843,8 @@ int main(int argc, char **argv)
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 10;
-   int n       = 20;
+   int m       = 20;
+   int n       = 40;
 
    //-------------------------------------------------------------------------//
  
