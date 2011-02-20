@@ -393,291 +393,112 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 
 /******************************************************************************/
 
+static inline LCE(int i, int j, const ESA *esa)
+{
+   
+   // If we are looking at the same suffix, return the suffix length.
+   if (i==j) return (esa->n-j);
+   
+   // Find the position in the SA of these indicies
+   int a = esa->SAi[i];
+   int b = esa->SAi[j];
+   
+   // Make sure that a comes first.
+   if (a>b)
+   {
+      int c = a;
+      a = b;
+      b = c;
+   }
+   
+   // LCE query.
+   int temp = query_naive( a+1, b, esa->LCP, esa->n );
+      
+   return esa->LCP[temp];
+   
+}
+
+/******************************************************************************/
+
 // j gives the location in the pattern, 
 // the pair (x,t) give the location in the text (t is the index into the text
 // where the x'th p-triple starts). 
 
 int verifyMatch(  const pTriple  *pRepresentation,
-                  const char *text,
-                  const char *pattern,
-                  const  ESA *esa,
-                         int  x,
-                         int  t,
-                         int  i,
-                         int  k,
-                         int  n,
-                         int  m                )
+                  const char     *text,
+                  const char     *pattern,
+                  const  ESA     *esa,
+                         int      x,
+                         int      t,
+                         int      i,
+                         int      k,
+                         int      n,
+                         int      m                )
 {
 
-   int mismatches=0;
-   
+   int mismatches = 0;
    
    // The start and end of the p-block representation for this part of 
    // the text.
    int block_start = pRepresentation[x].j + (i-t);
    int block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
    
-   
-   // The positions in the patterh between which we calculuate the LCE
+   // The current position in the pattern.
    int j = 0;
    
-   
-   
-   printf("Theoretical match: %s\n", text + i);
-   printf("Against:           %s\n", pattern);
-   
-  // printf("i: %d, t: %d, x: %d\n", i, t,x);   
-   
-   
-   
-   
-   
-   
-   
-   
-   
+   // Continue until we reach the end of the pattern.   
    while (j < m)
    {
-   
       // Ignore filtered characters:
-      
       if (block_start == -1)
       {
-      
-    //     printf("IGNORING CHARACTER\n");
          ++x;
          block_start = pRepresentation[x].j;
+         block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
          i += 1;
          t += 1;
          j += 1;
-         block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
-         
          mismatches ++;
          continue;
       }
-   
-  //  printf("j: %d, block_start: %d\n", j, block_start);
-    //     printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
-    //     printf(" suffix: %s\n", pattern + block_start);
-    ////     printf("   text: ");
-    //    for (int z = block_start; z <= block_end; z++)
-   //     {
-    //      printf("%c", pattern[z]);
-   //     }
-   //     printf("\n");
-         
-            
-     //    printf("pattern: %s\n", pattern + j);
-   
-   
-    //     printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
-   
-   
-   
-      int a = esa->SAi[block_start];
-      int b = esa->SAi[j];
       
-      if (a>b)
-      {
-         int c = a;
-         a = b;
-         b = c;
-      }
-   
-      // First, we calculuate the LCE:
-     // jump to the next point where the text and pattern do not match.
-      int temp = query_naive( a+1, b, esa->LCP, esa->n );
-      int l    = esa->LCP[temp];
-      
+      // Calculuate the longest possible shared prefix.
+      int l = LCE(block_start, j, esa);
 
-      if (block_start == j)
-         { 
-            l = (m - j);     
-
-      }
-                 // If the length goes over the length of this block.
-            if (l + block_start > block_end)
-               l = block_end - block_start+1;
-
-  //         printf("Found %d matching characters\n", l);
-     
+      // If the length goes over the length of this block.
+      if (l + block_start > block_end)
+         l = block_end - block_start+1;
      
       // If this takes us to the end, then return: 
       // Otherwise we might end up incrementing mismatches too many times.
       if (j + l  == m) break;
-     
-     
-     
-      // We now know the LCE between the current blocks.
-      
-      // Case 1: they match all the way to the end of their current block
+         
+      // Case 1: the sufficies match all the way to the end of the current block
       // We just start the next block and continue.
       if (block_start + l > block_end)
       {
-    //     printf("CASE 1: End of block reached\n");
          ++x;
-         i += l;
-         
+         i += l;  
          t += l;
-         j           = j+l;
+         j += l;
            
          block_start = pRepresentation[x].j;
-         block_end   = pRepresentation[x].j + pRepresentation[x].l -1;
-         
-
-      
+         block_end   = pRepresentation[x].j + pRepresentation[x].l - 1;
       } 
          // Case 2: It mismatches within the current block,
          // We increment k and continue in this block.
          else
       {
-     //   printf("CASE 2: Within block\n");  
-         i +=           l+1;
-         
-         block_start += l+1;
+         i +=           l+1;  
          j +=           l+1;
-         
-
+         block_start += l+1;
+   
+         // There was a mismatch.
          mismatches ++;
          
       }
-      
-   //  printf("\n\n");
-
-   
    }
-//printf("Found %d Mismatches\n", mismatches);
- //  return mismatches;
-   printf("--------------------------------------------------------------\n");
-  printf("Found %d Mismatches\n", mismatches);
-  printf("--------------------------------------------------------------\n");
-//   exit(0);
-
-/*
-   // This implements the 'Kangarooing' method.
-  
-   // Call _i the position in the text, _j the position in the pattern.
-   int _j = 0;
-   
-   // Get the index of the text substring.
-   // note that i-t gives the 'lag' between the current text
-   // position and the current p-block.
-   int _i = pRepresentation[x].j + i-t;
-   printf("i: %d, t: %d, x: %d\n", i, t,x);
-
-   // The number of mismatches so far.
-   int _k = 0;
-   
-   printf("\n\n");
-   display_pRepresentation(pRepresentation, pattern, n);
-   
-
-
-   printf("Theoretical match: %s\n", text + i);
-   printf("Against:           %s\n", pattern);
-
-   while (_j < m)
-   {
-      printf("\nCurrent block: \n");
-      // Display the current block //
-      //for (int i=0;i<pRepresentation[x].l; i++)
-      // {
-      //    printf("%c", pattern[pRepresentation[x].j + i]);
-      // }
-      // printf("\n");
-         printf("_j: %d, _i: %d\n", _j, _i);
-         printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
-         printf(" suffix: %s\n", pattern + _i);
-         printf("   text: ");
-         for (int z=_i; z<_i+pRepresentation[x].l-(i-t); z++)
-         {
-            printf("%c", pattern[z]);
-         }
-         printf("\n");
-         
-            
-         printf("pattern: %s\n", pattern + _j);
-
-   
-   
-      printf("Going around loop\n");
-      
-      printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[_i]+1, esa->SAi[_j]);
-      
-      // jump to the next point where the text and pattern do not match.
-      int temp = query_naive( esa->SAi[_i]+1, esa->SAi[_j], esa->LCP, esa->n);
-      int l    = esa->LCP[temp];
-     
-     
-      if (_i == _j+1) l = esa->LCP[_i];
-      if (_i == _j)
-         { 
-            l = (m-_j);     
-                     t += pRepresentation[x].l;      
-            // If the length goes over the length of this block.
-            if (l > pRepresentation[x].l - (i-t)+1)   
-               l = pRepresentation[x].l - (i-t);
-
-      }
-     
-     
-      printf("Found %d matching characters\n", l);
-     
-      // Does this run over the end of this p-triple? 
-      // - if yes, we have found a mismatch, and need to 
-      
-      // Does this match carry on beyond the length of the pattern?
-      // if yes then we are done.
-
-      // Does this run over the end of this p-triple?
-      // If yes, then we know there is a mismatch, and 
-      // we have to move to the next p-triple. (this happens at most three
-      // times for any given verification).
-      if (l >= pRepresentation[x].l-(i-t))
-      {
-         printf("Mismatch at end of block\n");
-         _k ++;
-         
-         // Move to the next p-block.
-         t += pRepresentation[x].l;      
-         x ++;
-         
-         // This whole block  matched, so this means that the first char
-         // of the next block does NOT match, so we start from 1 in.
-         i = t+1;
-         
-         // _i becomes the value j from the current p-block,
-         // as we are starting from the beginning of it.
-         _i = pRepresentation[x].j+1;
-         
-         // _j moves forwards one to go past this mismatching point.
-         _j += l+1;
-      }
-      else if ( l + _j >= m ) 
-      {
-         printf("Ran over end of the pattern\n");
-         exit(0);
-         return _k;
-      }
-      else //if ( l > pRepresentation[x].l - (i-t))
-      {
-         printf("Mismatch within block\n");
-         // Increment number of mismatches found so far.
-         i +=l+1;
-         
-         _j +=l+1;
-         _i +=l+1;
-
-            
-      }
-      
-      //exit(0);
-   }
-   exit(0);
-   
-   return _k;
-   
-   */
+   return mismatches;
 }
 
 /******************************************************************************/
@@ -953,7 +774,7 @@ int main(int argc, char **argv)
    
    
    
-      int * matches  = malloc(sizeof(int) * (n-m+1));
+   int * matches  = malloc(sizeof(int) * (n-m+1));
 
    kmismatches(t,p,1,n,m,matches);
 
