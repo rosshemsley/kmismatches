@@ -580,9 +580,9 @@ int verifyMatch(  const pTriple  *pRepresentation,
 if (actual != mismatches) 
 {
    printf("HALT\n");
+exit(0);
 
-}exit(0);
-
+}
 
 
 }
@@ -859,8 +859,9 @@ int main(int argc, char **argv)
    char *p = malloc(sizeof(char) * m);
 
 
+for (int a=0; a<100; a++)
+{
  randomStrings(t, p, n, m);
-   printf("%s\n%s\n",t,p);
    
   // exit(0);
    
@@ -870,6 +871,9 @@ int main(int argc, char **argv)
 
    kmismatches(t,p,1,n,m,matches);
 
+   
+
+}
    exit(0);
 
    //printf("%s\n", t);
