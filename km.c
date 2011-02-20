@@ -207,6 +207,7 @@ void construct_pRepresentation(       pTriple   *P,
       if (x<0)
       {
          P[p].j = -1;
+         P[p].l =  1;
          ++p;
          ++i;
          continue;
@@ -607,7 +608,7 @@ void constructESA(const char *s, int n, ESA *esa)
    for (int i=0; i<n; i++)
       printf("%d: %d\n", i, esa->SAi[i]);
 
-exit(0);
+
 }
 
 /******************************************************************************/
@@ -847,8 +848,8 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = "baccacdabddaabbdcad"; //malloc(sizeof(char) * n);
-   char *p = "aacdbbcca";//  malloc(sizeof(char) * m);
+   char *t = "ccdbccdcdcdbbcbdcaa";// malloc(sizeof(char) * n);
+   char *p = "bccbccaab";// malloc(sizeof(char) * m);
 
 
 //   randomStrings(t, p, n, m);
