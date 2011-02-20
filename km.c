@@ -426,7 +426,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
    printf("Theoretical match: %s\n", text + i);
    printf("Against:           %s\n", pattern);
    
-   printf("i: %d, t: %d, x: %d\n", i, t,x);   
+  // printf("i: %d, t: %d, x: %d\n", i, t,x);   
    
    
    
@@ -444,7 +444,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       if (block_start == -1)
       {
       
-         printf("IGNORING CHARACTER\n");
+    //     printf("IGNORING CHARACTER\n");
          ++x;
          block_start = pRepresentation[x].j;
          i += 1;
@@ -456,21 +456,21 @@ int verifyMatch(  const pTriple  *pRepresentation,
          continue;
       }
    
-    printf("j: %d, block_start: %d\n", j, block_start);
-         printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
-         printf(" suffix: %s\n", pattern + block_start);
-         printf("   text: ");
-        for (int z = block_start; z <= block_end; z++)
-        {
-          printf("%c", pattern[z]);
-        }
-        printf("\n");
+  //  printf("j: %d, block_start: %d\n", j, block_start);
+    //     printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
+    //     printf(" suffix: %s\n", pattern + block_start);
+    ////     printf("   text: ");
+    //    for (int z = block_start; z <= block_end; z++)
+   //     {
+    //      printf("%c", pattern[z]);
+   //     }
+   //     printf("\n");
          
             
-         printf("pattern: %s\n", pattern + j);
+     //    printf("pattern: %s\n", pattern + j);
    
    
-         printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
+    //     printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
    
    
    
@@ -499,7 +499,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
             if (l + block_start > block_end)
                l = block_end - block_start+1;
 
-           printf("Found %d matching characters\n", l);
+  //         printf("Found %d matching characters\n", l);
      
      
       // If this takes us to the end, then return: 
@@ -514,7 +514,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // We just start the next block and continue.
       if (block_start + l > block_end)
       {
-         printf("CASE 1: End of block reached\n");
+    //     printf("CASE 1: End of block reached\n");
          ++x;
          i += l;
          
@@ -531,7 +531,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          // We increment k and continue in this block.
          else
       {
-        printf("CASE 2: Within block\n");  
+     //   printf("CASE 2: Within block\n");  
          i +=           l+1;
          
          block_start += l+1;
@@ -542,7 +542,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          
       }
       
-     printf("\n\n");
+   //  printf("\n\n");
 
    
    }
@@ -551,7 +551,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
    printf("--------------------------------------------------------------\n");
   printf("Found %d Mismatches\n", mismatches);
   printf("--------------------------------------------------------------\n");
-   exit(0);
+//   exit(0);
 
 /*
    // This implements the 'Kangarooing' method.
@@ -910,12 +910,12 @@ void randomStrings( char *text,
       // random letter from a..z 
       text[i]    = (char)(rand() % 4 + 97);
    
-   text[n-1] = 0;   
+   text[n-1] = '\0';   
    
    for (i=0; i<m; i++)
       pattern[i] = (char)(rand() % 4 + 97);
    
-   pattern[m-1] = 0;
+   pattern[m-1] = '\0';
 
 }
 
@@ -942,12 +942,16 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = /*"babadbbbacaccabbccd"; //*/ malloc(sizeof(char) * (n+1));
-   char *p = /*"addaaadcc";/*/malloc(sizeof(char) * (m+1));
+   char *t =  malloc(sizeof(char) * n);
+   char *p = malloc(sizeof(char) * m);
 
 
-   randomStrings(t, p, n+1, m+1);
+   randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
+   
+  // exit(0);
+   
+   
    
       int * matches  = malloc(sizeof(int) * (n-m+1));
 
