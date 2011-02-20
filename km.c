@@ -574,7 +574,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
   printf("Found %d Mismatches\n", mismatches);
   printf("Actual: %d\n", actual);
   printf("--------------------------------------------------------------\n");
-//   exit(0);
+ exit(0);
 
 
 }
@@ -584,6 +584,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
 // Construct an extended suffix array for some string of length n.s
 void constructESA(const char *s, int n, ESA *esa)
 {
+   
    esa->n   = n;
    
    // TODO: Change these to malloc's later.
@@ -606,7 +607,7 @@ void constructESA(const char *s, int n, ESA *esa)
    for (int i=0; i<n; i++)
       printf("%d: %d\n", i, esa->SAi[i]);
 
-
+exit(0);
 }
 
 /******************************************************************************/
@@ -821,6 +822,10 @@ void randomStrings( char *text,
 
 
 /******************************************************************************/
+//
+// NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca'
+//
+//
 
 
 int main(int argc, char **argv)
@@ -842,11 +847,11 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = "cadbccdbacdbcbccdba";// malloc(sizeof(char) * n);
-   char *p = "acbaadbdc"; //malloc(sizeof(char) * m);
+   char *t = "baccacdabddaabbdcad"; //malloc(sizeof(char) * n);
+   char *p = "aacdbbcca";//  malloc(sizeof(char) * m);
 
 
-   //randomStrings(t, p, n, m);
+//   randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
    
   // exit(0);
