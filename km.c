@@ -474,12 +474,12 @@ int verifyMatch(  const pTriple  *pRepresentation,
       if (block_start == j)
          { 
             l = (m - j);     
-            // If the length goes over the length of this block.
+
+      }
+                 // If the length goes over the length of this block.
             if (l + block_start > block_end)
                l = block_end - block_start+1;
 
-      }
-     
            printf("Found %d matching characters\n", l);
      
      
