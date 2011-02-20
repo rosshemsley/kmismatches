@@ -315,7 +315,7 @@ void kmismatches(         const char *text,
 
 
    // Which k-mismatches case to perform.
-   if ( count_frequent_symbols(frequency_table, FREQ_CHAR_THRESHOLD, n) > 2*sqrt(k) )
+   if (0) // count_frequent_symbols(frequency_table, FREQ_CHAR_THRESHOLD, n) > 2*sqrt(k) )
    {
    
       // This will become a look up for each frequent character.
@@ -349,7 +349,7 @@ void kmismatches(         const char *text,
    
    } else {
    
-      printf("CASE 2, k = %d\n", k);
+   //   printf("CASE 2, k = %d\n", k);
       k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
    
    }
@@ -585,6 +585,15 @@ exit(0);
 
 /******************************************************************************/
 
+void freeESA(ESA *esa)
+{
+   free(esa->SA);
+   free(esa->LCP);
+   free(esa->SAi);
+}
+
+/******************************************************************************/
+
 // Construct an extended suffix array for some string of length n.s
 void constructESA(const char *s, int n, ESA *esa)
 {
@@ -631,7 +640,7 @@ void k_mismatches_case2(  const char *text,
    // We do this first for memory efficiency
    int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
-   printf("sqrt k: %d\n", sqrt_k);
+ //  printf("sqrt k: %d\n", sqrt_k);
    
    int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
@@ -718,7 +727,10 @@ void k_mismatches_case2(  const char *text,
    
    // printf("\n\n");
    
-
+   
+   freeESA(&esa);
+   free(pattern_lookup);
+   free(pRepresentation);
 }
 
 
@@ -798,7 +810,6 @@ int randDNA()
 }
 
 
-
 /******************************************************************************/
 
 // Create random pattern and text.
@@ -830,7 +841,7 @@ void randomStrings( char *text,
 // NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
 //
 //
-
+/******************************************************************************/
 
 int main(int argc, char **argv)
 {
@@ -840,36 +851,33 @@ int main(int argc, char **argv)
    // Testing parameters.
    //-------------------------------------------------------------------------//
    // Number of different test cases to try.
-   int repeats = 1;
+   int repeats = 100;
    
    // the length of the text and pattern.
-   int m       = 20;
-   int n       = 40;
+   int m       = 26;
+   int n       = 100;
 
    //-------------------------------------------------------------------------//
  
-   int x;
-
    // The text and pattern strings.
-   char *t = malloc(sizeof(char) * n);
-   char *p = malloc(sizeof(char) * m);
+   char *t        = malloc(sizeof(char) * n);
+   char *p        = malloc(sizeof(char) * m);
+   int  *matches  = malloc(sizeof(int)  * (n-m+1));
 
-
-for (int a=0; a<100; a++)
-{
- randomStrings(t, p, n, m);
+   for (int a=0; a < repeats; a++)
+   {
+      randomStrings(t, p, n, m);
    
-  // exit(0);
+      kmismatches(t,p,1,n,m,matches);
+      
+   }
    
+   free(p);
+   free(t);
+   free(matches);
+  // FreeRMQ_succinct();
    
-   
-      int * matches  = malloc(sizeof(int) * (n-m+1));
-
-   kmismatches(t,p,1,n,m,matches);
-
-   
-
-}
+   /*
    exit(0);
 
    //printf("%s\n", t);
@@ -908,7 +916,7 @@ for (int a=0; a<100; a++)
       //printf("\n");
    }
         
-
+   */
    return 0;
 }
 
