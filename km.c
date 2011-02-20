@@ -455,8 +455,8 @@ int verifyMatch(  const pTriple  *pRepresentation,
    
    
    
-      int a = block_start;
-      int b = j;
+      int a = esa->SAi[block_start];
+      int b = esa->SAi[j];
       
       if (a>b)
       {
@@ -467,10 +467,10 @@ int verifyMatch(  const pTriple  *pRepresentation,
    
       // First, we calculuate the LCE:
      // jump to the next point where the text and pattern do not match.
-      int temp = query_naive( esa->SAi[a]+1, esa->SAi[b], esa->LCP, esa->n );
+      int temp = query_naive( a+1, b, esa->LCP, esa->n );
       int l    = esa->LCP[temp];
       
-      if (block_start == j+1) l = esa->LCP[block_start];
+     // if (block_start == j+1) l = esa->LCP[block_start];
       if (block_start == j)
          { 
             l = (m - j);     
@@ -481,6 +481,12 @@ int verifyMatch(  const pTriple  *pRepresentation,
                l = block_end - block_start+1;
 
            printf("Found %d matching characters\n", l);
+     
+     
+      // If this takes us to the end, then return: 
+      // Otherwise we might end up incrementing mismatches too many times.
+      if (j + l  == m) break;
+     
      
      
       // We now know the LCE between the current blocks.
@@ -512,6 +518,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          block_start += l+1;
          j +=           l+1;
          
+
          mismatches ++;
          
       }
@@ -521,8 +528,9 @@ int verifyMatch(  const pTriple  *pRepresentation,
    
    }
 
+   printf("--------------------------------------------------------------\n");
    printf("Found %d Mismatches\n", mismatches);
-
+   printf("--------------------------------------------------------------\n");
    
 
 /*
