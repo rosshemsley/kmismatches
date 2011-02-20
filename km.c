@@ -11,6 +11,8 @@
 #include "sais.h"
 #include "RMQ_succinct.h"
 
+#define DEBUG
+
 /******************************************************************************/
 
    double *FFT_match_p = NULL;
@@ -437,15 +439,32 @@ int verifyMatch(  const pTriple  *pRepresentation,
    while (j < m)
    {
    
+      // Ignore filtered characters:
+      
+      if (block_start == -1)
+      {
+      
+         printf("IGNORING CHARACTER\n");
+         ++x;
+         block_start = pRepresentation[x].j;
+         i += 1;
+         t += 1;
+         j += 1;
+         block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
+         
+         mismatches ++;
+         continue;
+      }
+   
     printf("j: %d, block_start: %d\n", j, block_start);
          printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
          printf(" suffix: %s\n", pattern + block_start);
          printf("   text: ");
-         for (int z = block_start; z <= block_end; z++)
-         {
-            printf("%c", pattern[z]);
-         }
-         printf("\n");
+        for (int z = block_start; z <= block_end; z++)
+        {
+          printf("%c", pattern[z]);
+        }
+        printf("\n");
          
             
          printf("pattern: %s\n", pattern + j);
@@ -470,7 +489,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       int temp = query_naive( a+1, b, esa->LCP, esa->n );
       int l    = esa->LCP[temp];
       
-     // if (block_start == j+1) l = esa->LCP[block_start];
+
       if (block_start == j)
          { 
             l = (m - j);     
@@ -512,7 +531,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          // We increment k and continue in this block.
          else
       {
-         printf("CASE 2: Within block\n");  
+        printf("CASE 2: Within block\n");  
          i +=           l+1;
          
          block_start += l+1;
@@ -523,15 +542,16 @@ int verifyMatch(  const pTriple  *pRepresentation,
          
       }
       
-      printf("\n\n");
+     printf("\n\n");
 
    
    }
-
+//printf("Found %d Mismatches\n", mismatches);
+ //  return mismatches;
    printf("--------------------------------------------------------------\n");
-   printf("Found %d Mismatches\n", mismatches);
-   printf("--------------------------------------------------------------\n");
-   
+  printf("Found %d Mismatches\n", mismatches);
+  printf("--------------------------------------------------------------\n");
+   exit(0);
 
 /*
    // This implements the 'Kangarooing' method.
@@ -775,7 +795,7 @@ void k_mismatches_case2(  const char *text,
       // If there could be a possible match here.
       if (matches[i] >= k)
       {
-         printf("Verifying position %d\n", i);
+         printf("\nVerifying position %d\n", i);
             display_pRepresentation(pRepresentation, pattern, n);
          // Verify this location    
          if (verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m) <=k)
@@ -922,11 +942,11 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = "abcabcabbccaabaabbab"; //malloc(sizeof(char) * (n+1));
-   char *p = "abcabcadda";//malloc(sizeof(char) * (m+1));
+   char *t = /*"babadbbbacaccabbccd"; //*/ malloc(sizeof(char) * (n+1));
+   char *p = /*"addaaadcc";/*/malloc(sizeof(char) * (m+1));
 
 
-//   randomStrings(t, p, n, m);
+   randomStrings(t, p, n+1, m+1);
    printf("%s\n%s\n",t,p);
    
       int * matches  = malloc(sizeof(int) * (n-m+1));
