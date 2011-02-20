@@ -855,11 +855,11 @@ int main(int argc, char **argv)
    int x;
 
    // The text and pattern strings.
-   char *t = "aacdcdbcddbcdbbccbb"; //malloc(sizeof(char) * n);
-   char *p = "dcacdadcc"; //malloc(sizeof(char) * m);
+   char *t = malloc(sizeof(char) * n);
+   char *p = malloc(sizeof(char) * m);
 
 
-  // randomStrings(t, p, n, m);
+ randomStrings(t, p, n, m);
    printf("%s\n%s\n",t,p);
    
   // exit(0);
