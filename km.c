@@ -451,12 +451,23 @@ int verifyMatch(  const pTriple  *pRepresentation,
          printf("pattern: %s\n", pattern + j);
    
    
+         printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
    
    
+   
+      int a = block_start;
+      int b = j;
+      
+      if (a>b)
+      {
+         int c = a;
+         a = b;
+         b = c;
+      }
    
       // First, we calculuate the LCE:
      // jump to the next point where the text and pattern do not match.
-      int temp = query_naive( esa->SAi[block_start]+1, esa->SAi[j], esa->LCP, esa->n );
+      int temp = query_naive( esa->SAi[a]+1, esa->SAi[b], esa->LCP, esa->n );
       int l    = esa->LCP[temp];
       
       if (block_start == j+1) l = esa->LCP[block_start];
@@ -512,7 +523,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
 
    printf("Found %d Mismatches\n", mismatches);
 
-   exit(0);
+   
 
 /*
    // This implements the 'Kangarooing' method.
@@ -747,7 +758,7 @@ void k_mismatches_case2(  const char *text,
    
    for (int i=0,x=0; i<n-m+1; i++)
    {
-      if (x+1<n && (t + pRepresentation[x+1].l <= i))
+      if (t + pRepresentation[x].l <= i)
       {
          ++x;
          t += pRepresentation[x].l;
@@ -757,6 +768,7 @@ void k_mismatches_case2(  const char *text,
       if (matches[i] >= k)
       {
          printf("Verifying position %d\n", i);
+            display_pRepresentation(pRepresentation, pattern, n);
          // Verify this location    
          if (verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m) <=k)
             printf("Found k-mismatch\n");
