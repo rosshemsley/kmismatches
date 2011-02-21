@@ -435,7 +435,7 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
+   int temp =  /*query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -649,7 +649,7 @@ void k_mismatches_case2(  const char *text,
    printf("\n");
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   RMQ_succinct(esa.LCP, esa.n);  
+//   RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -708,6 +708,38 @@ void k_mismatches_case2(  const char *text,
 }
 
 /******************************************************************************/
+
+void naive_kangaroo (     const char *text, 
+                          const char *pattern,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches          )
+{
+
+      
+      
+   memset(matches, 0, sizeof(int)*(n-m+1));
+   for (int i=0; i<n-m+1; i++)
+   {
+      int mismatches =0;
+      for (int j=0; j<m-1; j++)
+      {
+         if (pattern[j] != text[i+j]) 
+         { 
+            mismatches ++;
+            if (mismatches >= k) break;  
+         }
+      }
+   
+      matches[i] = mismatches;
+   
+   }
+
+}                                
+                               
+
+/******************************************************************************/
 // Use kangarooing to achieve O(nk) k-mismatches.
 
 void kangaroo(            const char *text, 
@@ -728,7 +760,7 @@ void kangaroo(            const char *text,
   
   
   
-   RMQ_succinct(esa.LCP, esa.n); 
+ //  RMQ_succinct(esa.LCP, esa.n); 
   
    printf("Done RMQ\n");
   
@@ -748,7 +780,7 @@ void kangaroo(            const char *text,
    // Now, go through every position and look for mismatches.
    for (int i=0,x=0; i<n-m+1; i++)
    {
-      if (i%1000000 == 0)
+      if (i%10 == 0)
       printf("i: %d\n", i);
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
@@ -760,12 +792,12 @@ void kangaroo(            const char *text,
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
 
       // DEBUGGING.
-     // int actual = count_naive(text+i, pattern, k, m-1);
-     // if (actual != v)
-     // {
-     //    printf("ERROR: %d, %d\n", actual, v);
-     //    exit(0);    
-      //}
+      int actual = count_naive(text+i, pattern, k, m-1);
+      if (actual != v)
+      {
+         printf("ERROR: %d, %d\n", actual, v);
+         exit(0);    
+      }
       
       matches[i] = v;
       
@@ -863,7 +895,7 @@ void randomStrings( char *text,
    
    for (i=0; i<n; i++)
       // random letter from a..z 
-      text[i]    = (char)(rand() % 4 + 97);
+      text[i]    = randDNA(); //(char)(rand() % 4 + 97);
    
    text[n-1] = '\0';   
    
@@ -893,8 +925,8 @@ int main(int argc, char **argv)
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 1000;
-   int n       = 1000000;
+   int m       = 100;
+   int n       = 100000;
 
    //-------------------------------------------------------------------------//
  
@@ -909,15 +941,29 @@ int main(int argc, char **argv)
    
       //printf("Pattern: %s\n", p);
    
-     n = loadData(&t, "./dna.50MB");
-     printf("loaded, %d bytes\n", n);
+   //  n = loadData(&t, "./dna.50MB");
+    // printf("loaded, %d bytes\n", n);
    
 
    
-   int  *matches  = malloc(sizeof(int)  * (n-m+1));
+      int  *matches        = malloc(sizeof(int)  * (n-m+1));
+      int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
    
-      kangaroo(t,p,10,n,m,matches);
+      printf("Doing naive.\n");
+      naive_kangaroo(t,p,100,n,m,matches_naive);
+            kangaroo(t,p,100,n,m,matches);
+      printf("Doing kangaroo.\n");
       
+      
+      for (int b=0;b<n-m+1; b++)
+      {
+         if (matches_naive[b] != matches[b])
+         {
+            fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
+            
+            exit(0);
+         }
+      }
    }
    
    free(p);
