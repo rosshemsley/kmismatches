@@ -428,7 +428,7 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   int temp = query(a+1, b, esa->LCP, esa->n); //query_naive( a+1, b, esa->LCP, esa->n );
+   int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -466,7 +466,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
-   while (j < m-1)
+   while (mismatches<=k && j < m-1)
    {
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
@@ -716,7 +716,13 @@ void kangaroo(            const char *text,
    ESA esa;   
    constructESA(pattern, m, &esa);
   
-  printf("Done ESA\n");
+  
+  
+   RMQ_succinct(esa.LCP, esa.n); 
+  
+   printf("Done RMQ\n");
+  
+   printf("Done ESA\n");
   
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
   
@@ -729,7 +735,8 @@ void kangaroo(            const char *text,
    // Now, go through every position and look for mismatches.
    for (int i=0,x=0; i<n-m+1; i++)
    {
-   
+      if (i%10000 == 0)
+      printf("i: %d\n", i);
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
       {
@@ -887,7 +894,7 @@ int main(int argc, char **argv)
    {
       randomStrings(t, p, n, m);
    
-      kangaroo(t,p,1,n,m,matches);
+      kangaroo(t,p,10,n,m,matches);
       
    }
    
