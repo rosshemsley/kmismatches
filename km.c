@@ -535,6 +535,23 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       */
          else
       {
+      /*
+         if (block_start + l == block_end)
+         {
+            i += l+1;
+            t += l+1;
+            j += l+1;
+            
+            // Move to the next block.
+            ++x;
+            block_start = pRepresentation[x].j;
+            block_end   = pRepresentation[x].j + pRepresentation[x].l -1;       
+            
+            mismatches++;
+            continue;
+         
+         }*/
+       
 
          // Advance the position by l+1.
          i           += l+1;
@@ -547,7 +564,10 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
 
          // Register the mismatch we found.
          mismatches ++;   
-         if (mismatches >= k) return k;      
+         if (mismatches >= k) return k;   
+         
+
+            
       }   
    }
 
@@ -966,6 +986,7 @@ int main(int argc, char **argv)
       printf("Done kangaroo.\n");
       
       
+      printf("CHECKING: \n");
       for (int b=0;b<n-m+1; b++)
       {
         //printf("Matches %d: %d\n", b, matches[b]);
