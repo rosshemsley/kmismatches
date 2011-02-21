@@ -499,6 +499,29 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          continue;
       }
       
+      
+      // Don't use RMQ to check if one character matches.
+      if (block_start+1 == block_end)
+      {
+         //printf("ONE CHAR QUERY\n");
+         
+         if (pattern[j] != pattern[block_start])
+         {
+            mismatches ++;
+            if (mismatches >= k) return k;   
+         }             
+         t +=1;
+         i +=1;
+         j +=1;
+         ++x;
+         block_start = pRepresentation[x].j;
+         block_end   = pRepresentation[x].j + pRepresentation[x].l -1;   
+         continue;
+       
+         
+      }
+      
+      
       // Find the longest common extension between current positions.
       int l = LCE(block_start, j, esa);
 
@@ -535,7 +558,8 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       */
          else
       {
-      /*
+     
+         // REMOVE POINTLESS QUERIES FROM END.
          if (block_start + l == block_end)
          {
             i += l+1;
@@ -550,7 +574,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
             mismatches++;
             continue;
          
-         }*/
+         }
        
 
          // Advance the position by l+1.
@@ -558,16 +582,10 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          j           += l+1;         
          block_start += l+1;
 
-       //  if (block_start == block_end) printf("STUPID QUERY\n");
-         
-         
-
          // Register the mismatch we found.
          mismatches ++;   
          if (mismatches >= k) return k;   
-         
-
-            
+      
       }   
    }
 
@@ -819,6 +837,7 @@ void kangaroo(            const char *text,
       }
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
+
 
       // DEBUGGING.
       int actual = count_naive(text+i, pattern, k, m-1);
