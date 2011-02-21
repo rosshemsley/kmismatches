@@ -433,7 +433,6 @@ static inline int LCE(int i, int j, const ESA *esa)
                
 }
 
-
 /******************************************************************************/
 
 // j gives the location in the pattern, 
@@ -464,10 +463,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
    // The start and end of the p-block for this part of the text.
    int block_start = pRepresentation[x].j + (i-t);
    int block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
-   
-   // Debugging purposes.
-   int actual = count_naive(text+i, pattern, m-1);
-   
+      
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
    while (j < m-1)
@@ -476,13 +472,17 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
       {
+         // Move to the next block
          ++x;
          block_start = pRepresentation[x].j;
+         block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
+
+         // Advance the position by 1.
          i += 1;
          t += 1;
          j += 1;
-         block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
          
+         // We consider this a mismatch.         
          mismatches ++;
          continue;
       }
@@ -500,43 +500,38 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // TODO: Do this in a more efficient way.
       if (j + l  == m-1) break;
       
-      // CASE 1: they match all the way to the end of their current block
-      // We just start the next block and continue.
+      /**
+      *   CASE 1: Substrings match all the way to the end of their current block
+      *   We start the next block and continue.
+      */
       if (block_start + l > block_end)
       {
-       // printf("CASE 1: End of block reached\n");
-         ++x;
+         // Advance position by l.
          i += l;
          t += l;
          j += l;
-           
+         
+         // Move to the next block.
+         ++x;
          block_start = pRepresentation[x].j;
-         block_end   = pRepresentation[x].j + pRepresentation[x].l -1;
-               
+         block_end   = pRepresentation[x].j + pRepresentation[x].l -1;        
       } 
-         // CASE 2: It mismatches within the current block,
-         // We increment k and continue in this block.
+      /**
+      *  CASE 2: It mismatches within the current block,
+      *  We increment k and continue in this block.
+      */
          else
       {
-         i +=           l+1;
-         j +=           l+1;         
+         // Advance the position by l+1.
+         i           += l+1;
+         j           += l+1;         
          block_start += l+1;
 
+         // Register the mismatch we found.
          mismatches ++;         
       }   
    }
 
-   if (actual != mismatches) 
-   {
-     printf("--------------------------------------------------------------\n");
-     printf("Found %d Mismatches\n", mismatches);
-     printf("Actual: %d\n", actual);
-     printf("--------------------------------------------------------------\n");
-
-     printf("HALT\n");
-     exit(0);
-   }
-   
    return mismatches;
 }
 
@@ -576,7 +571,6 @@ void constructESA(const char *s, int n, ESA *esa)
    printf("\n");
    for (int i=0; i<n; i++)
       printf("%d: %d\n", i, esa->SAi[i]);
-
 
 }
 
@@ -669,8 +663,19 @@ void k_mismatches_case2(  const char *text,
          printf("\nVerifying position %d\n", i);
             display_pRepresentation(pRepresentation, pattern, n);
          // Verify this location    
-         if (verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m) <=k)
-            printf("Found k-mismatch\n");
+
+         
+         int actual = count_naive(text+i, pattern, m-1);
+
+         if (actual != verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m))
+         {
+           printf("ERROR\n");
+           exit(0);
+          
+         }
+     
+
+     
      
       }
       
@@ -690,6 +695,12 @@ void k_mismatches_case2(  const char *text,
    free(pRepresentation);
 }
 
+/******************************************************************************/
+
+void kangaroo()
+{
+
+}
 
 
 /******************************************************************************/
