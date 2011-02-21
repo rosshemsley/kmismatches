@@ -200,7 +200,7 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
-      if (i%1000000 ==0)
+      if (i%(n/10) == 0)
       {
          printf("Done %d%%\n", (int)(i/(float)n*100));
       }
@@ -234,6 +234,8 @@ void construct_pRepresentation(       pTriple   *P,
    // Mark the end of the p-representation.
    if (p < n-1)
       P[p].j=-2;
+      
+    printf("Length of p-representation: %d for %d symbols\n", p, n);
    
 }
 
@@ -435,7 +437,7 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   int temp =  /*query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
+   int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -475,6 +477,8 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
    // NOTE: We assume the last char is \0.
    while (j < m-1)
    {
+
+   
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
@@ -531,10 +535,15 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       */
          else
       {
+
          // Advance the position by l+1.
          i           += l+1;
          j           += l+1;         
          block_start += l+1;
+
+       //  if (block_start == block_end) printf("STUPID QUERY\n");
+         
+         
 
          // Register the mismatch we found.
          mismatches ++;   
@@ -760,7 +769,7 @@ void kangaroo(            const char *text,
   
   
   
- //  RMQ_succinct(esa.LCP, esa.n); 
+   RMQ_succinct(esa.LCP, esa.n); 
   
    printf("Done RMQ\n");
   
@@ -780,8 +789,8 @@ void kangaroo(            const char *text,
    // Now, go through every position and look for mismatches.
    for (int i=0,x=0; i<n-m+1; i++)
    {
-      if (i%10 == 0)
-      printf("i: %d\n", i);
+    //  if (i%1000 == 0)
+    //  printf("i: %d\n", i);
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
       {
@@ -925,7 +934,7 @@ int main(int argc, char **argv)
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 100;
+   int m       = 200;
    int n       = 100000;
 
    //-------------------------------------------------------------------------//
@@ -949,14 +958,17 @@ int main(int argc, char **argv)
       int  *matches        = malloc(sizeof(int)  * (n-m+1));
       int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
    
-      printf("Doing naive.\n");
-      naive_kangaroo(t,p,100,n,m,matches_naive);
-            kangaroo(t,p,100,n,m,matches);
-      printf("Doing kangaroo.\n");
+      
+      naive_kangaroo(t,p,200,n,m,matches_naive);
+      printf("Done naive.\n");
+      
+      kangaroo(t,p,200,n,m,matches);
+      printf("Done kangaroo.\n");
       
       
       for (int b=0;b<n-m+1; b++)
       {
+        //printf("Matches %d: %d\n", b, matches[b]);
          if (matches_naive[b] != matches[b])
          {
             fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
