@@ -399,6 +399,7 @@ int count_naive(const char *t, const char *p, int l)
 
 
 /******************************************************************************/
+
 void displaySA(int *SA, int *LCP, const char *pattern, int m)
 {
    for (int i=0; i<m; i++)
@@ -406,6 +407,32 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
       printf("%d %s\n", LCP[i], pattern + SA[i]);
    } 
 }
+
+/******************************************************************************/
+
+int LCE(int i, int j, const ESA *esa)
+{
+   int a = esa->SAi[i];
+   int b = esa->SAi[j];
+     
+   if (a>b)
+   {
+      int c = a;
+      a = b;
+      b = c;
+   }
+   
+   // First, we calculuate the LCE:
+   // jump to the next point where the text and pattern do not match.
+   int temp = query_naive( a+1, b, esa->LCP, esa->n );
+   int l    = esa->LCP[temp];
+      
+   if (i== j)
+      return (esa->n - j);     
+          
+   return l;
+}
+
 
 /******************************************************************************/
 
@@ -417,53 +444,40 @@ int verifyMatch(  const pTriple  *pRepresentation,
                   const char     *text,
                   const char     *pattern,
                   const ESA      *esa,
-                        int       x,
-                        int       t,
-                        int       i,
+                  
+                        // The position in the p-representation.              
+                        int       x,    /*  The current p-block               */
+                        int       t,    /*  The i position of this block      */
+                        int       i,    /*  The current position in the text  */
+                        
+                        // problem-specific variables.
                         int       k,
                         int       n,
-                        int       m                )
+                        int       m                                            )
 {
 
    // The count of the mismatches found.
    int mismatches = 0;
    
-   // The start and end of the p-block representation for this part of 
-   // the text.
+   // The start and end of the p-block for this part of the text.
    int block_start = pRepresentation[x].j + (i-t);
    int block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
    
-   // The positions in the patterh between which we calculuate the LCE
+   // The current position in the pattern.
    int j = 0;
    
+   // Debugging purposes.
+   int actual = count_naive(text+i, pattern, m-1);
    
-   
-   //printf("Theoretical match: %s\n", text + i);
-   //printf("Against:           %s\n", pattern);
-   
-   //printf("P[x].j: %d\n", pRepresentation[x].j);
-   
-  // printf("i: %d, t: %d, x: %d\n", i, t,x);   
-   
-   
-   
-   
-   int actual =count_naive(text+i, pattern, m-1);
-   
-   
-   
-   
+   // Look through all the characters in the pattern.
    while (j < m)
    {
-   
+      // Don't match with the last character.
       if (pattern[j] == '\0') break;
    
       // Ignore filtered characters:
-      
       if (block_start == -1)
       {
-      
-        // printf("IGNORING CHARACTER\n");
          ++x;
          block_start = pRepresentation[x].j;
          i += 1;
@@ -474,25 +488,8 @@ int verifyMatch(  const pTriple  *pRepresentation,
          mismatches ++;
          continue;
       }
-   
-  //  printf("j: %d, block_start: %d\n", j, block_start);
-     //    printf("i: %d, t: %d, x: %d, P[x].l: %d\n", i, t, x, pRepresentation[x].l);
-    //    printf(" suffix: %s\n", pattern + block_start);
-    //     printf("   text: ");
-     //  for (int z = block_start; z <= block_end; z++)
-   //    {
-   //       printf("%c", pattern[z]);
-    //    }
-    //   printf("\n");
-         
-            
-      //  printf("pattern: %s\n", pattern + j);
-   
-   
-     //   printf("SAi[_i]+1: %d, SAi[_j]: %d\n", esa->SAi[block_start]+1, esa->SAi[j]);
-   
-   
-   
+      
+      /*
       int a = esa->SAi[block_start];
       int b = esa->SAi[j];
       
@@ -504,30 +501,26 @@ int verifyMatch(  const pTriple  *pRepresentation,
       }
    
       // First, we calculuate the LCE:
-     // jump to the next point where the text and pattern do not match.
+      // jump to the next point where the text and pattern do not match.
       int temp = query_naive( a+1, b, esa->LCP, esa->n );
       int l    = esa->LCP[temp];
       
-
       if (block_start == j)
-         { 
             l = (m - j);     
-
-      }
-                 // If the length goes over the length of this block.
-            if (l + block_start > block_end)
-               l = block_end - block_start+1;
-
-    //    printf("Found %d matching characters\n", l);
-     
-     
+            
+            
+       */
+       
+      int l = LCE(block_start, j, esa);
+      // If the length goes over the length of this block.
+      if (l + block_start > block_end)
+         l = block_end - block_start+1;
+          
       // If this takes us to the end, then return: 
       // Otherwise we might end up incrementing mismatches too many times.
       // TODO: CHECK THIS DOESN'T RESULT IN OFF-BY-ONE errors.
       if (j + l  == m-1) break;
-     
-     
-     
+       
       // We now know the LCE between the current blocks.
       
       // Case 1: they match all the way to the end of their current block
@@ -537,45 +530,37 @@ int verifyMatch(  const pTriple  *pRepresentation,
        // printf("CASE 1: End of block reached\n");
          ++x;
          i += l;
-         
          t += l;
-         j           = j+l;
+         j += l;
            
          block_start = pRepresentation[x].j;
          block_end   = pRepresentation[x].j + pRepresentation[x].l -1;
-         
-
-      
+               
       } 
          // Case 2: It mismatches within the current block,
          // We increment k and continue in this block.
          else
       {
-      // printf("CASE 2: Within block\n");  
          i +=           l+1;
-         
+         j +=           l+1;         
          block_start += l+1;
-         j +=           l+1;
-         
 
          mismatches ++;
          
-      }
-      
-  //  printf("\n\n");
-
-   
+      }   
    }
 //printf("Found %d Mismatches\n", mismatches);
  //  return mismatches;
+
+if (actual != mismatches) 
+{
    printf("--------------------------------------------------------------\n");
   printf("Found %d Mismatches\n", mismatches);
   printf("Actual: %d\n", actual);
   printf("--------------------------------------------------------------\n");
 
-if (actual != mismatches) 
-{
    printf("HALT\n");
+   
 exit(0);
 
 }
