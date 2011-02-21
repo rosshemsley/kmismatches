@@ -118,7 +118,7 @@ int count_frequent_symbols(
 // to small (i.e. the preceeding chars don't match) then we return -1, 
 // and must start a new pTriple.
 
-int extend     (           char   t, 
+static inline int extend     (           char   t, 
                            int    l,
                            int   *x,
                      const char  *pattern, 
@@ -169,10 +169,10 @@ int extend     (           char   t,
 
 /******************************************************************************/
 
-int findStart(char c, const char *pattern, const int *SA, int m)
+static inline int findStart(char c, const char *pattern, const int *SA, int m)
 {
 
-   if (c!='a' || c!= 'b' || c!='c' || c!='d') return -1;
+   if (c!='A' && c!= 'C' && c!='T' && c!='G') return -1;
    // For now we are lazy and do a linear search.
    for (int i=0; i<m; i++)
       if (pattern[SA[i]] == c) {
@@ -388,12 +388,13 @@ void display_pRepresentation(const pTriple *P, const char *pattern, int n)
 
 /******************************************************************************/
 
-int count_naive(const char *t, const char *p, int l)
+int count_naive(const char *t, const char *p, int k, int l)
 {
    int count =0;
    
    for (int i=0; i<l; i++)
    {
+      if (count >=k) return count;
       if (t[i] != p[i]) count ++;
    }
    
@@ -445,7 +446,7 @@ static inline int LCE(int i, int j, const ESA *esa)
 // the pair (x,t) give the location in the text (t is the index into the text
 // where the x'th p-triple starts). 
 
-int verifyMatch(  const pTriple  *pRepresentation,
+static inline int verifyMatch(  const pTriple  *pRepresentation,
                   const char     *text,
                   const char     *pattern,
                   const ESA      *esa,
@@ -472,7 +473,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
-   while (mismatches<=k && j < m-1)
+   while (j < m-1)
    {
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
@@ -490,6 +491,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          
          // We consider this a mismatch.         
          mismatches ++;
+         if (mismatches >= k) return k;      
          continue;
       }
       
@@ -505,6 +507,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
       // Otherwise we might end up incrementing mismatches too many times.
       // TODO: Do this in a more efficient way.
       if (j + l  == m-1) break;
+      
       
       /**
       *   CASE 1: Substrings match all the way to the end of their current block
@@ -534,7 +537,8 @@ int verifyMatch(  const pTriple  *pRepresentation,
          block_start += l+1;
 
          // Register the mismatch we found.
-         mismatches ++;         
+         mismatches ++;   
+         if (mismatches >= k) return k;      
       }   
    }
 
@@ -673,7 +677,7 @@ void k_mismatches_case2(  const char *text,
          // Verify this location    
 
          
-         int actual = count_naive(text+i, pattern, m-1);
+         int actual = count_naive(text+i, pattern, k, m-1);
 
          if (actual != verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m))
          {
@@ -735,7 +739,10 @@ void kangaroo(            const char *text,
    // Construct the p-representation.
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
+   
    printf("Done P-Rep\n");
+   
+ //    display_pRepresentation(pRepresentation, pattern, n);
    
    int t=0;
    // Now, go through every position and look for mismatches.
@@ -751,15 +758,15 @@ void kangaroo(            const char *text,
       }
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
-/*
+
       // DEBUGGING.
-      int actual = count_naive(text+i, pattern, m-1);
-      if (actual != v)
-      {
-         printf("ERROR\n");
-         exit(0);    
-      }
-  */    
+     // int actual = count_naive(text+i, pattern, k, m-1);
+     // if (actual != v)
+     // {
+     //    printf("ERROR: %d, %d\n", actual, v);
+     //    exit(0);    
+      //}
+      
       matches[i] = v;
       
    }
@@ -833,10 +840,10 @@ int randDNA()
 {
    int r = rand() % 4;
    
-   if (r==1) return 'G';
-   if (r==2) return 'T';
-   if (r==3) return 'A';
-   if (r==4) return 'C';
+   if (r==0) return 'G';
+   if (r==1) return 'T';
+   if (r==2) return 'A';
+   if (r==3) return 'C';
 
    return 0;
 }
@@ -861,7 +868,7 @@ void randomStrings( char *text,
    text[n-1] = '\0';   
    
    for (i=0; i<m; i++)
-      pattern[i] = (char)(rand() % 4 + 97);
+      pattern[i] = randDNA(); //(char)(rand() % 4 + 97);
    
    pattern[m-1] = '\0';
 
@@ -900,8 +907,12 @@ int main(int argc, char **argv)
    {
     randomStrings(t, p, n, m);   
    
-     n = loadData(&t, "./english.50MB");
-      printf("loaded, %d bytes\n", n);
+      //printf("Pattern: %s\n", p);
+   
+     n = loadData(&t, "./dna.50MB");
+     printf("loaded, %d bytes\n", n);
+   
+
    
    int  *matches  = malloc(sizeof(int)  * (n-m+1));
    

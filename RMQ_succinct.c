@@ -123,7 +123,7 @@ int query_naive(int i, int j, int *a, int n)
 
 
 
-DTidx query(DTidx i, DTidx j, DT* a, DTidx n) {
+inline DTidx query(DTidx i, DTidx j, DT* a, DTidx n) {
 	DTidx mb_i = microblock(i);     // i's microblock
 	DTidx mb_j = microblock(j);     // j's microblock
 	DTidx min, min_i, min_j; 		// min: to be returned
