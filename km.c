@@ -559,11 +559,13 @@ void constructESA(const char *s, int n, ESA *esa)
      
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
-   
+
    // Construct SAi.
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
 
+   
+   /*
    for (int i=0; i<n; i++)
    {
       printf("%d: %d   (%d)%s\n", i, esa->LCP[i], esa->SA[i], s + esa->SA[i]);
@@ -571,7 +573,7 @@ void constructESA(const char *s, int n, ESA *esa)
    printf("\n");
    for (int i=0; i<n; i++)
       printf("%d: %d\n", i, esa->SAi[i]);
-
+   */
 }
 
 /******************************************************************************/
@@ -696,10 +698,57 @@ void k_mismatches_case2(  const char *text,
 }
 
 /******************************************************************************/
+// Use kangarooing to achieve O(nk) k-mismatches.
 
-void kangaroo()
-{
+void kangaroo(            const char *text, 
+                          const char *pattern,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches          )
 
+{   
+   // Zero the matches array.
+   memset(matches, 0, sizeof(int)*(n-m+1));
+   
+   // Construct the extended suffix array.
+   ESA esa;   
+   constructESA(pattern, m, &esa);
+  
+   pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
+  
+   // Construct the p-representation.
+   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
+   
+   
+   int t=0;
+   // Now, go through every position and look for mismatches.
+   for (int i=0,x=0; i<n-m+1; i++)
+   {
+   
+      // Advance through the p-reprsentation.
+      if (t + pRepresentation[x].l <= i)
+      {
+         t += pRepresentation[x].l;
+         ++x;
+      }
+           
+      int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
+
+      // DEBUGGING.
+      int actual = count_naive(text+i, pattern, m-1);
+      if (actual != v)
+      {
+         printf("ERROR\n");
+         exit(0);    
+      }
+      
+      matches[i] = v;
+      
+   }
+   
+   free(pRepresentation);
+   freeESA(&esa);
 }
 
 
@@ -727,8 +776,6 @@ void naive_matcher( const char *t,
       A[i] = matches;
    }
 }
-
-
 
 
 /******************************************************************************/
@@ -836,7 +883,7 @@ int main(int argc, char **argv)
    {
       randomStrings(t, p, n, m);
    
-      kmismatches(t,p,1,n,m,matches);
+      kangaroo(t,p,1,n,m,matches);
       
    }
    
