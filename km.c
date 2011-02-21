@@ -427,17 +427,17 @@ static inline int LCE(int i, int j, const ESA *esa)
       return (esa->n - j);     
 
    // Make sure the indicies are the right way around.
-   int a = esa->SAi[i];
-   int b = esa->SAi[j];
+   register int a = esa->SAi[i];
+   register int b = esa->SAi[j];
      
    if (a>b)
    {
-      int c = a;
+      register int c = a;
       a = b;
       b = c;
    }
    
-   int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
+   register int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -501,7 +501,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       
       
       // Don't use RMQ to check if one character matches.
-      if (block_start+1 == block_end)
+      if (block_start == block_end)
       {
          //printf("ONE CHAR QUERY\n");
          
@@ -840,12 +840,12 @@ void kangaroo(            const char *text,
 
 
       // DEBUGGING.
-      int actual = count_naive(text+i, pattern, k, m-1);
-      if (actual != v)
-      {
-         printf("ERROR: %d, %d\n", actual, v);
-         exit(0);    
-      }
+      //int actual = count_naive(text+i, pattern, k, m-1);
+      //if (actual != v)
+     // {
+       //  printf("ERROR: %d, %d\n", actual, v);
+      //   exit(0);    
+      //}
       
       matches[i] = v;
       
@@ -974,7 +974,7 @@ int main(int argc, char **argv)
    
    // the length of the text and pattern.
    int m       = 200;
-   int n       = 100000;
+   int n       = 1000000;
 
    //-------------------------------------------------------------------------//
  
@@ -990,32 +990,32 @@ int main(int argc, char **argv)
       //printf("Pattern: %s\n", p);
    
    //  n = loadData(&t, "./dna.50MB");
-    // printf("loaded, %d bytes\n", n);
+     //printf("loaded, %d bytes\n", n);
    
 
    
       int  *matches        = malloc(sizeof(int)  * (n-m+1));
-      int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
+   //   int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
    
       
-      naive_kangaroo(t,p,200,n,m,matches_naive);
+ //     naive_kangaroo(t,p,200,n,m,matches_naive);
       printf("Done naive.\n");
       
       kangaroo(t,p,200,n,m,matches);
       printf("Done kangaroo.\n");
       
       
-      printf("CHECKING: \n");
-      for (int b=0;b<n-m+1; b++)
-      {
-        //printf("Matches %d: %d\n", b, matches[b]);
-         if (matches_naive[b] != matches[b])
-         {
-            fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
+      //printf("CHECKING: \n");
+      //for (int b=0;b<n-m+1; b++)
+     // {
+      //  //printf("Matches %d: %d\n", b, matches[b]);
+       //  if (matches_naive[b] != matches[b])
+       //  {
+        //    fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
             
-            exit(0);
-         }
-      }
+        //    exit(0);
+        // }
+     // }
    }
    
    free(p);
