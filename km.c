@@ -475,7 +475,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
-   while (j < m-1)
+   while (mismatches<k && j < m-1)
    {
 
    
@@ -489,13 +489,12 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
 
          // Advance the position by 1.
-         i += 1;
-         t += 1;
-         j += 1;
+         ++i;
+         ++t;
+         ++j;
          
          // We consider this a mismatch.         
-         mismatches ++;
-         if (mismatches >= k) return k;      
+         ++mismatches;
          continue;
       }
       
@@ -506,14 +505,13 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          //printf("ONE CHAR QUERY\n");
          
          if (pattern[j] != pattern[block_start])
-         {
-            mismatches ++;
-            if (mismatches >= k) return k;   
-         }             
-         t +=1;
-         i +=1;
-         j +=1;
+            ++mismatches;
+         
+         ++t;
+         ++i;
+         ++j;
          ++x;
+         
          block_start = pRepresentation[x].j;
          block_end   = pRepresentation[x].j + pRepresentation[x].l -1;   
          continue;
@@ -583,8 +581,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          block_start += l+1;
 
          // Register the mismatch we found.
-         mismatches ++;   
-         if (mismatches >= k) return k;   
+         ++mismatches;   
       
       }   
    }
@@ -974,7 +971,7 @@ int main(int argc, char **argv)
    
    // the length of the text and pattern.
    int m       = 200;
-   int n       = 1000000;
+   int n       = 100000;
 
    //-------------------------------------------------------------------------//
  
@@ -995,27 +992,27 @@ int main(int argc, char **argv)
 
    
       int  *matches        = malloc(sizeof(int)  * (n-m+1));
-   //   int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
+     int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
    
       
- //     naive_kangaroo(t,p,200,n,m,matches_naive);
+      naive_kangaroo(t,p,200,n,m,matches_naive);
       printf("Done naive.\n");
       
       kangaroo(t,p,200,n,m,matches);
       printf("Done kangaroo.\n");
       
       
-      //printf("CHECKING: \n");
-      //for (int b=0;b<n-m+1; b++)
-     // {
-      //  //printf("Matches %d: %d\n", b, matches[b]);
-       //  if (matches_naive[b] != matches[b])
-       //  {
-        //    fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
+      printf("CHECKING: \n");
+      for (int b=0;b<n-m+1; b++)
+      {
+        printf("Matches %d: %d\n", b, matches[b]);
+         if (matches_naive[b] != matches[b])
+         {
+            fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
             
-        //    exit(0);
-        // }
-     // }
+            exit(0);
+         }
+      }
    }
    
    free(p);
