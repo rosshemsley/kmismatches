@@ -172,6 +172,7 @@ int extend     (           char   t,
 int findStart(char c, const char *pattern, const int *SA, int m)
 {
 
+   if (c!='a' || c!= 'b' || c!='c' || c!='d') return -1;
    // For now we are lazy and do a linear search.
    for (int i=0; i<m; i++)
       if (pattern[SA[i]] == c) {
@@ -199,6 +200,11 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
+      if (i%1000000 ==0)
+      {
+         printf("Done %d%%\n", (int)(i/(float)n*100));
+      }
+   
      // printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
       
@@ -735,7 +741,7 @@ void kangaroo(            const char *text,
    // Now, go through every position and look for mismatches.
    for (int i=0,x=0; i<n-m+1; i++)
    {
-      if (i%10000 == 0)
+      if (i%1000000 == 0)
       printf("i: %d\n", i);
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
@@ -886,13 +892,18 @@ int main(int argc, char **argv)
    //-------------------------------------------------------------------------//
  
    // The text and pattern strings.
-   char *t        = malloc(sizeof(char) * n);
+   char *t       = malloc(sizeof(char) * n);
    char *p        = malloc(sizeof(char) * m);
    int  *matches  = malloc(sizeof(int)  * (n-m+1));
 
    for (int a=0; a < repeats; a++)
    {
-      randomStrings(t, p, n, m);
+    randomStrings(t, p, n, m);   
+   
+     n = loadData(&t, "./english.50MB");
+      printf("loaded, %d bytes\n", n);
+   
+   int  *matches  = malloc(sizeof(int)  * (n-m+1));
    
       kangaroo(t,p,10,n,m,matches);
       
