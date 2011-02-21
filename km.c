@@ -218,7 +218,7 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].i = i;
         
       // Extend the value as far as possible.
-      while ( extend( text[++i], ++l, &x, pattern, esa, n, m ) );
+      while ( (i<n-1) && extend( text[++i], ++l, &x, pattern, esa, n, m ) );
             
       P[p].l = l;
       P[p].j = esa->SA[x];
