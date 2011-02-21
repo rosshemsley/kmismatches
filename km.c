@@ -409,9 +409,15 @@ void displaySA(int *SA, int *LCP, const char *pattern, int m)
 }
 
 /******************************************************************************/
+// Find the Longest Common Extension using the Extended Suffix Array.
 
-int LCE(int i, int j, const ESA *esa)
+static inline int LCE(int i, int j, const ESA *esa)
 {
+   // Trivial query.
+   if (i == j)
+      return (esa->n - j);     
+
+   // Make sure the indicies are the right way around.
    int a = esa->SAi[i];
    int b = esa->SAi[j];
      
@@ -422,15 +428,9 @@ int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   // First, we calculuate the LCE:
-   // jump to the next point where the text and pattern do not match.
    int temp = query_naive( a+1, b, esa->LCP, esa->n );
-   int l    = esa->LCP[temp];
-      
-   if (i== j)
-      return (esa->n - j);     
-          
-   return l;
+   return     esa->LCP[temp];
+               
 }
 
 
@@ -455,7 +455,9 @@ int verifyMatch(  const pTriple  *pRepresentation,
                         int       n,
                         int       m                                            )
 {
-
+   // The current position in the pattern.
+   int j = 0;
+   
    // The count of the mismatches found.
    int mismatches = 0;
    
@@ -463,19 +465,15 @@ int verifyMatch(  const pTriple  *pRepresentation,
    int block_start = pRepresentation[x].j + (i-t);
    int block_end   = pRepresentation[x].j + pRepresentation[x].l-1;
    
-   // The current position in the pattern.
-   int j = 0;
-   
    // Debugging purposes.
    int actual = count_naive(text+i, pattern, m-1);
    
    // Look through all the characters in the pattern.
-   while (j < m)
+   // NOTE: We assume the last char is \0.
+   while (j < m-1)
    {
-      // Don't match with the last character.
-      if (pattern[j] == '\0') break;
-   
       // Ignore filtered characters:
+      // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
       {
          ++x;
@@ -489,41 +487,20 @@ int verifyMatch(  const pTriple  *pRepresentation,
          continue;
       }
       
-      /*
-      int a = esa->SAi[block_start];
-      int b = esa->SAi[j];
-      
-      if (a>b)
-      {
-         int c = a;
-         a = b;
-         b = c;
-      }
-   
-      // First, we calculuate the LCE:
-      // jump to the next point where the text and pattern do not match.
-      int temp = query_naive( a+1, b, esa->LCP, esa->n );
-      int l    = esa->LCP[temp];
-      
-      if (block_start == j)
-            l = (m - j);     
-            
-            
-       */
-       
+      // Find the longest common extension between current positions.
       int l = LCE(block_start, j, esa);
-      // If the length goes over the length of this block.
+
+      // If the length goes over the length of this block, we 
+      // just give the maximum possible length.
       if (l + block_start > block_end)
          l = block_end - block_start+1;
           
-      // If this takes us to the end, then return: 
+      // If this takes us over the end of the pattern, return.
       // Otherwise we might end up incrementing mismatches too many times.
-      // TODO: CHECK THIS DOESN'T RESULT IN OFF-BY-ONE errors.
+      // TODO: Do this in a more efficient way.
       if (j + l  == m-1) break;
-       
-      // We now know the LCE between the current blocks.
       
-      // Case 1: they match all the way to the end of their current block
+      // CASE 1: they match all the way to the end of their current block
       // We just start the next block and continue.
       if (block_start + l > block_end)
       {
@@ -537,7 +514,7 @@ int verifyMatch(  const pTriple  *pRepresentation,
          block_end   = pRepresentation[x].j + pRepresentation[x].l -1;
                
       } 
-         // Case 2: It mismatches within the current block,
+         // CASE 2: It mismatches within the current block,
          // We increment k and continue in this block.
          else
       {
@@ -545,27 +522,22 @@ int verifyMatch(  const pTriple  *pRepresentation,
          j +=           l+1;         
          block_start += l+1;
 
-         mismatches ++;
-         
+         mismatches ++;         
       }   
    }
-//printf("Found %d Mismatches\n", mismatches);
- //  return mismatches;
 
-if (actual != mismatches) 
-{
-   printf("--------------------------------------------------------------\n");
-  printf("Found %d Mismatches\n", mismatches);
-  printf("Actual: %d\n", actual);
-  printf("--------------------------------------------------------------\n");
+   if (actual != mismatches) 
+   {
+     printf("--------------------------------------------------------------\n");
+     printf("Found %d Mismatches\n", mismatches);
+     printf("Actual: %d\n", actual);
+     printf("--------------------------------------------------------------\n");
 
-   printf("HALT\n");
+     printf("HALT\n");
+     exit(0);
+   }
    
-exit(0);
-
-}
-
-
+   return mismatches;
 }
 
 /******************************************************************************/
