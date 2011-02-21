@@ -214,7 +214,7 @@ void construct_pRepresentation(       pTriple   *P,
          continue;
       }
 
-     // printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
+      // printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
       P[p].i = i;
         
       // Extend the value as far as possible.
@@ -428,7 +428,7 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   int temp = query_naive( a+1, b, esa->LCP, esa->n );
+   int temp = query(a+1, b, esa->LCP, esa->n); //query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -639,7 +639,7 @@ void k_mismatches_case2(  const char *text,
    printf("\n");
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   // RMQ_succinct(esa.LCP, esa.n);  
+   RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -711,15 +711,19 @@ void kangaroo(            const char *text,
    // Zero the matches array.
    memset(matches, 0, sizeof(int)*(n-m+1));
    
+   
    // Construct the extended suffix array.
    ESA esa;   
    constructESA(pattern, m, &esa);
+  
+  printf("Done ESA\n");
   
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
   
    // Construct the p-representation.
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
+   printf("Done P-Rep\n");
    
    int t=0;
    // Now, go through every position and look for mismatches.
@@ -734,7 +738,7 @@ void kangaroo(            const char *text,
       }
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
-
+/*
       // DEBUGGING.
       int actual = count_naive(text+i, pattern, m-1);
       if (actual != v)
@@ -742,7 +746,7 @@ void kangaroo(            const char *text,
          printf("ERROR\n");
          exit(0);    
       }
-      
+  */    
       matches[i] = v;
       
    }
@@ -866,11 +870,11 @@ int main(int argc, char **argv)
    // Testing parameters.
    //-------------------------------------------------------------------------//
    // Number of different test cases to try.
-   int repeats = 100;
+   int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 26;
-   int n       = 100;
+   int m       = 1000;
+   int n       = 1000000;
 
    //-------------------------------------------------------------------------//
  
