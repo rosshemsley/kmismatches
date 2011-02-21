@@ -476,9 +476,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
    while (mismatches<k && j < m-1)
-   {
-
-   
+   {   
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
@@ -497,8 +495,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          ++mismatches;
          continue;
       }
-      
-      
+          
       // Don't use RMQ to check if one character matches.
       if (block_start == block_end)
       {
@@ -514,14 +511,11 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          
          block_start = pRepresentation[x].j;
          block_end   = pRepresentation[x].j + pRepresentation[x].l -1;   
-         continue;
-       
-         
+         continue;    
       }
       
-      
       // Find the longest common extension between current positions.
-      int l = LCE(block_start, j, esa);
+      register int l = LCE(block_start, j, esa);
 
       // If the length goes over the length of this block, we 
       // just give the maximum possible length.
@@ -570,8 +564,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
             block_end   = pRepresentation[x].j + pRepresentation[x].l -1;       
             
             mismatches++;
-            continue;
-         
+            continue;  
          }
        
 
@@ -582,7 +575,6 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
 
          // Register the mismatch we found.
          ++mismatches;   
-      
       }   
    }
 
@@ -971,7 +963,7 @@ int main(int argc, char **argv)
    
    // the length of the text and pattern.
    int m       = 200;
-   int n       = 100000;
+   int n       = 1000000;
 
    //-------------------------------------------------------------------------//
  
@@ -1005,7 +997,7 @@ int main(int argc, char **argv)
       printf("CHECKING: \n");
       for (int b=0;b<n-m+1; b++)
       {
-        printf("Matches %d: %d\n", b, matches[b]);
+       // printf("Matches %d: %d\n", b, matches[b]);
          if (matches_naive[b] != matches[b])
          {
             fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
