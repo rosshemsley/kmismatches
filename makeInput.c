@@ -58,6 +58,8 @@ int loadData(       char ** data,
 int main(int argc, char ** argv)
 {
 
+
+
    unsigned long seed = time(NULL);
    // Seed the generator.
    srand( seed );

@@ -1023,7 +1023,12 @@ void load(const char *filename, int *n, int *m, int *k, int*pos, char **text, ch
 int main(int argc, char **argv)
 {
 
-
+   if (argc !=2)
+   {
+      fprintf(stderr, "No input file provided\n");
+      exit(1);
+   }
+   
    
    // the length of the text and pattern.
    int m;
@@ -1036,7 +1041,7 @@ int main(int argc, char **argv)
    char *t = NULL;
    char *p = NULL;
 
-   load("./outfile", &n, &m, &k, &pos, &t, &p);
+   load(argv[1], &n, &m, &k, &pos, &t, &p);
 
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
 
