@@ -13,7 +13,16 @@
 
 #define DEBUG
 
-/******************************************************************************/
+/******************************************************************************
+*
+* Ideas for optimisations:
+*
+* - Improve p-representation construction: bin-search, child-tab
+* - make non-relevant characters span multi blocks.
+* - re-write the way that marking works - do two at once, or more?
+* 
+*
+*******************************************************************************/
 
    double *FFT_match_p = NULL;
    double *FFT_match_t = NULL;
@@ -839,6 +848,8 @@ void k_mismatches_case2(  const char *text,
       
          // match this symbol in the text.
          markMatches(matches, text, i, pattern_lookup, n, m, sqrt_k);
+         
+         j++;
       }
    }
 
@@ -885,7 +896,7 @@ void k_mismatches_case2(  const char *text,
       //printf("%d\n", matches[i]);
       
       // If there could be a possible match here.
-      if (matches[i] >= k-1)
+      if (matches[i] >= k)
       {
       
          printf("\nVerifying position %d\n", i);
