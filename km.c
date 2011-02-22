@@ -24,31 +24,21 @@
 // Process has done i out of n rounds, and we want width w and resolution r.
 static inline void loadBar(int x, int n, int r, int w)
 {
+   if ( x % (n/r) != 0 ) return;
+   
+   float ratio = x/(float)n;
+   int   c     = ratio * w;
 
-   if (x % (n/r) != 0) return;
-   
-   float ratio =  x/(float)n ;
-   int c     = ratio * w;
+   printf("%3d%% [", (int)(ratio*100) );
 
-
-   
-   printf("%3d%% ",(int)(ratio*100));
-   
-
-   
-   printf("[");
-   
+ 
    for (int x=0; x<c; x++)
       printf("=");
    
-   for (int x=c;x<w;x++)
+   for (int x=c; x<w; x++)
       printf(" ");   
   
-   
-   printf("]\n");
-   
-   printf("\033[F\033[J");
-
+   printf("]\n\033[F\033[J");
 }
 
 /******************************************************************************/
@@ -822,28 +812,24 @@ void kangaroo(            const char *text,
    
    // Construct the extended suffix array.
    ESA esa;   
-   constructESA(pattern, m, &esa);
-  
-  
+   constructESA(pattern, m, &esa);   
+   printf("Done ESA\n");
   
    RMQ_succinct(esa.LCP, esa.n); 
-  
    printf("Done RMQ\n");
-  
-   printf("Done ESA\n");
+
   
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
   
    // Construct the p-representation.
+   printf("Constructing p-Representation.\n");
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
-   
-   
-   printf("Done P-Rep\n");
    
  //    display_pRepresentation(pRepresentation, pattern, n);
    
    int t=0;
    // Now, go through every position and look for mismatches.
+   printf("Looking for k-Mismatches.\n");
    for (int i=0,x=0; i<n-m+1; i++)
    {
       loadBar(i,n,100,40);
