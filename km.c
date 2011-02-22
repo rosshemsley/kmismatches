@@ -943,6 +943,48 @@ void randomStrings( char *text,
 
 }
 
+/******************************************************************************/
+// Load a test input.
+
+int load(const char *filename, int *n, int *m, int *k, char *text, char *pattern)
+{
+
+   FILE *f = fopen(filename, "r");
+
+   // The first line tells us how the rest of the file looks.
+   
+   
+  
+   char buff[256];
+   
+   fgets(buff, 256, f);
+   sscanf(buff, "%d %d %d", n, m, k);
+
+   printf("%d, %d, %d\n", *n, *m, *k);
+  
+     
+   text    = malloc(sizeof(char) * (*n+1));
+   pattern = malloc(sizeof(char) * (*m+1)); 
+  
+  
+   fgets(pattern, *m+1, f);
+   fgets(buff,       2, f);
+   fgets(text,    *n+1, f);
+
+  
+   text[*n]    = 0;
+   pattern[*m] = 0;
+  
+   printf("%s\n", pattern);
+   printf("%s\n", text);
+
+
+   //printf("%s", buff);
+   
+}
+
+/******************************************************************************/
+
 
 /******************************************************************************/
 //
@@ -953,6 +995,11 @@ void randomStrings( char *text,
 
 int main(int argc, char **argv)
 {
+   int n, m,k;
+
+load("./outfile", &n, &m, &k,NULL, NULL);
+exit(0);
+/*
 
    srand( time(NULL) );
    //-------------------------------------------------------------------------//
