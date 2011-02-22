@@ -202,7 +202,7 @@ void markMatches(       int  *matches,
             if (lookup[j] == -1) break;
             
             if ( i - lookup[j] >= 0 && i-lookup[j] < n-m+1 )
-               matches[i-lookup[j]] ++;
+               ++ matches[i-lookup[j]];
          }
       }      
    }
