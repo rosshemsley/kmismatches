@@ -288,12 +288,40 @@ static inline int findStart(           char      c,
                                        int       m                             )
 {
 
+   // Bin-search:
+   
+   int min = 0;
+   int max = m-1;
+   int mid; 
+   
+   do
+   {
+      mid = (max+min)/2;
+   
+      if (pattern[SA[mid]] == c)
+         return mid;   
 
+      else if (c > pattern[SA[mid]])
+         min = mid+1;
+         
+      else
+         max = mid-1;
+         
+   } 
+   while (min <= max);
+   
+
+/*
    // For now we are lazy and do a linear search.
    for (int i=0; i<m; i++)
       if (pattern[SA[i]] == c) {
-         return i;
+         if(test!=i) printf ("ERROR: found: %d, actual: %d\n", test, i);
+         printf("min: %d, max: %d\n", min, max);
+         exit(0);
       }
+  
+*/
+  
    return -1;
 }
 
