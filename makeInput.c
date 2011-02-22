@@ -190,18 +190,18 @@ int main(int argc, char ** argv)
    fclose(output);
    
    
-   printf("==================================================================\n");
-   printf("| Made test data.                                                |\n");
-   printf("|                                                                |\n");
-   printf("|    Loaded: %-10d bytes                                    |\n", t       );
-   printf("|                                                                |\n");
-   printf("|       Text: %-10d bytes                                   |\n", n       );
-   printf("|    Pattern: %-10d bytes                                   |\n", m       );
-   printf("| Mismatches: %-10d                                         |\n", mismatches       );
-   printf("|   Position: %-10d                                         |\n", p       );
-   printf("|       Seed: %-10ld                                         |\n",      seed    );
-   printf("|                                                                |\n");
-   printf("==================================================================\n");
+   printf("===============================================================\n" );
+   printf("| Made test data.                                             |\n" );
+   printf("|                                                             |\n" );
+   printf("|    Loaded: %-10d bytes                                 |\n", t   );
+   printf("|                                                             |\n" );
+   printf("|       Text: %-10d bytes                                |\n", n   );
+   printf("|    Pattern: %-10d bytes                                |\n", m   );
+   printf("| Mismatches: %-10d                                      |\n", mismatches);
+   printf("|   Position: %-10d                                      |\n", p   );
+   printf("|       Seed: %-10ld                                      |\n",seed);
+   printf("|                                                             |\n" );
+   printf("===============================================================\n" );
    
    
    

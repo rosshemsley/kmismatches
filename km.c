@@ -177,7 +177,8 @@ static inline int extend     (           char   t,
       
       // Check this character match.
       //printf("Comparing '%c' against '%c'\n", pattern[esa->SA[i]+l], t);
-      //printf("%d, %d, l: %d. x: %d, SA[x]: %d", esa->SA[*x]+l, m, l, *x, esa->SA[*x]);
+      //printf("%d, %d, l: %d. x: %d, SA[x]: %d",
+      // esa->SA[*x]+l, m, l, *x, esa->SA[*x]);
       if ( (esa->SA[i]+l < m) && (pattern[esa->SA[i] + l] == t) )
       {
          //printf("Changing to '%s'\n", pattern + esa->SA[i]); 
@@ -256,7 +257,7 @@ void construct_pRepresentation(       pTriple   *P,
       P[p].j=-2;
       
     printf("Length of p-representation: %d for %d symbols\n", p, n);
-   
+
 }
 
 /******************************************************************************/
@@ -317,7 +318,6 @@ void abrahamson_kosaraju( const char *text,
    }
 }                                
 
-
 /******************************************************************************/
 void kmismatches(         const char *text, 
                           const char *pattern,
@@ -340,7 +340,6 @@ void kmismatches(         const char *text,
    int FREQ_CHAR_THRESHOLD = (int)(sqrt((double)k) + 0.5);
    
    // printf("threshold: %d\n", FREQ_CHAR_THRESHOLD);
-
 
    // Which k-mismatches case to perform.
    if (0) // count_frequent_symbols(frequency_table, FREQ_CHAR_THRESHOLD, n) > 2*sqrt(k) )
@@ -377,13 +376,11 @@ void kmismatches(         const char *text,
    
    } else {
    
-   //   printf("CASE 2, k = %d\n", k);
+      //   printf("CASE 2, k = %d\n", k);
       k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
    
    }
-
 }                                
-
 
 /******************************************************************************/
 
@@ -422,10 +419,7 @@ int count_naive(const char *t, const char *p, int k, int l)
    
    return count;
    
- 
-
 }
-
 
 /******************************************************************************/
 
@@ -457,7 +451,8 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   register int temp =  query(a+1, b, esa->LCP, esa->n); //*/ query_naive( a+1, b, esa->LCP, esa->n );
+   register int temp =  query(a+1, b, esa->LCP, esa->n); 
+                                   //*/ query_naive( a+1, b, esa->LCP, esa->n );
    return     esa->LCP[temp];
                
 }
@@ -629,17 +624,6 @@ void constructESA(const char *s, int n, ESA *esa)
    // Construct SAi.
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
-
-   
-   /*
-   for (int i=0; i<n; i++)
-   {
-      printf("%d: %d   (%d)%s\n", i, esa->LCP[i], esa->SA[i], s + esa->SA[i]);
-   }
-   printf("\n");
-   for (int i=0; i<n; i++)
-      printf("%d: %d\n", i, esa->SAi[i]);
-   */
 }
 
 /******************************************************************************/
@@ -705,7 +689,7 @@ void k_mismatches_case2(  const char *text,
    printf("\n");
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-//   RMQ_succinct(esa.LCP, esa.n);  
+   //   RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -750,13 +734,6 @@ void k_mismatches_case2(  const char *text,
    
    
    }
-     
-     
-   // printf("Actual: \n'%s'\n", text);  
-   // display_pRepresentation(pRepresentation, pattern, n);
-   
-   // printf("\n\n");
-   
    
    freeESA(&esa);
    free(pattern_lookup);
@@ -878,83 +855,16 @@ void naive_matcher( const char *t,
    }
 }
 
-
-/******************************************************************************/
-
-// Load the file at 'filename' into data, alloc'ing space required. 
-// return the number of bytes loaded.
-
-int loadData(       char ** data, 
-              const char  *filename )
-{
-   FILE *fp;
-   long n;
-
-   if((fp = fopen(filename, "rb")) == NULL) {
-      fprintf(stderr, "Cannot open file `%s': ", filename);
-      exit(0);
-   }
-  
-  
-  fseek(fp, 0, SEEK_END);
-  n = ftell(fp);
-  rewind(fp);
-  
-  *data = malloc(sizeof(char) * n );
-  
-  if(fread(*data, sizeof(char), n, fp) != (size_t)n)
-  {
-     fprintf(stderr, "Could not load file.\n");
-     exit(0);
-  }
-  
-  return n;
-}
-
-/******************************************************************************/
-
-int randDNA()
-{
-   int r = rand() % 4;
-   
-   if (r==0) return 'G';
-   if (r==1) return 'T';
-   if (r==2) return 'A';
-   if (r==3) return 'C';
-
-   return 0;
-}
-
-
-/******************************************************************************/
-
-// Create random pattern and text.
-
-void randomStrings( char *text, 
-                    char *pattern,
-                    int   n, 
-                    int   m        )
-{
-   int i;
-  
-   
-   for (i=0; i<n; i++)
-      // random letter from a..z 
-      text[i]    = randDNA(); //(char)(rand() % 4 + 97);
-   
-   text[n-1] = '\0';   
-   
-   for (i=0; i<m; i++)
-      pattern[i] = randDNA(); //(char)(rand() % 4 + 97);
-   
-   pattern[m-1] = '\0';
-
-}
-
 /******************************************************************************/
 // Load a test input.
 
-void load(const char *filename, int *n, int *m, int *k, int*pos, char **text, char **pattern)
+void load(  const char   *filename, 
+                  int    *n, 
+                  int    *m, 
+                  int    *k, 
+                  int    *pos, 
+                  char  **text, 
+                  char  **pattern     ) 
 {
 
    FILE *f = fopen(filename, "r");
@@ -990,16 +900,15 @@ void load(const char *filename, int *n, int *m, int *k, int*pos, char **text, ch
       exit(1);
    }
    
-   
-   printf("==================================================================\n");
-   printf("| Loaded test data.                                              |\n");
-   printf("|                                                                |\n");
-   printf("|       Text: %-10d bytes                                   |\n", *n       );
-   printf("|    Pattern: %-10d bytes                                   |\n", *m       );
-   printf("| Mismatches: %-10d                                         |\n", *k       );
-   printf("|   Position: %-10d                                         |\n", *pos       );
-   printf("|                                                                |\n");
-   printf("==================================================================\n");
+   printf("===============================================================\n");
+   printf("| Loaded test data.                                           |\n");
+   printf("|                                                             |\n");
+   printf("|       Text: %-10d bytes                                |\n", *n );
+   printf("|    Pattern: %-10d bytes                                |\n", *m );
+   printf("| Mismatches: %-10d                                      |\n", *k );
+   printf("|   Position: %-10d                                      |\n", *pos);
+   printf("|                                                             |\n");
+   printf("===============================================================\n");
   
    // Take account of the end of termination of the string.
    (*text)[*n]    = '\0';
@@ -1036,23 +945,21 @@ int main(int argc, char **argv)
    int k;
    int pos;
 
-
    // The text and pattern strings.
    char *t = NULL;
    char *p = NULL;
 
+   // Load the test file.
    load(argv[1], &n, &m, &k, &pos, &t, &p);
 
+   // An array to put the mismatches in.
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
 
+   // Perform Kangarooing.
    kangaroo(t,p,k,n,m,matches);
-   //printf("Done naive.\n");
+
       
-   //kangaroo(t,p,k,n,m,matches);
-   //printf("Done kangaroo.\n");
-      
-   
-      
+   // Verify the output.   
    printf("\nCHECKING: \n");
 
    int match_pos = -1;
@@ -1067,21 +974,22 @@ int main(int argc, char **argv)
          break;
       }  
    }
+   
    printf("Position: %d, mismatches: %d\n", match_pos, match_k);  
    if (match_pos != pos || match_k != k)
    {
       printf("FAILED TEST\n");
       exit(1);
-         
    }  
    
    
    free(p);
    free(t);
    free(matches);
- // FreeRMQ_succinct();
    
-
+   // This needs to be fixed.
+   // FreeRMQ_succinct();
+   
    return 0;
 }
 
