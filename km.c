@@ -946,7 +946,7 @@ void randomStrings( char *text,
 /******************************************************************************/
 // Load a test input.
 
-void load(const char *filename, int *n, int *m, int *k, char **text, char **pattern)
+void load(const char *filename, int *n, int *m, int *k, int*pos, char **text, char **pattern)
 {
 
    FILE *f = fopen(filename, "r");
@@ -960,7 +960,7 @@ void load(const char *filename, int *n, int *m, int *k, char **text, char **patt
    char buff[256];
    
    fgets(buff, 256, f);
-   if (sscanf(buff, "%d %d %d", n, m, k) != 3)
+   if (sscanf(buff, "%d %d %d %d", n, m, k, pos) != 4)
    {
       fprintf(stderr, "File header improperly formatted.\n");
       exit(1);
@@ -969,15 +969,29 @@ void load(const char *filename, int *n, int *m, int *k, char **text, char **patt
    *text    = malloc(sizeof(char) * (*n+1));
    *pattern = malloc(sizeof(char) * (*m+1)); 
   
-   fgets(*pattern, *m+1, f);
-   fgets(buff,        2, f);
-   fgets(*text,    *n+1, f);
+   fread(*pattern, sizeof(char), *m,   f);
+   fgets(buff,      2, f);
+   fread(*text,    sizeof(char), *n,   f);
    
-   printf("Loaded problem:\n");
-   printf("  n: %d\n", *n);
-   printf("  m: %d\n", *m);
-   printf("  k: %d\n", *k);
-  
+   (*text)[*n]    = '\0';
+   (*pattern)[*m] = '\0';
+   
+   if (strlen(*text) != *n || strlen(*pattern) != *m)
+   {
+      fprintf(stderr, "There was a problem reading the input file.\n");
+      exit(1);
+   }
+   
+   
+   printf("==================================================================\n");
+   printf("| Loaded test data.                                              |\n");
+   printf("|                                                                |\n");
+   printf("|       Text: %-10d bytes                                   |\n", *n       );
+   printf("|    Pattern: %-10d bytes                                   |\n", *m       );
+   printf("| Mismatches: %-10d                                         |\n", *k       );
+   printf("|   Position: %-10d                                         |\n", *pos       );
+   printf("|                                                                |\n");
+   printf("==================================================================\n");
   
    // Take account of the end of termination of the string.
    (*text)[*n]    = '\0';
@@ -1001,108 +1015,59 @@ void load(const char *filename, int *n, int *m, int *k, char **text, char **patt
 int main(int argc, char **argv)
 {
 
-   srand( time(NULL) );
-   //-------------------------------------------------------------------------//
-   // Testing parameters.
-   //-------------------------------------------------------------------------//
-   // Number of different test cases to try.
-   int repeats = 1;
    
    // the length of the text and pattern.
    int m;
    int n;
    int k;
+   int pos;
 
-   //-------------------------------------------------------------------------//
- 
+
    // The text and pattern strings.
    char *t=NULL;
    char *p=NULL;
 
-
-   load("./outfile", &n, &m, &k, &t, &p);
-
+   load("./outfile", &n, &m, &k, &pos, &t, &p);
 
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
-   int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
 
+   naive_kangaroo(t,p,k,n,m,matches);
+   //printf("Done naive.\n");
+      
+   //kangaroo(t,p,k,n,m,matches);
+   //printf("Done kangaroo.\n");
+      
    
+      
+   printf("\nCHECKING: \n");
 
-   for (int a=0; a < repeats; a++)
+   int match_pos = -1;
+   int match_k   = -1;
+   
+   for (int b=0;b<n-m+1; b++)
    {
-   
-      naive_kangaroo(t,p,k,n,m,matches_naive);
-      printf("Done naive.\n");
-      
-   //   kangaroo(t,p,k,n,m,matches);
-    //  printf("Done kangaroo.\n");
-      
-      
-      printf("CHECKING: \n");
-      for (int b=0;b<n-m+1; b++)
+      if (matches[b] <=k) 
       {
-        // printf("%d\n", matches_naive[b]);
-         if (matches_naive[b] <=k) 
-         {
-            printf("FOUND MATCH\n");
-            printf("Positoin: %d, mismatches: %d\n", b, matches_naive[b]);  
-         }  
-       // printf("Matches %d: %d\n", b, matches[b]);
-      //   if (matches_naive[b] != matches[b])
-       //  {
-
-         //   fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
-            
-        //    exit(0);
-        // }
-      }
+         match_pos = b;
+         match_k   = matches[b];
+         break;
+      }  
    }
+   printf("Position: %d, mismatches: %d\n", match_pos, match_k);  
+   if (match_pos != pos || match_k != k)
+   {
+      printf("FAILED TEST\n");
+      exit(1);
+         
+   }  
+   
    
    free(p);
    free(t);
    free(matches);
-  // FreeRMQ_succinct();
+ // FreeRMQ_succinct();
    
-   /*
-   exit(0);
 
-   //printf("%s\n", t);
-   printf("%s\n", p);
-
-  n = loadData(&t, "./dna.50MB");
-  printf("loaded, %d bytes\n", n);
-   
-   int * matches_FFT   = malloc(sizeof(int) * (n-m+1));
-   int * matches_naive = malloc(sizeof(int) * (n-m+1));
-   
-   
-   // Test the FFT Matching.  
-   for (x=0; x < repeats; x++)
-   {  
-      // Generate random text and pattern of length n and m respectively.
-      // These will consist only of the letters a and b.
-      randomStrings(t, p, n, m);
-         
-      abrahamson_kosaraju(t, p, n, m, matches_FFT);
-      // Perform naive matching for testing.
-      naive_matcher(t, p, n, m, matches_naive);
-  
-      // Check that the two outputs are the same.
-      //   for (i=0; i<n-m+1; i++)
-      //     printf("%d ", matches_FFT[i]);
-      
-      // printf("\n");
-      
-      //  for (i=0; i<n-m+1; i++)
-      //    printf("%d ", matches_naive[i]);
-      
-      //  for (i=0; i<n-m+1; i++)
-      //  assert(matches_naive[i] == matches_FFT[i]);   
-
-      //printf("\n");
-   }
-        
-   */
    return 0;
 }
 
