@@ -21,6 +21,38 @@
 
 /******************************************************************************/
 
+// Process has done i out of n rounds, and we want width w and resolution r.
+static inline void loadBar(int x, int n, int r, int w)
+{
+
+   if (x % (n/r) != 0) return;
+   
+   float ratio =  x/(float)n ;
+   int c     = ratio * w;
+
+
+   
+   printf("%3d%% ",(int)(ratio*100));
+   
+
+   
+   printf("[");
+   
+   for (int x=0; x<c; x++)
+      printf("=");
+   
+   for (int x=c;x<w;x++)
+      printf(" ");   
+  
+   
+   printf("]\n");
+   
+   printf("\033[F\033[J");
+
+}
+
+/******************************************************************************/
+
 // Count the frequencies of symbols in t. 
 // We assume that A is the same size as the alphabet. 
 void sp_km_count_symbols( const char *t, 
@@ -200,11 +232,9 @@ void construct_pRepresentation(       pTriple   *P,
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
-      if (i%(n/10) == 0)
-      {
-         printf("Done %d%%\n", (int)(i/(float)n*100));
-      }
    
+      loadBar(i,n,100,40);
+      
      // printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
       
@@ -816,8 +846,8 @@ void kangaroo(            const char *text,
    // Now, go through every position and look for mismatches.
    for (int i=0,x=0; i<n-m+1; i++)
    {
-    //  if (i%1000 == 0)
-    //  printf("i: %d\n", i);
+      loadBar(i,n,100,40);
+   
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
       {
@@ -827,15 +857,6 @@ void kangaroo(            const char *text,
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
 
-
-      // DEBUGGING.
-      //int actual = count_naive(text+i, pattern, k, m-1);
-      //if (actual != v)
-     // {
-       //  printf("ERROR: %d, %d\n", actual, v);
-      //   exit(0);    
-      //}
-      
       matches[i] = v;
       
    }
@@ -843,6 +864,7 @@ void kangaroo(            const char *text,
    free(pRepresentation);
    freeESA(&esa);
 }
+
 
 
 /******************************************************************************/
@@ -1015,6 +1037,7 @@ void load(const char *filename, int *n, int *m, int *k, int*pos, char **text, ch
 int main(int argc, char **argv)
 {
 
+
    
    // the length of the text and pattern.
    int m;
@@ -1024,14 +1047,14 @@ int main(int argc, char **argv)
 
 
    // The text and pattern strings.
-   char *t=NULL;
-   char *p=NULL;
+   char *t = NULL;
+   char *p = NULL;
 
    load("./outfile", &n, &m, &k, &pos, &t, &p);
 
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
 
-   naive_kangaroo(t,p,k,n,m,matches);
+   kangaroo(t,p,k,n,m,matches);
    //printf("Done naive.\n");
       
    //kangaroo(t,p,k,n,m,matches);
