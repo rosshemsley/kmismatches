@@ -671,10 +671,11 @@ void kmismatches(         const char *text,
    // Number of appearances required for a character to be classed 'frequent'.
    int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
-    printf("Threshold \\sqrt k %d.\n", sqrt_k);
+    printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
    int num_freq_chars = count_frequent_symbols(frequency_table, sqrt_k);
    
+   printf("There are %d frequent characters\n", num_freq_chars);
 
    // Which k-mismatches case to perform.
    if (num_freq_chars < 2* sqrt_k)
@@ -787,7 +788,6 @@ void k_mismatches_case2(  const char *text,
    // array.
    int t=0;
    
-   printf("the position: %d\n", matches[237386]);
    
    for (int i=0,x=0; i<n-m+1; i++)
    {
