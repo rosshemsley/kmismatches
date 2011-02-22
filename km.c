@@ -161,13 +161,18 @@ void createLookup(                     int      *lookup,
 {
    int x = 0;
    
-   for (int i=0; i<l; i++)
+   // zero the array.
+   memset(lookup, 0, sizeof(int) * l);
+   
+   for (int i=0; i<m; i++)
    {
       if (pattern[i] == symbol)
       {
          lookup[x] = i;
          ++x;
       }
+      
+      if (x >=l ) break;
    }
 
    if (x<l)
@@ -184,23 +189,20 @@ void markMatches(       int  *matches,
                         int   n,
                         int   m, 
                         int   l       )
-   {
-   int i,j;
-   
-   for (i=0; i<n; i++)
+{
+
+   for (int i=0; i<n; i++)
    {  
       // Perform the marking.
       if (text[i] == symbol)
       {
-         for (j=0; j<l; j++)
+         for (int j=0; j<l; j++)
          {
             // TODO: can we do this better?
             if (lookup[j] == -1) break;
+            
             if ( i - lookup[j] >= 0 && i-lookup[j] < n-m+1 )
-            {
-
                matches[i-lookup[j]] ++;
-            }
          }
       }      
    }
@@ -286,7 +288,7 @@ static inline int findStart(           char      c,
                                        int       m                             )
 {
 
-   if (c!='A' && c!= 'C' && c!='T' && c!='G') return -1;
+
    // For now we are lazy and do a linear search.
    for (int i=0; i<m; i++)
       if (pattern[SA[i]] == c) {
@@ -774,7 +776,7 @@ void k_mismatches_case2(  const char *text,
 
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   //   RMQ_succinct(esa.LCP, esa.n);  
+   RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -785,31 +787,28 @@ void k_mismatches_case2(  const char *text,
    // array.
    int t=0;
    
+   printf("the position: %d\n", matches[237386]);
+   
    for (int i=0,x=0; i<n-m+1; i++)
    {
       if (t + pRepresentation[x].l <= i)
-      {
-         
+      {   
          t += pRepresentation[x].l;
          ++x;
       }
       
-      // If there could be a possible match here.
-      if (matches[i] >= k)
-      {
-         printf("\nVerifying position %d\n", i);
-            display_pRepresentation(pRepresentation, pattern, n);
-         // Verify this location    
-
-         
-         verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m);
-         
-     
-     
-      }
+      //printf("%d\n", matches[i]);
       
-   
-   
+      // If there could be a possible match here.
+      if (matches[i] >= k-1)
+      {
+      
+         printf("\nVerifying position %d\n", i);
+
+         // Verify this location    
+         matches[i] = verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m);     
+      } else matches[i] = k+1;
+         
    }
    
    freeESA(&esa);
