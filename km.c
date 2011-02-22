@@ -20,6 +20,95 @@
    double *FFT_match_r = NULL;
 
 /******************************************************************************/
+// Load a test input.
+
+void load(                       const char     *filename, 
+                                       int      *n, 
+                                       int      *m, 
+                                       int      *k, 
+                                       int      *pos, 
+                                       char    **text, 
+                                       char    **pattern                       ) 
+{
+
+   FILE *f = fopen(filename, "r");
+
+   if (f==NULL) {
+      fprintf(stderr, "Failed to open file \"%s\"\n", filename);
+      exit(1);
+   }
+
+   // The first line tells us how the rest of the file looks.  
+   char buff[256];
+   
+   fgets(buff, 256, f);
+   if (sscanf(buff, "%d %d %d %d", n, m, k, pos) != 4)
+   {
+      fprintf(stderr, "File header improperly formatted.\n");
+      exit(1);
+   }
+  
+   *text    = malloc(sizeof(char) * (*n+1));
+   *pattern = malloc(sizeof(char) * (*m+1)); 
+  
+   fread(*pattern, sizeof(char), *m,   f);
+   fgets( buff,    2,                  f);
+   fread(*text,    sizeof(char), *n,   f);
+   
+   (*text)[*n]    = '\0';
+   (*pattern)[*m] = '\0';
+   
+   if (strlen(*text) != *n || strlen(*pattern) != *m)
+   {
+      fprintf(stderr, "There was a problem reading the input file.\n");
+      exit(1);
+   }
+   
+   printf("===============================================================\n");
+   printf("| Loaded test data.                                           |\n");
+   printf("|                                                             |\n");
+   printf("|       Text: %-10d bytes                                |\n", *n );
+   printf("|    Pattern: %-10d bytes                                |\n", *m );
+   printf("| Mismatches: %-10d                                      |\n", *k );
+   printf("|   Position: %-10d                                      |\n", *pos);
+   printf("|                                                             |\n");
+   printf("===============================================================\n");
+  
+   // Take account of the end of termination of the string.
+   (*text)[*n]    = '\0';
+   (*pattern)[*m] = '\0';
+   
+   *n = *n+1;
+   *m = *m+1;
+  
+}
+
+/******************************************************************************/
+
+void naive_matcher(              const char     *t, 
+                                 const char     *p, 
+                                       int       n, 
+                                       int       m, 
+                                       int      *A                             )
+{
+   int i,j;
+  
+   for (i=0;i<n-m+1;i++)
+   {
+      int matches=0;
+      
+      for (j=0;j<m;j++)
+      {         
+         if (i+j > n) continue;
+
+         if (t[i+j] == p[j])
+            matches ++;
+      }
+      A[i] = matches;
+   }
+}
+
+/******************************************************************************/
 
 // Process has done i out of n rounds, and we want width w and resolution r.
 static inline void loadBar(int x, int n, int r, int w)
@@ -45,9 +134,9 @@ static inline void loadBar(int x, int n, int r, int w)
 
 // Count the frequencies of symbols in t. 
 // We assume that A is the same size as the alphabet. 
-void sp_km_count_symbols( const char *t, 
-                                int   n, 
-                                int  *A  )
+void sp_km_count_symbols(        const char     *t, 
+                                       int       n, 
+                                       int      *A                             )
 {
    int i=0;
    
@@ -64,11 +153,11 @@ void sp_km_count_symbols( const char *t,
 // The idea is to store the indicies where the symbol occurs at each location
 // in the lookup table.
 
-void createLookup(       int   *lookup, 
-                         char   symbol, 
-                   const char  *pattern, 
-                         int    m, 
-                         int    l       )
+void createLookup(                     int      *lookup, 
+                                       char      symbol, 
+                                 const char     *pattern, 
+                                       int       m, 
+                                       int       l                             )
 {
    int x = 0;
    
@@ -121,13 +210,12 @@ void markMatches(       int  *matches,
 
 int count_frequent_symbols(       
                             const int *frequency_table, 
-                                  int  threshold, 
-                                  int  n                )
+                                  int  threshold)
 {
    int count = 0;
    
-   for (int i=0; i<n; i++)
-      if (frequency_table[i] > n) count ++;
+   for (int i=0; i<ALPHABET_SIZE; i++)
+      if (frequency_table[i] > threshold) count ++;
    return count;
 }
 
@@ -140,13 +228,13 @@ int count_frequent_symbols(
 // to small (i.e. the preceeding chars don't match) then we return -1, 
 // and must start a new pTriple.
 
-static inline int extend     (           char   t, 
-                           int    l,
-                           int   *x,
-                     const char  *pattern, 
-                     const  ESA  *esa,
-                           int    n,     
-                           int    m         )
+static inline int extend(              char      t, 
+                                       int       l,
+                                       int      *x,
+                                 const char     *pattern, 
+                                 const ESA      *esa,
+                                       int       n,     
+                                       int        m                            )
 {
 
    //printf("Extending\n");  
@@ -192,7 +280,10 @@ static inline int extend     (           char   t,
 
 /******************************************************************************/
 
-static inline int findStart(char c, const char *pattern, const int *SA, int m)
+static inline int findStart(           char      c, 
+                                 const char     *pattern, 
+                                 const int      *SA, 
+                                       int       m                             )
 {
 
    if (c!='A' && c!= 'C' && c!='T' && c!='G') return -1;
@@ -207,12 +298,12 @@ static inline int findStart(char c, const char *pattern, const int *SA, int m)
 /******************************************************************************/
 
 
-void construct_pRepresentation(       pTriple   *P,
-                                const char      *text, 
-                                const char      *pattern, 
-                                const ESA       *esa,
-                                      int        n,
-                                      int        m              )
+void construct_pRepresentation(        pTriple  *P,
+                                 const char     *text, 
+                                 const char     *pattern, 
+                                 const ESA      *esa,
+                                       int       n,
+                                       int       m                             )
 {
 
    int p = 0;
@@ -242,7 +333,6 @@ void construct_pRepresentation(       pTriple   *P,
       }
 
       // printf("Starting with suffix: '%s'\n", pattern + esa->SA[x]);
-      P[p].i = i;
         
       // Extend the value as far as possible.
       while ( (i<n-1) && extend( text[++i], ++l, &x, pattern, esa, n, m ) );
@@ -318,69 +408,6 @@ void abrahamson_kosaraju( const char *text,
    }
 }                                
 
-/******************************************************************************/
-void kmismatches(         const char *text, 
-                          const char *pattern,
-                                int   k,
-                                int   n,
-                                int   m,
-                                int  *matches  )
-{
-         
-   // zero the matches array.
-   memset(matches, 0, sizeof(int)*(n-m+1));
-
-   // This will be a count of the occurences of symbols.
-   int frequency_table[ALPHABET_SIZE];
-   
-   // Count the number of occurences of each syumbol.
-   sp_km_count_symbols(pattern, m, frequency_table);
-
-   // Number of appearances required for a character to be classed 'frequent'.
-   int FREQ_CHAR_THRESHOLD = (int)(sqrt((double)k) + 0.5);
-   
-   // printf("threshold: %d\n", FREQ_CHAR_THRESHOLD);
-
-   // Which k-mismatches case to perform.
-   if (0) // count_frequent_symbols(frequency_table, FREQ_CHAR_THRESHOLD, n) > 2*sqrt(k) )
-   {
-   
-      // This will become a look up for each frequent character.
-      int *pattern_lookup = malloc(sizeof(int)*FREQ_CHAR_THRESHOLD);
-
-      // Go through every symbol, looking for frequent symbols.
-      // then perform FFT matching on each one.
-      for (int i=0; i<ALPHABET_SIZE; i++)
-      {
-         if ( frequency_table[i] <= 0 ) continue;
-      
-         if ( frequency_table[i] > FREQ_CHAR_THRESHOLD )
-         {
-            printf("method 1\n");      
-            printf("%c\n", i);
-
-            match_with_FFT(matches, i, text, pattern,  n, m);
-         }
-            else
-         {
-            printf("%c\n", i);
-            printf("method 2\n");
-            
-            // Create lookup for this symbol.
-            createLookup(pattern_lookup, i, pattern, m, FREQ_CHAR_THRESHOLD);
-         
-            // match this symbol in the text.
-            markMatches(matches, text, i, pattern_lookup, n,m, FREQ_CHAR_THRESHOLD);
-         }
-      }
-   
-   } else {
-   
-      //   printf("CASE 2, k = %d\n", k);
-      k_mismatches_case2(text,pattern,frequency_table, k, n, m, matches);
-   
-   }
-}                                
 
 /******************************************************************************/
 
@@ -416,7 +443,6 @@ int count_naive(const char *t, const char *p, int k, int l)
       if (count >=k) return count;
       if (t[i] != p[i]) count ++;
    }
-   
    return count;
    
 }
@@ -426,9 +452,7 @@ int count_naive(const char *t, const char *p, int k, int l)
 void displaySA(int *SA, int *LCP, const char *pattern, int m)
 {
    for (int i=0; i<m; i++)
-   {
       printf("%d %s\n", LCP[i], pattern + SA[i]);
-   } 
 }
 
 /******************************************************************************/
@@ -511,11 +535,9 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          continue;
       }
           
-      // Don't use RMQ to check if one character matches.
+      // Don't use RMQ to check if one character matches. (Optimsation).
       if (block_start == block_end)
       {
-         //printf("ONE CHAR QUERY\n");
-         
          if (pattern[j] != pattern[block_start])
             ++mismatches;
          
@@ -566,7 +588,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
          else
       {
      
-         // REMOVE POINTLESS QUERIES FROM END.
+         // REMOVE POINTLESS QUERIES FROM END. (Optimisation).
          if (block_start + l == block_end)
          {
             i += l+1;
@@ -582,7 +604,6 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
             continue;  
          }
        
-
          // Advance the position by l+1.
          i           += l+1;
          j           += l+1;         
@@ -628,8 +649,76 @@ void constructESA(const char *s, int n, ESA *esa)
 
 /******************************************************************************/
 
-// This is the second case in the k-mismatches algorithm.
+void kmismatches(         const char *text, 
+                          const char *pattern,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches  )
+{
+         
+   // zero the matches array.
+   memset(matches, 0, sizeof(int)*(n-m+1));
 
+   // This will be a count of the occurences of symbols.
+   int frequency_table[ALPHABET_SIZE];
+   
+   // Count the number of occurences of each syumbol.
+   sp_km_count_symbols(pattern, m, frequency_table);
+
+   // Number of appearances required for a character to be classed 'frequent'.
+   int sqrt_k = (int)(sqrt((double)k) + 0.5);
+   
+    printf("Threshold \\sqrt k %d.\n", sqrt_k);
+
+   int num_freq_chars = count_frequent_symbols(frequency_table, sqrt_k);
+   
+
+   // Which k-mismatches case to perform.
+   if (num_freq_chars < 2* sqrt_k)
+   {
+      printf("CASE 1\n");
+   
+      // This will become a look up for each frequent character.
+      int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
+
+      // Go through every symbol, looking for frequent symbols.
+      // then perform FFT matching on each one.
+      for (int i=0; i<ALPHABET_SIZE; i++)
+      {
+         if ( frequency_table[i] <= 0 ) continue;
+      
+         if ( frequency_table[i] > sqrt_k )
+         {
+            printf("method 1\n");      
+            printf("%c\n", i);
+
+            match_with_FFT(matches, i, text, pattern,  n, m);
+         }
+            else
+         {
+            printf("%c\n", i);
+            printf("method 2\n");
+            
+            // Create lookup for this symbol.
+            createLookup(pattern_lookup, i, pattern, m, sqrt_k);
+         
+            // match this symbol in the text.
+            markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
+         }
+      }
+   
+   } else {
+   
+      printf("CASE 2\n");
+      k_mismatches_case2(text, pattern, frequency_table, k, n, m, matches);
+   
+   }
+}                                
+
+/******************************************************************************/
+
+// This is the second case in the k-mismatches algorithm.
 void k_mismatches_case2(  const char *text, 
                           const char *pattern,
                           const int  *frequency_table,
@@ -643,50 +732,46 @@ void k_mismatches_case2(  const char *text,
    // We do this first for memory efficiency
    int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
- //  printf("sqrt k: %d\n", sqrt_k);
-   
    int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
    // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
    // where they match.
    
-   printf("Finding first %d characters and choosing first %d instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
+   printf("Finding first %d characters and choosing first %d "                
+           "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
+           
    for (int i=0, j=0; i<ALPHABET_SIZE &&  j< 2*sqrt_k; i++)
    {
       // Symbols that appear more than 
       if ( frequency_table[i] >= sqrt_k )
       {
-         printf("%c is one of them\n", i);
+         printf("%c is a frequent character.\n", i);
          // Create lookup for this symbol.
          createLookup(pattern_lookup, i, pattern, m, sqrt_k);
       
          // match this symbol in the text.
-         markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
+         markMatches(matches, text, i, pattern_lookup, n, m, sqrt_k);
       }
    }
 
    //---------------//
-
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
 
-
-
    // Construct the extended suffix array.
+   
+   printf("Constructing ESA and p-representation\n");
    ESA esa;   
    constructESA(pattern, m, &esa);
-   
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
+   printf("Done\n");
+   
    
    //printf("%s\n", text);
    //display_pRepresentation(pRepresentation, pattern, n);
 
   // exit(0);
-   for (int i=0; i<n-m+1; i++)
-   {
-      printf("%d ", matches[i]);
-   }  
-   printf("\n");
+
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
    //   RMQ_succinct(esa.LCP, esa.n);  
@@ -717,16 +802,8 @@ void k_mismatches_case2(  const char *text,
          // Verify this location    
 
          
-         int actual = count_naive(text+i, pattern, k, m-1);
-
-         if (actual != verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m))
-         {
-           printf("ERROR\n");
-           exit(0);
-          
-         }
-     
-
+         verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m);
+         
      
      
       }
@@ -749,9 +826,6 @@ void naive_kangaroo (     const char *text,
                                 int   m,
                                 int  *matches          )
 {
-
-      
-      
    memset(matches, 0, sizeof(int)*(n-m+1));
    for (int i=0; i<n-m+1; i++)
    {
@@ -768,7 +842,6 @@ void naive_kangaroo (     const char *text,
       matches[i] = mismatches;
    
    }
-
 }                                
                                
 
@@ -795,16 +868,14 @@ void kangaroo(            const char *text,
    RMQ_succinct(esa.LCP, esa.n); 
    printf("Done RMQ\n");
 
-  
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
   
    // Construct the p-representation.
    printf("Constructing p-Representation.\n");
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
- //    display_pRepresentation(pRepresentation, pattern, n);
-   
    int t=0;
+   
    // Now, go through every position and look for mismatches.
    printf("Looking for k-Mismatches.\n");
    for (int i=0,x=0; i<n-m+1; i++)
@@ -827,100 +898,6 @@ void kangaroo(            const char *text,
    free(pRepresentation);
    freeESA(&esa);
 }
-
-
-
-/******************************************************************************/
-
-void naive_matcher( const char *t, 
-                    const char *p, 
-                          int   n, 
-                          int   m, 
-                          int  *A  )
-{
-   int i,j;
-  
-   for (i=0;i<n-m+1;i++)
-   {
-      int matches=0;
-      
-      for (j=0;j<m;j++)
-      {         
-         if (i+j > n) continue;
-
-         if (t[i+j] == p[j])
-            matches ++;
-      }
-      A[i] = matches;
-   }
-}
-
-/******************************************************************************/
-// Load a test input.
-
-void load(  const char   *filename, 
-                  int    *n, 
-                  int    *m, 
-                  int    *k, 
-                  int    *pos, 
-                  char  **text, 
-                  char  **pattern     ) 
-{
-
-   FILE *f = fopen(filename, "r");
-
-   if (f==NULL) {
-      fprintf(stderr, "Failed to open file \"%s\"\n", filename);
-      exit(1);
-   }
-
-   // The first line tells us how the rest of the file looks.  
-   char buff[256];
-   
-   fgets(buff, 256, f);
-   if (sscanf(buff, "%d %d %d %d", n, m, k, pos) != 4)
-   {
-      fprintf(stderr, "File header improperly formatted.\n");
-      exit(1);
-   }
-  
-   *text    = malloc(sizeof(char) * (*n+1));
-   *pattern = malloc(sizeof(char) * (*m+1)); 
-  
-   fread(*pattern, sizeof(char), *m,   f);
-   fgets(buff,      2, f);
-   fread(*text,    sizeof(char), *n,   f);
-   
-   (*text)[*n]    = '\0';
-   (*pattern)[*m] = '\0';
-   
-   if (strlen(*text) != *n || strlen(*pattern) != *m)
-   {
-      fprintf(stderr, "There was a problem reading the input file.\n");
-      exit(1);
-   }
-   
-   printf("===============================================================\n");
-   printf("| Loaded test data.                                           |\n");
-   printf("|                                                             |\n");
-   printf("|       Text: %-10d bytes                                |\n", *n );
-   printf("|    Pattern: %-10d bytes                                |\n", *m );
-   printf("| Mismatches: %-10d                                      |\n", *k );
-   printf("|   Position: %-10d                                      |\n", *pos);
-   printf("|                                                             |\n");
-   printf("===============================================================\n");
-  
-   // Take account of the end of termination of the string.
-   (*text)[*n]    = '\0';
-   (*pattern)[*m] = '\0';
-   
-   *n = *n+1;
-   *m = *m+1;
-  
-}
-
-/******************************************************************************/
-
 
 /******************************************************************************/
 //
@@ -956,7 +933,7 @@ int main(int argc, char **argv)
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
 
    // Perform Kangarooing.
-   kangaroo(t,p,k,n,m,matches);
+   kmismatches(t,p,k,n,m,matches);
 
       
    // Verify the output.   

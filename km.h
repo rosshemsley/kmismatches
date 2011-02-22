@@ -22,7 +22,6 @@ typedef struct _ESA
 
 typedef struct _pTriple
 {
-   int i;
    int j;
    int l;
 }  pTriple;
