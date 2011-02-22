@@ -475,7 +475,7 @@ static inline int verifyMatch(  const pTriple  *pRepresentation,
       
    // Look through all the characters in the pattern.
    // NOTE: We assume the last char is \0.
-   while (mismatches<k && j < m-1)
+   while (mismatches<=k && j < m-1)
    {   
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
@@ -764,7 +764,7 @@ void naive_kangaroo (     const char *text,
          if (pattern[j] != text[i+j]) 
          { 
             mismatches ++;
-            if (mismatches >= k) break;  
+            if (mismatches > k) break;  
          }
       }
    
@@ -1022,39 +1022,39 @@ int main(int argc, char **argv)
 
    load("./outfile", &n, &m, &k, &t, &p);
 
+
+   int  *matches        = malloc(sizeof(int)  * (n-m+1));
+   int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
+
    
-     int  *matches        = malloc(sizeof(int)  * (n-m+1));
-     int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
-   
-      
 
    for (int a=0; a < repeats; a++)
    {
    
-      //printf("Pattern: %s\n", p);
-   
-   //  n = loadData(&t, "./dna.50MB");
-     //printf("loaded, %d bytes\n", n);
-   
-
-
       naive_kangaroo(t,p,k,n,m,matches_naive);
       printf("Done naive.\n");
       
-      kangaroo(t,p,k,n,m,matches);
-      printf("Done kangaroo.\n");
+   //   kangaroo(t,p,k,n,m,matches);
+    //  printf("Done kangaroo.\n");
       
       
       printf("CHECKING: \n");
       for (int b=0;b<n-m+1; b++)
       {
-       // printf("Matches %d: %d\n", b, matches[b]);
-         if (matches_naive[b] != matches[b])
+        // printf("%d\n", matches_naive[b]);
+         if (matches_naive[b] <=k) 
          {
-            fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
+            printf("FOUND MATCH\n");
+            printf("Positoin: %d, mismatches: %d\n", b, matches_naive[b]);  
+         }  
+       // printf("Matches %d: %d\n", b, matches[b]);
+      //   if (matches_naive[b] != matches[b])
+       //  {
+
+         //   fprintf(stderr, "%d: MATCHES NOT EQUAL: %d, %d\n",b, matches_naive[b], matches[b]);
             
-            exit(0);
-         }
+        //    exit(0);
+        // }
       }
    }
    
