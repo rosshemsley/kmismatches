@@ -181,6 +181,51 @@ void createLookup(                     int      *lookup,
 }
 
 /******************************************************************************/
+// attempts to optimise this function
+
+// This seems slower.
+void markMatches2(       int  *matches, 
+                  const char *text, 
+                        char  symbol, 
+                  const int  *lookup, 
+                        int   n,
+                        int   m, 
+                        int   l       )
+{
+
+   int end = l;
+   
+   // Find the last char in the lookup. (Optimisation).
+   for (int i=0; i<l;i++)
+   {
+      if (lookup[i] == -1) 
+      {
+         end = i;
+         break;
+      }  
+   }
+
+
+   // NOTICE OPTIMISED BOUNDARIES: we infer the max and min 
+   // positoins in the text.
+   for (int i=lookup[0]; i <  (n-lookup[l-1]+1);    i++)
+   {  
+      // Perform the marking.
+      if (text[i] == symbol)
+      {
+         for (int j=0; j<end; j++)
+         {
+            // TODO: CHECK THIS IS RIGHT
+            if ( i - lookup[j] >= n-m+1) break;
+            
+            if ( i - lookup[j] >= 0 )
+               ++ matches[i-lookup[j]];
+         }
+      }      
+   }
+} 
+
+/******************************************************************************/
 
 void markMatches(       int  *matches, 
                   const char *text, 
@@ -191,17 +236,29 @@ void markMatches(       int  *matches,
                         int   l       )
 {
 
+   int end = l;
+   
+   // Find the last char in the lookup. (Optimisation).
+   for (int i=0; i<l;i++)
+   {
+      if (lookup[i] == -1) 
+      {
+         end = i;
+         break;
+      }  
+   }
+
    for (int i=0; i<n; i++)
    {  
       // Perform the marking.
       if (text[i] == symbol)
       {
-         for (int j=0; j<l; j++)
+         for (int j=0; j<end; j++)
          {
-            // TODO: can we do this better?
-            if (lookup[j] == -1) break;
+            // TODO: CHECK THIS IS RIGHT
+            if (i-lookup[j] >= n-m+1) break;
             
-            if ( i - lookup[j] >= 0 && i-lookup[j] < n-m+1 )
+            if ( i - lookup[j] >= 0 )
                ++ matches[i-lookup[j]];
          }
       }      
@@ -345,7 +402,7 @@ void construct_pRepresentation(        pTriple  *P,
    while (i+1 < n)
    {
    
-      loadBar(i,n,100,40);
+    //  loadBar(i,n,100,40);
       
      // printf("\nStarting new Suffix: '%s'\n", text + i);
       l = 0;      
@@ -735,7 +792,7 @@ void kmismatches(         const char *text,
             createLookup(pattern_lookup, i, pattern, m, sqrt_k);
          
             // match this symbol in the text.
-            markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
+            markMatches2(matches, text, i, pattern_lookup, n,m, sqrt_k);
          }
       }
    
