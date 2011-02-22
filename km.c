@@ -946,41 +946,46 @@ void randomStrings( char *text,
 /******************************************************************************/
 // Load a test input.
 
-int load(const char *filename, int *n, int *m, int *k, char *text, char *pattern)
+void load(const char *filename, int *n, int *m, int *k, char **text, char **pattern)
 {
 
    FILE *f = fopen(filename, "r");
 
-   // The first line tells us how the rest of the file looks.
-   
-   
-  
+   if (f==NULL) {
+      fprintf(stderr, "Failed to open file \"%s\"\n", filename);
+      exit(1);
+   }
+
+   // The first line tells us how the rest of the file looks.  
    char buff[256];
    
    fgets(buff, 256, f);
-   sscanf(buff, "%d %d %d", n, m, k);
-
-   printf("%d, %d, %d\n", *n, *m, *k);
+   if (sscanf(buff, "%d %d %d", n, m, k) != 3)
+   {
+      fprintf(stderr, "File header improperly formatted.\n");
+      exit(1);
+   }
   
-     
-   text    = malloc(sizeof(char) * (*n+1));
-   pattern = malloc(sizeof(char) * (*m+1)); 
+   *text    = malloc(sizeof(char) * (*n+1));
+   *pattern = malloc(sizeof(char) * (*m+1)); 
   
-  
-   fgets(pattern, *m+1, f);
-   fgets(buff,       2, f);
-   fgets(text,    *n+1, f);
-
-  
-   text[*n]    = 0;
-   pattern[*m] = 0;
-  
-   printf("%s\n", pattern);
-   printf("%s\n", text);
-
-
-   //printf("%s", buff);
+   fgets(*pattern, *m+1, f);
+   fgets(buff,        2, f);
+   fgets(*text,    *n+1, f);
    
+   printf("Loaded problem:\n");
+   printf("  n: %d\n", *n);
+   printf("  m: %d\n", *m);
+   printf("  k: %d\n", *k);
+  
+  
+   // Take account of the end of termination of the string.
+   (*text)[*n]    = '\0';
+   (*pattern)[*m] = '\0';
+   
+   *n = *n+1;
+   *m = *m+1;
+  
 }
 
 /******************************************************************************/
@@ -995,11 +1000,6 @@ int load(const char *filename, int *n, int *m, int *k, char *text, char *pattern
 
 int main(int argc, char **argv)
 {
-   int n, m,k;
-
-load("./outfile", &n, &m, &k,NULL, NULL);
-exit(0);
-/*
 
    srand( time(NULL) );
    //-------------------------------------------------------------------------//
@@ -1009,19 +1009,27 @@ exit(0);
    int repeats = 1;
    
    // the length of the text and pattern.
-   int m       = 200;
-   int n       = 1000000;
+   int m;
+   int n;
+   int k;
 
    //-------------------------------------------------------------------------//
  
    // The text and pattern strings.
-   char *t       = malloc(sizeof(char) * n);
-   char *p        = malloc(sizeof(char) * m);
-   int  *matches  = malloc(sizeof(int)  * (n-m+1));
+   char *t=NULL;
+   char *p=NULL;
+
+
+   load("./outfile", &n, &m, &k, &t, &p);
+
+   
+     int  *matches        = malloc(sizeof(int)  * (n-m+1));
+     int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
+   
+      
 
    for (int a=0; a < repeats; a++)
    {
-    randomStrings(t, p, n, m);   
    
       //printf("Pattern: %s\n", p);
    
@@ -1029,15 +1037,11 @@ exit(0);
      //printf("loaded, %d bytes\n", n);
    
 
-   
-      int  *matches        = malloc(sizeof(int)  * (n-m+1));
-     int  *matches_naive  = malloc(sizeof(int)  * (n-m+1));
-   
-      
-      naive_kangaroo(t,p,200,n,m,matches_naive);
+
+      naive_kangaroo(t,p,k,n,m,matches_naive);
       printf("Done naive.\n");
       
-      kangaroo(t,p,200,n,m,matches);
+      kangaroo(t,p,k,n,m,matches);
       printf("Done kangaroo.\n");
       
       
