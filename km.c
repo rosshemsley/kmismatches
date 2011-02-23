@@ -412,7 +412,8 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-   
+      
+      
       // The length of this p-block.
       int l = 0;
       
@@ -421,6 +422,9 @@ void construct_pRepresentation(        pTriple  *P,
       int j = m;
       
       while ( extendInterval(&i, &j, l++, text[t + l], pattern, esa) );  
+   
+      printf("First value (NEW) %d\n", i);
+      
    
       // The length is the maximum depth we managed.
       P[x].l = l;
@@ -485,6 +489,8 @@ void construct_pRepresentation_old(        pTriple  *P,
       // x = findStart(text[i], pattern, esa->SA, m);
       
       x = LOOKUP[(unsigned char)text[i]];
+      
+            printf("First value (OLD) %d\n", x);
       
       if (x<0)
       {
