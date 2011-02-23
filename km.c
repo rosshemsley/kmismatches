@@ -396,8 +396,47 @@ static inline int findStart(           char      c,
 
 /******************************************************************************/
 
-
 void construct_pRepresentation(        pTriple  *P,
+                                 const char     *text, 
+                                 const char     *pattern, 
+                                 const ESA      *esa,
+                                       int       n,
+                                       int       m                             )
+{
+
+   // Position in the text.
+   int t = 0;
+   // Position in the p-Representation.
+   int x = 0;
+   
+   // Go through every value in the text.
+   while (t<n)
+   {
+   
+      // The length of this p-block.
+      int l = 0;
+      
+      // The start and end values of the p-block 
+      int i = 0;
+      int j = m;
+      
+      while ( extendInterval(&i, &j, l++, text[t + l], pattern, esa) );  
+   
+      // The length is the maximum depth we managed.
+      P[x].l = l;
+      
+      // The pattern index is the start of the lsat l-interval we reached.
+      P[x].j = i;
+      
+      x++;
+         
+   }
+
+}
+
+/******************************************************************************/
+
+void construct_pRepresentation_old(        pTriple  *P,
                                  const char     *text, 
                                  const char     *pattern, 
                                  const ESA      *esa,
@@ -870,6 +909,52 @@ void constructChildValues( ESA *esa)
 }
 
 /******************************************************************************/
+// Attempt to extend the patterh within this l-interval.
+
+int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa)
+{
+
+   int i = *_i;
+   int j = *_j;
+   int n = esa->n;
+   
+   int v;
+   
+   if (i==0 && j==n)
+      v=0;
+   
+   // Find v, the first l-index in this l-interval.   
+   if (i < esa->up[j+1] && esa->up[j+1] <= j)
+      v = esa->up[j+1];
+   else
+      v = esa->down[i];
+
+   // the first interval starts at i.
+   int l = i;
+   
+   // Now Loop through the intervals looking for character matches.
+   // This happens at most once for each of the symbols in the alphabet.
+   while ( esa->accross[v] != 0 )
+   {
+      // If the start of this l-interval has a character match.
+      if ((str + esa->SA[l])[depth] == c) 
+      {
+         // We are now in the interval (i, v-1)
+         *_i = l;
+         *_j = v-1;
+     
+         // Succesfully found a match.
+         return 1;
+      }
+   
+      // Set the start value of this interval.
+      l = v;
+      v = esa->accross[v];
+   }
+
+   // No match occured.
+   return 0;
+}
 
 /******************************************************************************/
 
