@@ -887,15 +887,16 @@ void k_mismatches_case2(  const char *text,
       }
    }
    
+   printf("Doing marking\n");
    for (int i=0; i<n; i++)
    {
       // If this symbol is one of our look-up characters.
       int l = LOOKUP[(unsigned char)text[i]];
-      
-      int *this_table = pattern_lookup + l;
-      
+     
       if (l != -1)
       {
+         int *this_table = pattern_lookup + l;
+         
          for (int j=0; j<sqrt_k; j++)
          {
             // TODO: CHECK THIS IS RIGHT
@@ -907,7 +908,10 @@ void k_mismatches_case2(  const char *text,
       }
    }
    
+   // We no longer need this.
+   free(pattern_lookup);   
 
+   printf("Done Marking\n");
    //---------------//
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
@@ -963,7 +967,7 @@ void k_mismatches_case2(  const char *text,
    }
    
    freeESA(&esa);
-   free(pattern_lookup);
+
    free(pRepresentation);
 }
 
