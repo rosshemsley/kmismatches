@@ -837,7 +837,7 @@ void k_mismatches_case2(  const char *text,
    printf("Finding first %d characters and choosing first %d "                
            "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
            
-   for (int i=0, j=0; i<ALPHABET_SIZE &&  j< 2*sqrt_k; i++)
+   for (int i=0, j=0; i<ALPHABET_SIZE &&  j<= 2*sqrt_k; i++)
    {
       // Symbols that appear more than 
       if ( frequency_table[i] >= sqrt_k )
