@@ -88,10 +88,9 @@ void load(                       const char     *filename,
   
    // Take account of the end of termination of the string.
    (*text)[*n]    = '\0';
-   (*pattern)[*m+1] = '\0';
-      (*pattern)[*m] = 'z';
+   (*pattern)[*m] = '\0';
    *n = *n+1;
-   *m = *m+2;
+   *m = *m+1;
   
 }
 
@@ -429,7 +428,7 @@ void construct_pRepresentation(        pTriple  *P,
       //rintf("First value (NEW) %d\n", i);
       printf("Found match of length %d starting at %d\n", l, esa->SAi[i]);
       
-   
+      if (t>5) break;
       // The length is the maximum depth we managed.
       P[x].l = l;
       
@@ -636,8 +635,8 @@ void displaySA(const ESA *esa, const char *pattern, int m)
    
    for (int i=0; i<m;i++)
       printf("%3d: %d %s\n", i, esa->LCP[i], (pattern+esa->SA[i]));
-   exit(0);
-   
+
+
 }
 
 /******************************************************************************/
@@ -817,14 +816,14 @@ void freeESA(ESA *esa)
 void constructChildValues( ESA *esa)
 {
 
-
+   int n = esa->n+1;
    
    stack *s = newStack();
    
    push(s, 0);
    
    // TODO: Make sure that this correctly reaches the end.
-   for (int i=1; i<esa->n; i++)
+   for (int i=1; i<n; i++)
    {
    
       while (esa->LCP[i] < esa->LCP[ peek(s) ])
@@ -847,7 +846,7 @@ void constructChildValues( ESA *esa)
    
    int lastIndex = -1;
    push(s, 0);
-   for (int i=1; i<esa->n; i++)
+   for (int i=1; i<n; i++)
    {
       while (esa->LCP[i] < esa->LCP[ peek(s) ] )
       {
@@ -885,20 +884,23 @@ void constructESA(const char *s, int n, ESA *esa)
    esa->n   = n;
    
    // TODO: Change these to malloc's later.
-   esa->SA  = calloc( (n+1), sizeof(int) );
-   esa->SAi = calloc( (n+1), sizeof(int) );
-   esa->LCP = calloc( (n+1), sizeof(int) );
+   esa->SA  = calloc( (n+2), sizeof(int) );
+   esa->SAi = calloc( (n+2), sizeof(int) );
+   esa->LCP = calloc( (n+2), sizeof(int) );
    
    // Child table, we attempt standard construction first,
    // then optimise it to occupy just one field.
-   esa->up      = malloc(sizeof(int) * (n+1));
-   esa->down    = malloc(sizeof(int) * (n+1));
-   esa->accross = malloc(sizeof(int) * (n+1));
+   esa->up      = malloc(sizeof(int) * (n+2));
+   esa->down    = malloc(sizeof(int) * (n+2));
+   esa->accross = malloc(sizeof(int) * (n+2));
 
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
-
+   //esa->SA [n ] = -1;
+   //esa->SAi[-1] = n;
+   esa->LCP[n ] = 0;
+   
    /*
    esa->SA[0]  = 2;
    esa->SA[1]  = 3;
@@ -1008,10 +1010,15 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
       v = esa->accross[v];
       printf("Accross value: %d\n", v);
       
-      if (l==0) l=n-1;
+
+      if (v==0) v=n;
+      if (l==0) 
+      {
       
-      if (l==n-1) return 0;
-      
+         return 0;
+      }
+
+               if (l == v) return 0;
       printf("Jumping to next l-interval: %d (l is %d)\n",v,l);
    }
 
