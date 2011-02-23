@@ -61,7 +61,7 @@ void load(                       const char     *filename,
    }
   
    *text    = malloc(sizeof(char) * (*n+1));
-   *pattern = malloc(sizeof(char) * (*m+1)); 
+   *pattern = malloc(sizeof(char) * (*m+2)); 
   
    fread(*pattern, sizeof(char), *m,   f);
    fgets( buff,    2,                  f);
@@ -88,10 +88,10 @@ void load(                       const char     *filename,
   
    // Take account of the end of termination of the string.
    (*text)[*n]    = '\0';
-   (*pattern)[*m] = '\0';
-   
+   (*pattern)[*m+1] = '\0';
+      (*pattern)[*m] = 'z';
    *n = *n+1;
-   *m = *m+1;
+   *m = *m+2;
   
 }
 
