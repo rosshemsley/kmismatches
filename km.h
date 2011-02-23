@@ -18,6 +18,9 @@ typedef struct _ESA
    int *SA;
    int *SAi;
    int *LCP;
+   int *up;
+   int *down;
+   int *accross;
 } ESA;
 
 typedef struct _pTriple

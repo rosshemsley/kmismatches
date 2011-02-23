@@ -9,6 +9,7 @@
 #include "km.h"
 #include "km_FFT.h"
 #include "sais.h"
+#include "stack.h"
 #include "RMQ_succinct.h"
 
 #define DEBUG
@@ -760,26 +761,89 @@ void constructESA(const char *s, int n, ESA *esa)
    esa->SA  = calloc( (n+1), sizeof(int) );
    esa->SAi = calloc( (n+1), sizeof(int) );
    esa->LCP = calloc( (n+1), sizeof(int) );
-  
+   
    // Child table, we attempt standard construction first,
    // then optimise it to occupy just one field.
-   int *up      = malloc(sizeof(int) * n);
-   int *down    = malloc(sizeof(int) * n);
-   int *accross = malloc(sizeof(int) * n);
+   esa->up      = malloc(sizeof(int) * (n+1));
+   esa->down    = malloc(sizeof(int) * (n+1));
+   esa->accross = malloc(sizeof(int) * (n+1));
 
-     
-     
+
    // Construct the SA and LCP in linear time.
-   sais((unsigned char*)s, esa->SA, esa->LCP, n);
+   //sais((unsigned char*)s, esa->SA, esa->LCP, n);
+
+   esa->SA[0]  = 2;
+   esa->SA[1]  = 3;
+   esa->SA[2]  = 0;
+   esa->SA[3]  = 4;
+   esa->SA[4]  = 6;
+   esa->SA[5]  = 8;
+   esa->SA[6]  = 1;
+   esa->SA[7]  = 5;
+   esa->SA[8]  = 7;
+   esa->SA[9]  = 9;
+   esa->SA[10] = 10;
+   
+   esa->LCP[0]  = 0;
+   esa->LCP[1]  = 2;
+   esa->LCP[2]  = 1;
+   esa->LCP[3]  = 3;
+   esa->LCP[4]  = 1;
+   esa->LCP[5]  = 2;
+   esa->LCP[6]  = 0;
+   esa->LCP[7]  = 2;
+   esa->LCP[8]  = 0;
+   esa->LCP[9]  = 1;
+   esa->LCP[10] = 0;
+
+
 
    // Construct SAi.
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
+      
+      
+
 }
 
 /******************************************************************************/
 
-
+void constructChildValues( ESA *esa)
+{
+   int lastIndex = -1;
+   
+   stack *s = newStack();
+   
+   push(s, 0);
+   
+   for (int i=1; i<esa->n+1; i++)
+   {
+      printf("Peek: %d\n", peek(s));
+      while (esa->LCP[i] < esa->LCP[ peek(s) ] )
+      {
+         lastIndex = pop(s);
+         int top   = peek(s);
+         
+         if (    esa->LCP[i]   <= esa->LCP[top] 
+              && esa->LCP[top] != esa->LCP[lastIndex] )
+              
+            esa->down[top] = lastIndex;
+         
+         if (lastIndex != -1)
+         {
+            esa->up[i]   = lastIndex;
+            lastIndex = -1;
+         }
+      }     
+      push(s, i);
+   }  
+   
+   for (int i=0; i<esa->n+1; i++)
+   {
+      printf("%3d %3d\n",esa->up[i], esa->down[i]);
+   }
+   
+}
 
 /******************************************************************************/
 
@@ -1077,6 +1141,16 @@ void kangaroo(            const char *text,
 int main(int argc, char **argv)
 {
 
+   // Test ESA:
+   
+   ESA esa;
+   
+   constructESA(NULL, 10, &esa);
+
+  constructChildValues( &esa);
+
+   /*
+
    if (argc !=2)
    {
       fprintf(stderr, "No input file provided\n");
@@ -1135,6 +1209,8 @@ int main(int argc, char **argv)
    // This needs to be fixed.
    // FreeRMQ_succinct();
    
+   
+   */
    return 0;
 }
 

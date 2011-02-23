@@ -75,9 +75,16 @@ void  push(stack *s, int e)
 int pop(stack *s)
 {
   // If the stack is empty
-  if (s->top == 0) return NULL;  
+  if (s->top == 0) return 0;  
   s->top--;
   return s->arr[s->top];
+}
+
+/******************************************************************************/
+
+int peek(stack *s)
+{
+  return s->arr[s->top-1];
 }
 
 /******************************************************************************/
