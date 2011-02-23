@@ -20,7 +20,9 @@
 * - Improve p-representation construction: bin-search, child-tab
 * - make non-relevant characters span multi blocks.
 * - re-write the way that marking works - do two at once, or more?
-* 
+* - change the way p-blocks are written, since the length of a block is
+* - rarely longer than 256.
+* - Same with LCP
 *
 *******************************************************************************/
 
@@ -758,6 +760,14 @@ void constructESA(const char *s, int n, ESA *esa)
    esa->SA  = calloc( (n+1), sizeof(int) );
    esa->SAi = calloc( (n+1), sizeof(int) );
    esa->LCP = calloc( (n+1), sizeof(int) );
+  
+   // Child table, we attempt standard construction first,
+   // then optimise it to occupy just one field.
+   int *up      = malloc(sizeof(int) * n);
+   int *down    = malloc(sizeof(int) * n);
+   int *accross = malloc(sizeof(int) * n);
+
+     
      
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
@@ -766,6 +776,10 @@ void constructESA(const char *s, int n, ESA *esa)
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
 }
+
+/******************************************************************************/
+
+
 
 /******************************************************************************/
 
