@@ -492,6 +492,8 @@ void construct_pRepresentation_old(        pTriple  *P,
       
             printf("First value (OLD) %d\n", x);
       
+      exit(0);
+      
       if (x<0)
       {
          P[p].j = -1;
@@ -618,10 +620,13 @@ int count_naive(const char *t, const char *p, int k, int l)
 
 /******************************************************************************/
 
-void displaySA(int *SA, int *LCP, const char *pattern, int m)
+void displaySA(const ESA *esa, const char *pattern, int m)
 {
+   printf("|i  |SA |LCP|U  |D  |A  |\n");
    for (int i=0; i<m; i++)
-      printf("%d %s\n", LCP[i], pattern + SA[i]);
+      printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i], esa->up[i], esa->down[i], esa->accross[i] );
+      
+   printf("\n");
 }
 
 /******************************************************************************/
@@ -912,11 +917,13 @@ void constructESA(const char *s, int n, ESA *esa)
    constructChildValues( esa );
    
    
-   // Construct SAi.
+   // Construct 
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
       
+   displaySA(esa, s, n);
       
+      exit(0);
 
 }
 
@@ -932,8 +939,8 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
    
    int v;
    
-   if (i==0 && j==n)
-      v=0;
+   if (i == 0 && j==n)
+      v = 0;
    
    // Find v, the first l-index in this l-interval.   
    if (i < esa->up[j+1] && esa->up[j+1] <= j)
@@ -949,7 +956,7 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
    while ( esa->accross[v] != 0 )
    {
       // If the start of this l-interval has a character match.
-      if ((str + esa->SA[l])[depth] == c) 
+      if ( (str + esa->SA[l])[depth] == c ) 
       {
          // We are now in the interval (i, v-1)
          *_i = l;
@@ -1284,7 +1291,6 @@ int main(int argc, char **argv)
    //constructChildValues( &esa );
 
    
-
    if (argc !=2)
    {
       fprintf(stderr, "No input file provided\n");
