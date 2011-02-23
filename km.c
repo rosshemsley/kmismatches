@@ -407,6 +407,30 @@ void construct_pRepresentation(        pTriple  *P,
    int x = 0;
    int l = 0;
 
+
+   /* OPTIMSATION *************************************************************/
+   
+   // Create a look-up table for the first positions of each character in 
+   // the SA.
+   int LOOKUP[ALPHABET_SIZE];
+   
+   // Set every item to -1.
+   for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i] = -1;
+   
+   // Now, set those characters that appear to the correct value.
+   
+   for (int i=0; i<m; i++)
+   {
+      // only when the LCP is 0 do we have a new character.
+      if (esa->LCP[i]==0)
+         LOOKUP[(unsigned char)pattern[esa->SA[i]]] = i;
+   
+   }
+   
+   /***************************************************************************/
+
+
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
    {
@@ -417,7 +441,9 @@ void construct_pRepresentation(        pTriple  *P,
       l = 0;      
       
       // Find the first suffix which starts with the current symbol
-      x = findStart(text[i], pattern, esa->SA, m);
+      // x = findStart(text[i], pattern, esa->SA, m);
+      
+      x = LOOKUP[(unsigned char)text[i]];
       
       if (x<0)
       {
