@@ -419,7 +419,6 @@ void construct_pRepresentation(        pTriple  *P,
       LOOKUP[i] = -1;
    
    // Now, set those characters that appear to the correct value.
-   
    for (int i=0; i<m; i++)
    {
       // only when the LCP is 0 do we have a new character.
@@ -429,7 +428,6 @@ void construct_pRepresentation(        pTriple  *P,
    }
    
    /***************************************************************************/
-
 
    // Now, go through keeping i as the most recent char in the text.
    while (i+1 < n)
@@ -827,7 +825,7 @@ void kmismatches(         const char *text,
             createLookup(pattern_lookup, i, pattern, m, sqrt_k);
          
             // match this symbol in the text.
-            markMatches2(matches, text, i, pattern_lookup, n,m, sqrt_k);
+            markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
          }
       }
    
@@ -855,7 +853,8 @@ void k_mismatches_case2(  const char *text,
    // We do this first for memory efficiency
    int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
-   int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
+   // Create a look up matrix with 2k positions.
+   int *pattern_lookup = malloc(sizeof(int)*sqrt_k*2*sqrt_k);
 
    // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
    // where they match.
@@ -863,21 +862,51 @@ void k_mismatches_case2(  const char *text,
    printf("Finding first %d characters and choosing first %d "                
            "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
            
-   for (int i=0, j=0; i<ALPHABET_SIZE &&  j<= 2*sqrt_k; i++)
+           
+    // This will map symbols in the alphabet to look up tables. 
+    // -1 means ignore.
+    int LOOKUP[ALPHABET_SIZE];
+    for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i] = -1;
+           
+   for (int i=0, j=0; i<ALPHABET_SIZE &&  j<2*sqrt_k; i++)
    {
       // Symbols that appear more than 
       if ( frequency_table[i] >= sqrt_k )
       {
          printf("%c is a frequent character.\n", i);
+         
          // Create lookup for this symbol.
-         createLookup(pattern_lookup, i, pattern, m, sqrt_k);
-      
-         // match this symbol in the text.
-         markMatches(matches, text, i, pattern_lookup, n, m, sqrt_k);
+         // we store the look-ups in columns. 
+         createLookup(pattern_lookup + j*sqrt_k, i, pattern, m, sqrt_k);
+
+         // The position of the look up table for this character.
+         LOOKUP[i] = j*sqrt_k;
          
          j++;
       }
    }
+   
+   for (int i=0; i<n; i++)
+   {
+      // If this symbol is one of our look-up characters.
+      int l = LOOKUP[(unsigned char)text[i]];
+      
+      int *this_table = pattern_lookup + l;
+      
+      if (l != -1)
+      {
+         for (int j=0; j<sqrt_k; j++)
+         {
+            // TODO: CHECK THIS IS RIGHT
+            if (i-this_table[j] >= n-m+1) break;            
+            
+            if ( i - this_table[j] >= 0 )
+               ++ matches[i-this_table[j]];
+         }
+      }
+   }
+   
 
    //---------------//
    
