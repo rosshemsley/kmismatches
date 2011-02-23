@@ -404,6 +404,8 @@ void construct_pRepresentation(        pTriple  *P,
                                        int       m                             )
 {
 
+   printf("Constructing p-rep for \n'%s'\n'%s'\n", text,pattern);
+
    // Position in the text.
    int t = 0;
    // Position in the p-Representation.
@@ -412,7 +414,8 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-      
+      printf("\n\nStarting new p-block\n");
+      printf("Text: '%s'\n", text+t);
       
       // The length of this p-block.
       int l = 0;
@@ -423,19 +426,24 @@ void construct_pRepresentation(        pTriple  *P,
       
       while ( extendInterval(&i, &j, l++, text[t + l], pattern, esa) );  
    
-      printf("First value (NEW) %d\n", i);
+      //rintf("First value (NEW) %d\n", i);
+      printf("Found match of length %d starting at %d\n", l, esa->SAi[i]);
       
    
       // The length is the maximum depth we managed.
       P[x].l = l;
       
       // The pattern index is the start of the lsat l-interval we reached.
-      P[x].j = i;
+      P[x].j = esa->SAi[i];
       
       x++;
       t+=l;
            
    }
+
+
+
+
 
 }
 
@@ -490,9 +498,7 @@ void construct_pRepresentation_old(        pTriple  *P,
       
       x = LOOKUP[(unsigned char)text[i]];
       
-            printf("First value (OLD) %d\n", x);
-      
-      exit(0);
+
       
       if (x<0)
       {
@@ -626,7 +632,12 @@ void displaySA(const ESA *esa, const char *pattern, int m)
    for (int i=0; i<m; i++)
       printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i], esa->up[i], esa->down[i], esa->accross[i] );
       
-   printf("\n");
+   printf("\n\n");
+   
+   for (int i=0; i<m;i++)
+      printf("%3d: %d %s\n", i, esa->LCP[i], (pattern+esa->SA[i]));
+   exit(0);
+   
 }
 
 /******************************************************************************/
@@ -806,6 +817,7 @@ void freeESA(ESA *esa)
 void constructChildValues( ESA *esa)
 {
 
+
    
    stack *s = newStack();
    
@@ -849,8 +861,8 @@ void constructChildValues( ESA *esa)
          
          if (lastIndex != -1)
          {
-            esa->up[i]   = lastIndex;
-            lastIndex = -1;
+            esa->up[i] = lastIndex;
+            lastIndex  = -1;
          }
       }     
       push(s, i);
@@ -862,6 +874,7 @@ void constructChildValues( ESA *esa)
    //}
    
 }
+
 
 /******************************************************************************/
 
@@ -921,9 +934,10 @@ void constructESA(const char *s, int n, ESA *esa)
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
       
-   displaySA(esa, s, n);
-      
-      exit(0);
+   displaySA(esa, s, n);   
+   
+   printf("\n\n");
+   //exit(0);
 
 }
 
@@ -933,35 +947,58 @@ void constructESA(const char *s, int n, ESA *esa)
 int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa)
 {
 
+  
+
    int i = *_i;
    int j = *_j;
    int n = esa->n;
    
    int v;
    
+   
    if (i == 0 && j==n)
-      v = 0;
+   {
+      printf("START\n");
+      v = esa->accross[0];
+   } else {
    
    // Find v, the first l-index in this l-interval.   
    if (i < esa->up[j+1] && esa->up[j+1] <= j)
       v = esa->up[j+1];
    else
       v = esa->down[i];
+   }
 
+   if (v==0) v=n-1;
+
+   printf("\ni: %d j: %d\n\n", i, j);
+   
    // the first interval starts at i.
    int l = i;
    
    // Now Loop through the intervals looking for character matches.
    // This happens at most once for each of the symbols in the alphabet.
-   while ( esa->accross[v] != 0 )
+   while ( l < esa->n )
    {
+      printf("l: %d v: %d\n", l, v); 
+      printf("Comparing '%c' to '%c'\n", (str + esa->SA[l])[depth], c);
       // If the start of this l-interval has a character match.
       if ( (str + esa->SA[l])[depth] == c ) 
-      {
+      {  
+  
+      
          // We are now in the interval (i, v-1)
          *_i = l;
-         *_j = v-1;
+         
+         if (v!=0)
+            *_j = v-1;
+          else 
+            *_j = esa->n-1;
+         
+         printf("Match\n");
+         printf("(%d, %d)\n", *_i, *_j);
      
+         if (*_i == *_j) return 0;
          // Succesfully found a match.
          return 1;
       }
@@ -969,6 +1006,13 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
       // Set the start value of this interval.
       l = v;
       v = esa->accross[v];
+      printf("Accross value: %d\n", v);
+      
+      if (l==0) l=n-1;
+      
+      if (l==n-1) return 0;
+      
+      printf("Jumping to next l-interval: %d (l is %d)\n",v,l);
    }
 
    // No match occured.
@@ -1004,7 +1048,7 @@ void kmismatches(         const char *text,
    printf("There are %d frequent characters\n", num_freq_chars);
 
    // Which k-mismatches case to perform.
-   if (num_freq_chars < 2* sqrt_k)
+   if (0) //num_freq_chars < 2* sqrt_k)
    {
       printf("CASE 1\n");
    
