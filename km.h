@@ -56,7 +56,10 @@ void k_mismatches_case2(  const char *text,
                                 int   k,
                                 int   n,
                                 int   m,
-                                int  *matches          );                                                                 
+                                int  *matches          );          
+                                
+int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa);                                
+                                                                                       
 /******************************************************************************/
 #endif
 /******************************************************************************/

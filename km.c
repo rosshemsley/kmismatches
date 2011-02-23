@@ -429,7 +429,8 @@ void construct_pRepresentation(        pTriple  *P,
       P[x].j = i;
       
       x++;
-         
+      t+=l;
+           
    }
 
 }
@@ -637,8 +638,8 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   register int temp =  query(a+1, b, esa->LCP, esa->n); 
-                                   //*/ query_naive( a+1, b, esa->LCP, esa->n );
+   register int temp = /* query(a+1, b, esa->LCP, esa->n);*/  query_naive( a+1, b, esa->LCP, esa->n );
+                                  
    return     esa->LCP[temp];
                
 }
@@ -788,62 +789,6 @@ void freeESA(ESA *esa)
    free(esa->SAi);
 }
 
-/******************************************************************************/
-
-// Construct an extended suffix array for some string of length n.s
-void constructESA(const char *s, int n, ESA *esa)
-{
-   
-   esa->n   = n;
-   
-   // TODO: Change these to malloc's later.
-   esa->SA  = calloc( (n+1), sizeof(int) );
-   esa->SAi = calloc( (n+1), sizeof(int) );
-   esa->LCP = calloc( (n+1), sizeof(int) );
-   
-   // Child table, we attempt standard construction first,
-   // then optimise it to occupy just one field.
-   esa->up      = malloc(sizeof(int) * (n+1));
-   esa->down    = malloc(sizeof(int) * (n+1));
-   esa->accross = malloc(sizeof(int) * (n+1));
-
-
-   // Construct the SA and LCP in linear time.
-   //sais((unsigned char*)s, esa->SA, esa->LCP, n);
-
-   esa->SA[0]  = 2;
-   esa->SA[1]  = 3;
-   esa->SA[2]  = 0;
-   esa->SA[3]  = 4;
-   esa->SA[4]  = 6;
-   esa->SA[5]  = 8;
-   esa->SA[6]  = 1;
-   esa->SA[7]  = 5;
-   esa->SA[8]  = 7;
-   esa->SA[9]  = 9;
-   esa->SA[10] = 10;
-   
-   esa->LCP[0]  = 0;
-   esa->LCP[1]  = 2;
-   esa->LCP[2]  = 1;
-   esa->LCP[3]  = 3;
-   esa->LCP[4]  = 1;
-   esa->LCP[5]  = 2;
-   esa->LCP[6]  = 0;
-   esa->LCP[7]  = 2;
-   esa->LCP[8]  = 0;
-   esa->LCP[9]  = 1;
-   esa->LCP[10] = 0;
-
-
-
-   // Construct SAi.
-   for (int i=0; i<n; i++)
-      esa->SAi[esa->SA[i]] = i;
-      
-      
-
-}
 
 /******************************************************************************/
 
@@ -881,7 +826,6 @@ void constructChildValues( ESA *esa)
    push(s, 0);
    for (int i=1; i<esa->n; i++)
    {
-      printf("Peek: %d\n", peek(s));
       while (esa->LCP[i] < esa->LCP[ peek(s) ] )
       {
          lastIndex = pop(s);
@@ -901,11 +845,73 @@ void constructChildValues( ESA *esa)
       push(s, i);
    }  
    
-   for (int i=0; i<esa->n; i++)
-   {
-      printf("%3d %3d %3d\n",esa->up[i], esa->down[i], esa->accross[i]);
-   }
+   //for (int i=0; i<esa->n; i++)
+   //{
+   //   printf("%3d %3d %3d\n",esa->up[i], esa->down[i], esa->accross[i]);
+   //}
    
+}
+
+/******************************************************************************/
+
+// Construct an extended suffix array for some string of length n.s
+void constructESA(const char *s, int n, ESA *esa)
+{
+   
+   esa->n   = n;
+   
+   // TODO: Change these to malloc's later.
+   esa->SA  = calloc( (n+1), sizeof(int) );
+   esa->SAi = calloc( (n+1), sizeof(int) );
+   esa->LCP = calloc( (n+1), sizeof(int) );
+   
+   // Child table, we attempt standard construction first,
+   // then optimise it to occupy just one field.
+   esa->up      = malloc(sizeof(int) * (n+1));
+   esa->down    = malloc(sizeof(int) * (n+1));
+   esa->accross = malloc(sizeof(int) * (n+1));
+
+   // Construct the SA and LCP in linear time.
+   sais((unsigned char*)s, esa->SA, esa->LCP, n);
+
+
+   /*
+   esa->SA[0]  = 2;
+   esa->SA[1]  = 3;
+   esa->SA[2]  = 0;
+   esa->SA[3]  = 4;
+   esa->SA[4]  = 6;
+   esa->SA[5]  = 8;
+   esa->SA[6]  = 1;
+   esa->SA[7]  = 5;
+   esa->SA[8]  = 7;
+   esa->SA[9]  = 9;
+   esa->SA[10] = 10;
+   
+   esa->LCP[0]  = 0;
+   esa->LCP[1]  = 2;
+   esa->LCP[2]  = 1;
+   esa->LCP[3]  = 3;
+   esa->LCP[4]  = 1;
+   esa->LCP[5]  = 2;
+   esa->LCP[6]  = 0;
+   esa->LCP[7]  = 2;
+   esa->LCP[8]  = 0;
+   esa->LCP[9]  = 1;
+   esa->LCP[10] = 0;
+
+
+   */
+
+   constructChildValues( esa );
+   
+   
+   // Construct SAi.
+   for (int i=0; i<n; i++)
+      esa->SAi[esa->SA[i]] = i;
+      
+      
+
 }
 
 /******************************************************************************/
@@ -1104,6 +1110,8 @@ void k_mismatches_case2(  const char *text,
    //---------------//
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
+   
+   pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
 
    // Construct the extended suffix array.
    
@@ -1111,6 +1119,17 @@ void k_mismatches_case2(  const char *text,
    ESA esa;   
    constructESA(pattern, m, &esa);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
+   
+   construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
+   
+   
+   printf("NEW ONE: \n");
+   display_pRepresentation(pRepresentation,     pattern, n);
+   
+   printf("\n\nOLD ONE: \n");
+   display_pRepresentation(pRepresentation_old, pattern, n);
+   
+   
    printf("Done\n");
    
    
@@ -1121,7 +1140,7 @@ void k_mismatches_case2(  const char *text,
 
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   RMQ_succinct(esa.LCP, esa.n);  
+   //RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
@@ -1254,13 +1273,11 @@ int main(int argc, char **argv)
 
    // Test ESA:
    
-   ESA esa;
+   //ESA esa;
+   //constructESA("hello", 11, &esa);
+   //constructChildValues( &esa );
+
    
-   constructESA(NULL, 11, &esa);
-
-  constructChildValues( &esa);
-
-   /*
 
    if (argc !=2)
    {
@@ -1321,7 +1338,7 @@ int main(int argc, char **argv)
    // FreeRMQ_succinct();
    
    
-   */
+   
    return 0;
 }
 
