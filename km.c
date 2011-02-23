@@ -810,13 +810,37 @@ void constructESA(const char *s, int n, ESA *esa)
 
 void constructChildValues( ESA *esa)
 {
-   int lastIndex = -1;
+
    
    stack *s = newStack();
    
    push(s, 0);
    
-   for (int i=1; i<esa->n+1; i++)
+   // TODO: Make sure that this correctly reaches the end.
+   for (int i=1; i<esa->n; i++)
+   {
+   
+      while (esa->LCP[i] < esa->LCP[ peek(s) ])
+         pop(s);
+         
+      if (esa->LCP[i] == esa->LCP[ peek(s) ])
+         esa->accross[pop(s)] = i;
+   
+      push(s, i);
+      
+   }
+   
+   
+   
+
+   /**   Construct Up/Down values.   ***************/
+   
+   // Reset the stack.   
+   emptyStack(s);
+   
+   int lastIndex = -1;
+   push(s, 0);
+   for (int i=1; i<esa->n; i++)
    {
       printf("Peek: %d\n", peek(s));
       while (esa->LCP[i] < esa->LCP[ peek(s) ] )
@@ -838,12 +862,14 @@ void constructChildValues( ESA *esa)
       push(s, i);
    }  
    
-   for (int i=0; i<esa->n+1; i++)
+   for (int i=0; i<esa->n; i++)
    {
-      printf("%3d %3d\n",esa->up[i], esa->down[i]);
+      printf("%3d %3d %3d\n",esa->up[i], esa->down[i], esa->accross[i]);
    }
    
 }
+
+/******************************************************************************/
 
 /******************************************************************************/
 
@@ -1145,7 +1171,7 @@ int main(int argc, char **argv)
    
    ESA esa;
    
-   constructESA(NULL, 10, &esa);
+   constructESA(NULL, 11, &esa);
 
   constructChildValues( &esa);
 
