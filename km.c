@@ -412,7 +412,7 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-     if(x>2) return;
+    // if(x>2) return;
       extendInterval(&P[x], text + t, pattern, n, m, esa);
    
       //rintf("First value (NEW) %d\n", i);
