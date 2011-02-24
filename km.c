@@ -985,7 +985,12 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       // We have reached a leaf node.
       if (i == j)
       {
-         
+         printf("SINGLETON\n");
+
+     
+
+       
+      
          printf("Singleton interval\n");
          
          while (1)
@@ -1000,6 +1005,8 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
          
          break;
       }
+   
+   
    
       int match=1;
       for (int i=l;i<lcp;i++)
