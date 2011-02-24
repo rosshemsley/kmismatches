@@ -412,19 +412,22 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-    //if(x>3) return;
-      extendInterval(&P[x], text + t, pattern, n, m, esa);
+   // if(x>5) return;
+      
    
       //rintf("First value (NEW) %d\n", i);
       //printf("Found match of length %d starting at %d (%s)\n", l-1, i, pattern + esa->SA[i]);
       
-      t += P[x].l;
-      x++;
+      t += extendInterval(&P[x], text + t, pattern, n, m, esa);
+      ++x;
 
            
    }
-
-
+   
+   
+   if (x<n);
+   P[x].l=1;
+   P[x].j=-2;
 
 
 
@@ -968,10 +971,41 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       
       printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
    
+
+      // Singleton.
+      // We have reached a leaf node.
+      if (i == j)
+      {
+         
+         printf("Singleton interval\n");
+         
+         while (1)
+         {
+            printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+            if ((pattern + esa->SA[u])[l] == text[l])
+            {
+
+               l++;
+            } else {break;}
+         }
+         
+         break;
+      }
+   
       // Does the start of this l-interval match?
       if ( (pattern + esa->SA[u])[l] == text[l] )       
       {
+      
+         ++l;      
+         STOP = 0;
          printf("Found a match.\n\n");
+         
+         // It could be that we do not need to go down a level yet, 
+         // as we could be at the bottom of the tree already.
+         // Check this by looking to see if the next child interval
+         // along shares the same prefix.
+         if ( (pattern + esa->SA[v-1])[l] == text[l] )    continue; 
+         
          // If yes, move down the lcp-tree by finding the new
          // value of v and changing this child interval to the
          // current l-interval.
@@ -984,31 +1018,21 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
          else
             v = esa->down[i];
 
-       
+         printf("New v: %d\n", v);
          
          // We are now working at the next level.       
-         ++l;
-         if (v == 0) break;
          
-         // Singleton.
-         // We have reached a leaf node.
-         if (i == j)
+         if (v == 0) 
          {
-            
-            printf("Singleton interval\n");
-
-            while ((pattern + esa->SA[u])[l] == text[l] )
-            {
-               printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-               l++;
-            }
-            
-            break;
+            printf("V is 0 stopping?\n");
+          //  break;
          }
          
 
+         
+
          // If we were going to stop before, we're not now.
-         STOP = 0;
+        
          
          continue;
       }  
@@ -1023,11 +1047,16 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       // be the last.
       // Obviously, if we find a match, STOP should be reset.
       
-      if (STOP) break;
+      if (STOP) {
+         printf("STOP-induced break\n");
+      
+         break;
+      }
       
       if (v == 0)
       {
-         v = j;
+         printf("STOP CRITERIA\n");
+         v = j+1;
          STOP = 1;
       }       
    }
