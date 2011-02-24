@@ -426,7 +426,7 @@ void construct_pRepresentation(        pTriple  *P,
       while ( extendInterval(&i, &j, l++, text[t + l], pattern, esa) );  
    
       //rintf("First value (NEW) %d\n", i);
-      printf("Found match of length %d starting at %d\n", l, esa->SAi[i]);
+      printf("Found match of length %d starting at %d (%s)\n", l, i, pattern + esa->SAi[i]);
       
       if (t>5) break;
       // The length is the maximum depth we managed.
@@ -1010,6 +1010,7 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
       v = esa->accross[v];
       printf("Accross value: %d\n", v);
       
+      printf("(%d, %d).\n", *_i, *_j);
 
       if (v==0) v=n;
       if (l==0) 
