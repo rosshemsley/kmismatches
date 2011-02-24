@@ -403,7 +403,6 @@ void construct_pRepresentation(        pTriple  *P,
                                        int       m                             )
 {
 
-   printf("Constructing p-rep for \n'%s'\n'%s'\n", text,pattern);
 
    // Position in the text.
    int t = 0;
@@ -413,30 +412,15 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-      printf("\n\nStarting new p-block\n");
-      printf("Text: '%s'\n", text+t);
-      
-      // The length of this p-block.
-      int l = 0;
-      
-      // The start and end values of the p-block 
-      int i = 0;
-      int j = m;
-      
-      while ( extendInterval(&i, &j, l++, text[t + l], pattern, esa) );  
+     if(x>2) return;
+      extendInterval(&P[x], text + t, pattern, n, m, esa);
    
       //rintf("First value (NEW) %d\n", i);
-      printf("Found match of length %d starting at %d (%s)\n", l, i, pattern + esa->SAi[i]);
+      //printf("Found match of length %d starting at %d (%s)\n", l-1, i, pattern + esa->SA[i]);
       
-      if (t>5) break;
-      // The length is the maximum depth we managed.
-      P[x].l = l;
-      
-      // The pattern index is the start of the lsat l-interval we reached.
-      P[x].j = esa->SAi[i];
-      
+      t += P[x].l;
       x++;
-      t+=l;
+
            
    }
 
@@ -944,19 +928,131 @@ void constructESA(const char *s, int n, ESA *esa)
 }
 
 /******************************************************************************/
-// Attempt to extend the patterh within this l-interval.
 
-int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa)
+// Find the maximum possible extension of any suffix and this part of the text 
+// and store it in P.
+int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
+{
+ 
+   printf("Starting new extension\n");
+   printf("%s\n%s\n", text, pattern);
+ 
+   // We start with the first l-interval.
+   int i = 0;
+   int j = m;
+   
+   // This is the current length of the matching prefix of the text.
+   int l = 0;
+   
+   // u is the start of the current l-index.
+   int u = 0;   
+   
+   // v is the start of the next l-index.
+   int v;
+   
+   // Find v, the first l-index in this l-interval.   
+   if (i==0 && j==m)
+      v = esa->accross[0];
+   else if (i < esa->up[j+1] && esa->up[j+1] <= j)
+      v = esa->up[j+1];
+   else
+      v = esa->down[i];
+   
+   int STOP=0;
+
+   // Now, keep traversing the tree until we run out of possibilities. 
+   while (1)
+   {
+      printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
+   
+      
+      printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+   
+      // Does the start of this l-interval match?
+      if ( (pattern + esa->SA[u])[l] == text[l] )       
+      {
+         printf("Found a match.\n\n");
+         // If yes, move down the lcp-tree by finding the new
+         // value of v and changing this child interval to the
+         // current l-interval.
+         i = u;
+         j = v-1;
+         
+         // Find the new value of v.
+         if (i < esa->up[j+1] && esa->up[j+1] <= j)
+            v =  esa->up[j+1];
+         else
+            v = esa->down[i];
+         
+
+         // We are now working at the next level.       
+         ++l;
+         
+         // If we were going to stop before, we're not now.
+         STOP = 0;
+         
+         continue;
+      }  
+      
+      // Move accross the tree to the next child interval.
+      u = v;
+      v = esa->accross[v];
+   
+      // If we have reached the end of this l-interval,
+      // then v will be 0. However, there could still be a match
+      // here, so we use STOP to indicate that the next round should
+      // be the last.
+      // Obviously, if we find a match, STOP should be reset.
+      
+      if (STOP) break;
+      
+      if (v == 0)
+      {
+         v = j;
+         STOP = 1;
+      }       
+   }
+   
+   P->l = l;
+   P->j = esa->SA[i];
+
+   printf("\n\n\n");
+
+   return l;
+
+}
+
+/******************************************************************************/
+
+// Attempt to extend the patterh within this l-interval.
+/*
+int extendInterval2(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa)
 {
 
-  
 
    int i = *_i;
    int j = *_j;
    int n = esa->n;
    
+
+   
    int v;
    
+   
+      printf("\n NEW RUN i: %d j: %d c: %c depth: %d\n\n", i, j,c,depth);
+
+      if ( (str + esa->SA[*_i])[depth] == c ) 
+      {  
+  
+
+         printf("Match\n");
+         printf("(%d, %d)\n", *_i, *_j);
+     
+
+         // Succesfully found a match.
+         return 1;
+      }
+  
    
    if (i == 0 && j==n)
    {
@@ -964,23 +1060,19 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
       v = esa->accross[0];
    } else {
    
-   // Find v, the first l-index in this l-interval.   
-   if (i < esa->up[j+1] && esa->up[j+1] <= j)
-      v = esa->up[j+1];
-   else
-      v = esa->down[i];
-   }
 
-   if (v==0) v=n-1;
+   if (v==0) v=j;
 
-   printf("\ni: %d j: %d\n\n", i, j);
+
    
    // the first interval starts at i.
    int l = i;
    
    // Now Loop through the intervals looking for character matches.
    // This happens at most once for each of the symbols in the alphabet.
-   while ( l < esa->n )
+   
+   int STOP=0;
+   while (l<=j)
    {
       printf("l: %d v: %d\n", l, v); 
       printf("Comparing '%c' to '%c'\n", (str + esa->SA[l])[depth], c);
@@ -997,10 +1089,10 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
           else 
             *_j = esa->n-1;
          
-         printf("Match\n");
+         printf("Match (l is currently %d)\n",depth);
          printf("(%d, %d)\n", *_i, *_j);
      
-         if (*_i == *_j) return 0;
+
          // Succesfully found a match.
          return 1;
       }
@@ -1009,24 +1101,32 @@ int extendInterval(int *_i, int *_j, int depth, char c, const char *str, const E
       l = v;
       v = esa->accross[v];
       printf("Accross value: %d\n", v);
-      
-      printf("(%d, %d).\n", *_i, *_j);
+   
 
-      if (v==0) v=n;
-      if (l==0) 
+
+      if (STOP) return 0;
+      if (v==0) 
       {
-      
-         return 0;
+         v = j;
+         STOP=1;   
+         
+         
       }
+            printf("Next accross value: %d\n", esa->accross[v]);
+      
+      printf("(%d, %d).\n", i, j);
 
-               if (l == v) return 0;
+
+
+
       printf("Jumping to next l-interval: %d (l is %d)\n",v,l);
    }
+   
 
    // No match occured.
    return 0;
 }
-
+*/
 /******************************************************************************/
 
 void kmismatches(         const char *text, 
