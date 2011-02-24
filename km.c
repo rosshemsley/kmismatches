@@ -412,7 +412,7 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-    // if(x>2) return;
+    //if(x>3) return;
       extendInterval(&P[x], text + t, pattern, n, m, esa);
    
       //rintf("First value (NEW) %d\n", i);
@@ -983,11 +983,30 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
             v =  esa->up[j+1];
          else
             v = esa->down[i];
-         
 
+       
+         
          // We are now working at the next level.       
          ++l;
+         if (v == 0) break;
          
+         // Singleton.
+         // We have reached a leaf node.
+         if (i == j)
+         {
+            
+            printf("Singleton interval\n");
+
+            while ((pattern + esa->SA[u])[l] == text[l] )
+            {
+               printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+               l++;
+            }
+            
+            break;
+         }
+         
+
          // If we were going to stop before, we're not now.
          STOP = 0;
          
