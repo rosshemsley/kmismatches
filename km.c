@@ -412,7 +412,7 @@ void construct_pRepresentation(        pTriple  *P,
    // Go through every value in the text.
    while (t<n)
    {
-   // if(x>5) return;
+   // if(x>39) return;
       
    
       //rintf("First value (NEW) %d\n", i);
@@ -969,7 +969,16 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
    
       
-      printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+      // Find the l-value of this l-interval.
+      int lcp;
+      if (i <  esa->up[j+1] && esa->up[j+1] <= j ) 
+         lcp = esa->LCP[esa->up[j+1]];
+      else                  
+         lcp = esa->LCP[esa->down[i]];
+      
+      printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
+      
+      //printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
    
 
       // Singleton.
@@ -984,13 +993,33 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
             printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
             if ((pattern + esa->SA[u])[l] == text[l])
             {
-
+   
                l++;
             } else {break;}
          }
          
          break;
       }
+   
+      int match=1;
+      for (int i=l;i<lcp;i++)
+      {
+      
+          printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+         if ((pattern + esa->SA[u])[l] != text[l])
+            match=0;
+         else
+            l++;
+      }
+      if (match==0)
+      {
+         printf("Match failed\n");
+         break;
+      } else {
+         printf("All matched\n");
+      }
+      
+   
    
       // Does the start of this l-interval match?
       if ( (pattern + esa->SA[u])[l] == text[l] )       
@@ -1004,8 +1033,12 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
          // as we could be at the bottom of the tree already.
          // Check this by looking to see if the next child interval
          // along shares the same prefix.
-         if ( (pattern + esa->SA[v-1])[l] == text[l] )    continue; 
-         
+        // if ( (pattern + esa->SA[v-1])[l] == text[l] )  
+        // { 
+        //    l++;       
+        //  printf("Are we at the bottom?\n");
+        //  continue; 
+        // }
          // If yes, move down the lcp-tree by finding the new
          // value of v and changing this child interval to the
          // current l-interval.
