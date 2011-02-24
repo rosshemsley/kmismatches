@@ -404,6 +404,22 @@ void construct_pRepresentation(        pTriple  *P,
 {
 
 
+   int LOOKUP[ALPHABET_SIZE];
+   
+   // Set every item to -1.
+   for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i] = -1;
+   
+   // Now, set those characters that appear to the correct value.
+   for (int i=0; i<m; i++)
+   {
+      // only when the LCP is 0 do we have a new character.
+      if (esa->LCP[i]==0)
+         LOOKUP[(unsigned char)pattern[esa->SA[i]]] = i;
+   
+   }
+   
+
    // Position in the text.
    int t = 0;
    // Position in the p-Representation.
@@ -414,11 +430,20 @@ void construct_pRepresentation(        pTriple  *P,
    {
    // if(x>39) return;
       
-   
+      // not in pattern.
+      if (LOOKUP[(unsigned int)text[t]] == -1)
+      {
+         P[x].j = -1;
+         P[x].l = 1;
+         
+         ++t;
+      } else {
       //rintf("First value (NEW) %d\n", i);
       //printf("Found match of length %d starting at %d (%s)\n", l-1, i, pattern + esa->SA[i]);
       
-      t += extendInterval(&P[x], text + t, pattern, n, m, esa);
+         t += extendInterval(&P[x], text + t, pattern, n, m, esa);
+      
+      }
       ++x;
 
            
@@ -939,7 +964,7 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
  
    printf("Starting new extension\n");
    printf("%s\n%s\n", text, pattern);
- 
+ getchar();
    // We start with the first l-interval.
    int i = 0;
    int j = m;
@@ -968,6 +993,12 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
    {
       printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
    
+      if (u==m)
+      {
+         printf("CHAR NOT IN PATTERN\n");
+         
+         break;
+      }
       
       // Find the l-value of this l-interval.
       int lcp;
