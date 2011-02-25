@@ -1485,7 +1485,6 @@ void k_mismatches_case2(  const char *text,
 
 void hamming_naive(   const char *text, 
                           const char *pattern,
-                                int   k,
                                 int   n,
                                 int   m,
                                 int  *matches          )
@@ -1615,15 +1614,25 @@ int main(int argc, char **argv)
       exit(1);
    }
    
-   int naive=0;
+   int naive         = 0;
+   int naive_hamming = 0;
    if (argc == 3)
    {
-      if (strcmp(argv[2], "-naive")==0)
+      for (int i=2; i<argc; i++)
       {
-         printf("USING NAIVE ALGORITHM\n");
-         naive=1;
-      }   
+         if (strcmp(argv[i], "-naive")==0)
+         {
+            printf("USING NAIVE ALGORITHM\n");
+            naive=1;
+         }
+         else if(strcmp(argv[i], "-naive_nm")==0)
+         {
+            printf("Using Naive Hamming distance Algorithm\n");
+            naive_hamming = 1;  
+         }
+         
       
+      }   
    }
    
    
@@ -1647,7 +1656,9 @@ int main(int argc, char **argv)
  //  
 
    if (naive)
-      kmismatches_naive( t,p,k,n,m,matches);
+      kmismatches_naive(t,p,k,n,m,matches);
+   else if(naive_hamming)
+      hamming_naive(t,p,n,m,matches);
    else
       kmismatches(t,p,k,n,m,matches);
       

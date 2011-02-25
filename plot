@@ -8,7 +8,7 @@
 # Press return to return to the command prompt (you may
 # have to click on the prompt window first).
 #
-set title "k-Mismatches case 2"
+set title "k-Mismatches (Case 2)"
 set style data linespoints
 #set yrange[0:100]
 set autoscale
@@ -24,6 +24,7 @@ set size 0.7, 0.5
 
 # plot './data' using 1:4 t "Wins by X", 'data' using 1:4 t "Wins by O", 'data' using 1:4 t "Draws"
 
-plot './stats' using 1:2 t  "Naive", './stats' using 1:3 t "Kangarooing"
+plot './test_data/naive.out' using 1:2 t  "Naive" 
+#, './test_data/km' using 1:3 t "K-mismatches (Case 2)"
 
 
