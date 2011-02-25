@@ -396,7 +396,7 @@ static inline int findStart(           char      c,
 
 // Find the maximum possible extension of any suffix and this part of the text 
 // and store it in P.
-static inline extendInterval(pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
+static inline extendInterval(int *LOOKUP, pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
 {
  
    //printf("Starting new extension\n");
@@ -417,8 +417,20 @@ static inline extendInterval(pTriple *P, const char *text, const char *pattern, 
    
    // Find v, the first l-index in this l-interval.   
    if (i==0 && j==m)
-      v = esa->accross[0];
-   else if (i < esa->up[j+1] && esa->up[j+1] <= j)
+   {
+      i = LOOKUP[(unsigned char)text[0]];
+      
+      
+      u=i;
+      
+      j = esa->accross[i]-1;
+   
+      l++;
+      //v = esa->accross[0];
+   
+   
+   }
+   if (i < esa->up[j+1] && esa->up[j+1] <= j)
       v = esa->up[j+1];
    else
       v = esa->down[i];
@@ -622,7 +634,7 @@ void construct_pRepresentation(        pTriple  *P,
       //rintf("First value (NEW) %d\n", i);
       //printf("Found match of length %d starting at %d (%s)\n", l-1, i, pattern + esa->SA[i]);
       
-         t += extendInterval(&P[x], text + t, pattern, n, m, esa);
+         t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
       
       }
       ++x;
@@ -1389,7 +1401,7 @@ void k_mismatches_case2(  const char *text,
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
    
-   pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
+  // pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
 
    // Construct the extended suffix array.
    
@@ -1398,7 +1410,7 @@ void k_mismatches_case2(  const char *text,
    constructESA(pattern, m, &esa);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
-  construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
+ // construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
    
    
    
@@ -1411,7 +1423,7 @@ void k_mismatches_case2(  const char *text,
    
    
    
-      
+      /*
    
    
    
@@ -1443,7 +1455,7 @@ void k_mismatches_case2(  const char *text,
    
    }
    
-   
+   */
    
    
    
