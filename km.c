@@ -14,15 +14,12 @@
 
 #define DEBUG
 
-
 /******************************************************************************/
 #define LI_FIRST_CHILD(i,j,esa) (i < esa->up[j+1] && esa->up[j+1] <= j)        \
                                  ? esa->up[j+1] : esa->down[i]
    
 #define LI_GET_LCP(i,j,esa) (i< esa->up[j+1] && esa->up[j+1] <=j)              \
                              ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
-
-
 /*******************************************************************************
 *
 * Ideas for optimisations:
@@ -832,7 +829,7 @@ static inline int LCE(int i, int j, const ESA *esa)
       b = c;
    }
    
-   register int temp = /* query(a+1, b, esa->LCP, esa->n);*/  query_naive( a+1, b, esa->LCP, esa->n );
+   register int temp =  query(a+1, b, esa->LCP, esa->n); //*/  query_naive( a+1, b, esa->LCP, esa->n );
                                   
    return     esa->LCP[temp];
                
@@ -1442,7 +1439,7 @@ void k_mismatches_case2(  const char *text,
 
      
    // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   //RMQ_succinct(esa.LCP, esa.n);  
+   RMQ_succinct(esa.LCP, esa.n);  
      
    // We need to keep track of our location in the p-representation
    // AND the text.
