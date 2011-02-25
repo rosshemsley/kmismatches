@@ -14,7 +14,25 @@
 
 #define DEBUG
 
-/******************************************************************************
+
+/******************************************************************************/
+#define LI_FIRST_CHILD(i,j,esa)                                                \
+   (i < esa->up[j+1] && esa->up[j+1] <= j) ? esa->up[j+1] : esa->down[i]
+   
+#define LI_GET_LCP(i,j,esa)                                                    \
+   (i< esa->up[j+1] && esa->up[j+1] <=j) ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
+
+/*
+      int up = esa->up[j+1];
+      
+      if (i <  up && up <= j ) 
+         lcp = esa->LCP[up];
+      else                  
+         lcp = esa->LCP[esa->down[i]];
+      
+
+*/
+/*******************************************************************************
 *
 * Ideas for optimisations:
 *
@@ -396,45 +414,25 @@ static inline int findStart(           char      c,
 
 // Find the maximum possible extension of any suffix and this part of the text 
 // and store it in P.
-static inline extendInterval(int *LOOKUP, pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
+static inline int extendInterval(int *LOOKUP, pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
 {
  
    //printf("Starting new extension\n");
    //printf("%s\n%s\n", text, pattern);
-// getchar();
+   // getchar();
    // We start with the first l-interval.
-   int i = 0;
-   int j = m;
+   int i = LOOKUP[(unsigned char)text[0]];
+   int j = esa->accross[i]-1;
    
    // This is the current length of the matching prefix of the text.
-   int l = 0;
+   int l = 1;
    
    // u is the start of the current l-index.
-   int u = 0;   
+   int u = i;   
    
    // v is the start of the next l-index.
-   int v;
-   
-   // Find v, the first l-index in this l-interval.   
-   if (i==0 && j==m)
-   {
-      i = LOOKUP[(unsigned char)text[0]];
+   int v = LI_FIRST_CHILD(i, j, esa);
       
-      
-      u=i;
-      
-      j = esa->accross[i]-1;
-   
-      l++;
-      //v = esa->accross[0];
-   
-   
-   }
-   if (i < esa->up[j+1] && esa->up[j+1] <= j)
-      v = esa->up[j+1];
-   else
-      v = esa->down[i];
-   
    int STOP=0;
 
    // Now, keep traversing the tree until we run out of possibilities. 
@@ -442,66 +440,59 @@ static inline extendInterval(int *LOOKUP, pTriple *P, const char *text, const ch
    {
       //printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
    
+      /*
+      // WE MIGHT NEED THIS, WAIT AND SEE.
       if (u==m)
       {
          //printf("CHAR NOT IN PATTERN\n");
-         
+         getchar();
          break;
       }
+      */
       
-      // Find the l-value of this l-interval.
-      int lcp;
-
-      if (i <  esa->up[j+1] && esa->up[j+1] <= j ) 
-         lcp = esa->LCP[esa->up[j+1]];
-      else                  
-         lcp = esa->LCP[esa->down[i]];
-      
-      //printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
-      
-      //printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-   
-
       // Singleton.
       // We have reached a leaf node.
       if (i == j)
-      {
-         
+      {  
         // printf("Singleton interval\n");
-         
-         while (1)
-         {
-          //  printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-            if (text[l-1]!= '\0' &&   (pattern + esa->SA[u])[l] == text[l])
-            {
-   
-               l++;
-            } else {break;}
-         }
-         
-         break;
-      }
-   
-      int match=1;
-      for (int i=l;i<lcp;i++)
-      {
-      
-         // printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-         if ((pattern + esa->SA[u])[l] != text[l])
-            match=0;
-         else
+         while  (text[l-1]!= '\0' && (pattern + esa->SA[u])[l] == text[l])
             l++;
-      }
-      if (match==0)
-      {
-         //printf("Match failed\n");
          break;
-      } else {
-        // printf("All matched\n");
+      }
+            
+      // Find the l-value of this l-interval.
+      int lcp = LI_GET_LCP(i,j,esa);
+      
+      /*
+      int up = esa->up[j+1];
+      
+      if (i <  up && up <= j ) 
+         lcp = esa->LCP[up];
+      else                  
+         lcp = esa->LCP[esa->down[i]];
+      
+      */
+      //printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
+      //printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+   
+
+
+   
+   
+      int match = 1;
+      
+      for (;l<lcp;l++)
+      {
+         if ((pattern + esa->SA[u])[l] != text[l])
+         {
+            match = 0;
+            break;
+         }
       }
       
-   
-   
+      if (match == 0)
+         break;
+         
       // Does the start of this l-interval match?
       if ( (pattern + esa->SA[u])[l] == text[l] )       
       {
@@ -526,25 +517,12 @@ static inline extendInterval(int *LOOKUP, pTriple *P, const char *text, const ch
          i = u;
          j = v-1;
          
-         // Find the new value of v.
-         if (i < esa->up[j+1] && esa->up[j+1] <= j)
-            v =  esa->up[j+1];
-         else
-            v = esa->down[i];
+         v = LI_FIRST_CHILD(i,j,esa);
 
         // printf("New v: %d\n", v);
          
          // We are now working at the next level.       
-         
-         if (v == 0) 
-         {
-        //    printf("V is 0 stopping?\n");
-          //  break;
-         }
-         
-
-         
-
+    
          // If we were going to stop before, we're not now.
         
          
@@ -562,8 +540,7 @@ static inline extendInterval(int *LOOKUP, pTriple *P, const char *text, const ch
       // Obviously, if we find a match, STOP should be reset.
       
       if (STOP) {
-       //  printf("STOP-induced break\n");
-      
+       //  printf("STOP-induced break\n");     
          break;
       }
       
@@ -1401,7 +1378,7 @@ void k_mismatches_case2(  const char *text,
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
    
-  // pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
+   //pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
 
    // Construct the extended suffix array.
    
@@ -1410,7 +1387,7 @@ void k_mismatches_case2(  const char *text,
    constructESA(pattern, m, &esa);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
- // construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
+  //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
    
    
    
@@ -1423,11 +1400,10 @@ void k_mismatches_case2(  const char *text,
    
    
    
-      /*
+     
    
    
-   
-   
+   /*
      printf("%d\n", n);
    for (int i=0; i<n; i++)
    {
@@ -1455,9 +1431,8 @@ void k_mismatches_case2(  const char *text,
    
    }
    
+  
    */
-   
-   
    
    
    
