@@ -1249,7 +1249,10 @@ void kmismatches(         const char *text,
    if (num_freq_chars < 2* sqrt_k)
    {
       printf("CASE 1\n");
-   
+      
+      fprintf(stderr, "NOT IN CASE 2\n");
+      exit(-1);
+      
       // This will become a look up for each frequent character.
       int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
 
@@ -1281,7 +1284,7 @@ void kmismatches(         const char *text,
    
    } else {
    
-      printf("CASE 2\n");
+    //  printf("CASE 2\n");
       k_mismatches_case2(text, pattern, frequency_table, k, n, m, matches);
    
    }
@@ -1309,8 +1312,8 @@ void k_mismatches_case2(  const char *text,
    // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
    // where they match.
    
-   printf("Finding first %d characters and choosing first %d "                
-           "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
+ //  printf("Finding first %d characters and choosing first %d "                
+  //         "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
            
            
     // This will map symbols in the alphabet to look up tables. 
@@ -1324,7 +1327,7 @@ void k_mismatches_case2(  const char *text,
       // Symbols that appear more than 
       if ( frequency_table[i] >= sqrt_k )
       {
-         printf("%c is a frequent character.\n", i);
+       //  printf("%c is a frequent character.\n", i);
          
          // Create lookup for this symbol.
          // we store the look-ups in columns. 
@@ -1337,7 +1340,7 @@ void k_mismatches_case2(  const char *text,
       }
    }
    
-   printf("Doing marking\n");
+   printf("Doing Marking\n");
    for (int i=0; i<n; i++)
    {
       // If this symbol is one of our look-up characters.
@@ -1480,7 +1483,7 @@ void k_mismatches_case2(  const char *text,
 
 /******************************************************************************/
 
-void naive_kangaroo (     const char *text, 
+void kmismatches_naive(   const char *text, 
                           const char *pattern,
                                 int   k,
                                 int   n,
@@ -1582,10 +1585,21 @@ int main(int argc, char **argv)
    //constructChildValues( &esa );
 
    
-   if (argc !=2)
+   if (argc < 2)
    {
       fprintf(stderr, "No input file provided\n");
       exit(1);
+   }
+   
+   int naive=0;
+   if (argc == 3)
+   {
+      if (strcmp(argv[2], "-naive")==0)
+      {
+         printf("USING NAIVE ALGORITHM\n");
+         naive=1;
+      }   
+      
    }
    
    
@@ -1606,8 +1620,13 @@ int main(int argc, char **argv)
    int  *matches        = malloc(sizeof(int)  * (n-m+1));
 
    // Perform Kangarooing.
-   kmismatches(t,p,k,n,m,matches);
+ //  
 
+   if (naive)
+      kmismatches_naive( t,p,k,n,m,matches);
+   else
+      kmismatches(t,p,k,n,m,matches);
+      
       
    // Verify the output.   
    printf("\nCHECKING: \n");
@@ -1615,22 +1634,25 @@ int main(int argc, char **argv)
    int match_pos = -1;
    int match_k   = -1;
    
+   int pass=0;
    for (int b=0;b<n-m+1; b++)
    {
       if (matches[b] <=k) 
       {
          match_pos = b;
          match_k   = matches[b];
-         break;
+         
+         printf("Position: %d, mismatches: %d\n", match_pos, match_k);  
+         if (match_pos == pos || match_k != k)
+         {
+            printf("PASSED TEST\n");
+            pass = 1;
+         }  
+
       }  
    }
    
-   printf("Position: %d, mismatches: %d\n", match_pos, match_k);  
-   if (match_pos != pos || match_k != k)
-   {
-      printf("FAILED TEST\n");
-      exit(1);
-   }  
+
    
    
    free(p);
@@ -1642,7 +1664,7 @@ int main(int argc, char **argv)
    
    
    
-   return 0;
+   return pass;
 }
 
 /*******************************************************************************

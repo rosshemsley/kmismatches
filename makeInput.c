@@ -158,8 +158,9 @@ int main(int argc, char ** argv)
    for (int i=0; i<k; i++)
    {
       // Choose other index for the transposition.
-      while( (y = rand() % m) == x );
+      while( (y = rand() % m) == x || pattern[x] == pattern[y] );
       
+
       // Do the transposition.
       SWAP(pattern[x], pattern[y]);
       
