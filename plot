@@ -24,6 +24,6 @@ set size 0.7, 0.5
 
 # plot './data' using 1:4 t "Wins by X", 'data' using 1:4 t "Wins by O", 'data' using 1:4 t "Draws"
 
-plot './stats' using 1:3 t  "Naive", './stats' using 1:2 t "Kangarooing"
+plot './stats' using 1:2 t  "Naive", './stats' using 1:3 t "Kangarooing"
 
 

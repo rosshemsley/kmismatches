@@ -1,36 +1,37 @@
 #!/usr/bin/python
 
 import os
+import sys
 import time
 
+if(len(sys.argv) < 3):
+   print 'Too few arguments. Exiting.\n'
+   sys.exit()
 
 
-x = 2
+repeats = int(sys.argv[1])
+maxVal  = int(sys.argv[2])
 
-for x in range(2,3):
+print 'Writing output to "', sys.argv[3], '"\n'
 
-   # Create a new test case.
-   os.system('./make_input ./tests/english.50MB ./tests/case2/test'+str(x)+'.test ' + str(x*100) + ' ' + str(x*10))
+# Clear the contents of the output file.
+f = open(sys.argv[3], 'w');
+f.close()
 
 
-   log = open('./test.log', 'a')
-   log.write('About to do test '+str(x)+'\n')
-   log.close();
+for x in range(2,maxVal):
+   this = []
+   for y in range(0,repeats):
+   
+      t0 = time.time();
 
-   t0 = time.time();
+      # Run kmismatches
+      os.system('./km ./tests/case2/test'+str(x)+'.test '+sys.argv[3]+' >>test.log')
+      
+      this.append(time.time() - t0)
 
-   # Run kmismatches
-   os.system('./km ./tests/case2/test'+str(x)+'.test 2>>test.log')
-
-   km = time.time() - t0
-   t0 = time.time();
-
-   # Run naive
-   os.system('./km ./tests/case2/test'+str(x)+'.test -naive 2>>test.log')
-   naive = time.time() - t0
-
-   print x, ': KM took ', km, ' Naive took ', naive
-
-   stats = open('./stats', 'a')
-   stats.write(str(x*100) + ' ' + str(km) + ' ' + str(naive) + '\n')
+   average =  float(sum(this)) / len(this)
+   
+   stats = open(sys.argv[3], 'a')
+   stats.write(str(x*100) + ' ' + str(average)+'\n')
    stats.close()

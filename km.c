@@ -161,7 +161,7 @@ void sp_km_count_symbols(        const char     *t,
       A[i] = 0;
    
    for (i=0; i<n; i++)
-      A[(unsigned int)t[i]] ++;
+      A[(unsigned char)t[i]] ++;
 }
 
 /******************************************************************************/
@@ -1479,6 +1479,30 @@ void k_mismatches_case2(  const char *text,
    freeESA(&esa);
 
    free(pRepresentation);
+}
+
+/******************************************************************************/
+
+void hamming_naive(   const char *text, 
+                          const char *pattern,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches          )
+{
+   memset(matches, 0, sizeof(int)*(n-m+1));
+   for (int i=0; i<n-m+1; i++)
+   {
+      int mismatches =0;
+      for (int j=0; j<m-1; j++)
+      {
+         if (pattern[j] != text[i+j]) 
+            mismatches ++;
+      }
+   
+      matches[i] = mismatches;
+   
+   }
 }
 
 /******************************************************************************/
