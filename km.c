@@ -16,22 +16,13 @@
 
 
 /******************************************************************************/
-#define LI_FIRST_CHILD(i,j,esa)                                                \
-   (i < esa->up[j+1] && esa->up[j+1] <= j) ? esa->up[j+1] : esa->down[i]
+#define LI_FIRST_CHILD(i,j,esa) (i < esa->up[j+1] && esa->up[j+1] <= j)        \
+                                 ? esa->up[j+1] : esa->down[i]
    
-#define LI_GET_LCP(i,j,esa)                                                    \
-   (i< esa->up[j+1] && esa->up[j+1] <=j) ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
+#define LI_GET_LCP(i,j,esa) (i< esa->up[j+1] && esa->up[j+1] <=j)              \
+                             ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
 
-/*
-      int up = esa->up[j+1];
-      
-      if (i <  up && up <= j ) 
-         lcp = esa->LCP[up];
-      else                  
-         lcp = esa->LCP[esa->down[i]];
-      
 
-*/
 /*******************************************************************************
 *
 * Ideas for optimisations:
