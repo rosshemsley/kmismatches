@@ -431,7 +431,7 @@ void construct_pRepresentation(        pTriple  *P,
    // if(x>39) return;
       
       // not in pattern.
-      if (LOOKUP[(unsigned int)text[t]] == -1)
+      if (LOOKUP[(unsigned char)text[t]] == -1)
       {
          P[x].j = -1;
          P[x].l = 1;
@@ -451,8 +451,8 @@ void construct_pRepresentation(        pTriple  *P,
    
    
    if (x<n);
-   P[x].l=1;
-   P[x].j=-2;
+   P[x-1].l=0;
+   P[x-1].j=-2;
 
 
 
@@ -948,9 +948,9 @@ void constructESA(const char *s, int n, ESA *esa)
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
       
-   displaySA(esa, s, n);   
+ //  displaySA(esa, s, n);   
    
-   printf("\n\n");
+  // printf("\n\n");
    //exit(0);
 
 }
@@ -962,9 +962,9 @@ void constructESA(const char *s, int n, ESA *esa)
 int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa)
 {
  
-   printf("Starting new extension\n");
-   printf("%s\n%s\n", text, pattern);
- getchar();
+   //printf("Starting new extension\n");
+   //printf("%s\n%s\n", text, pattern);
+// getchar();
    // We start with the first l-interval.
    int i = 0;
    int j = m;
@@ -991,11 +991,11 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
    // Now, keep traversing the tree until we run out of possibilities. 
    while (1)
    {
-      printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
+      //printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
    
       if (u==m)
       {
-         printf("CHAR NOT IN PATTERN\n");
+         //printf("CHAR NOT IN PATTERN\n");
          
          break;
       }
@@ -1007,7 +1007,7 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       else                  
          lcp = esa->LCP[esa->down[i]];
       
-      printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
+      //printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
       
       //printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
    
@@ -1017,11 +1017,11 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       if (i == j)
       {
          
-         printf("Singleton interval\n");
+        // printf("Singleton interval\n");
          
          while (1)
          {
-            printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+          //  printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
             if ((pattern + esa->SA[u])[l] == text[l])
             {
    
@@ -1036,7 +1036,7 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       for (int i=l;i<lcp;i++)
       {
       
-          printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
+         // printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
          if ((pattern + esa->SA[u])[l] != text[l])
             match=0;
          else
@@ -1044,10 +1044,10 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       }
       if (match==0)
       {
-         printf("Match failed\n");
+         //printf("Match failed\n");
          break;
       } else {
-         printf("All matched\n");
+        // printf("All matched\n");
       }
       
    
@@ -1058,7 +1058,7 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       
          ++l;      
          STOP = 0;
-         printf("Found a match.\n\n");
+        // printf("Found a match.\n\n");
          
          // It could be that we do not need to go down a level yet, 
          // as we could be at the bottom of the tree already.
@@ -1082,13 +1082,13 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
          else
             v = esa->down[i];
 
-         printf("New v: %d\n", v);
+        // printf("New v: %d\n", v);
          
          // We are now working at the next level.       
          
          if (v == 0) 
          {
-            printf("V is 0 stopping?\n");
+        //    printf("V is 0 stopping?\n");
           //  break;
          }
          
@@ -1112,14 +1112,14 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
       // Obviously, if we find a match, STOP should be reset.
       
       if (STOP) {
-         printf("STOP-induced break\n");
+       //  printf("STOP-induced break\n");
       
          break;
       }
       
       if (v == 0)
       {
-         printf("STOP CRITERIA\n");
+       //  printf("STOP CRITERIA\n");
          v = j+1;
          STOP = 1;
       }       
@@ -1128,7 +1128,7 @@ int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int
    P->l = l;
    P->j = esa->SA[i];
 
-   printf("\n\n\n");
+  // printf("\n\n\n");
 
    return l;
 
@@ -1400,11 +1400,57 @@ void k_mismatches_case2(  const char *text,
    construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
    
    
+   
    printf("NEW ONE: \n");
-   display_pRepresentation(pRepresentation,     pattern, n);
+  // display_pRepresentation(pRepresentation,     pattern, n);
    
    printf("\n\nOLD ONE: \n");
-   display_pRepresentation(pRepresentation_old, pattern, n);
+   //display_pRepresentation(pRepresentation_old, pattern, n);
+   
+   
+   
+   
+      
+   
+   
+   
+   
+     printf("%d\n", n);
+   for (int i=0; i<n; i++)
+   {
+      if (pRepresentation[i].j != pRepresentation_old[i].j)
+      {
+         
+         printf("j FAILED HERE: %d\n",i);
+         printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
+         
+         exit(0);
+      }
+      
+      if (pRepresentation[i].l != pRepresentation_old[i].l)
+      {
+         printf("l FAILED HERE: %d\n",i);
+         printf("found: %d, expected: %d\n", pRepresentation[i].l, pRepresentation_old[i].l);
+                  printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
+         exit(0);
+      }
+      
+      if (pRepresentation[i].j == -2)
+      {
+         break;
+      }
+   
+   }
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
    
    
    printf("Done\n");
@@ -1512,6 +1558,11 @@ void kangaroo(            const char *text,
    // Construct the p-representation.
    printf("Constructing p-Representation.\n");
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
+   
+   
+
+   
+   
    
    int t=0;
    
