@@ -439,6 +439,7 @@ static inline extendInterval(pTriple *P, const char *text, const char *pattern, 
       
       // Find the l-value of this l-interval.
       int lcp;
+
       if (i <  esa->up[j+1] && esa->up[j+1] <= j ) 
          lcp = esa->LCP[esa->up[j+1]];
       else                  
@@ -459,7 +460,7 @@ static inline extendInterval(pTriple *P, const char *text, const char *pattern, 
          while (1)
          {
           //  printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-            if ((pattern + esa->SA[u])[l] == text[l])
+            if (text[l-1]!= '\0' &&   (pattern + esa->SA[u])[l] == text[l])
             {
    
                l++;
@@ -1082,9 +1083,9 @@ void constructESA(const char *s, int n, ESA *esa)
    
    // Child table, we attempt standard construction first,
    // then optimise it to occupy just one field.
-   esa->up      = malloc(sizeof(int) * (n+2));
-   esa->down    = malloc(sizeof(int) * (n+2));
-   esa->accross = malloc(sizeof(int) * (n+2));
+   esa->up      = calloc( (n+2), sizeof(int) );
+   esa->down    = calloc( (n+2), sizeof(int) );
+   esa->accross = calloc( (n+2), sizeof(int) ); 
 
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
@@ -1268,7 +1269,7 @@ void kmismatches(         const char *text,
    printf("There are %d frequent characters\n", num_freq_chars);
 
    // Which k-mismatches case to perform.
-   if (0) //num_freq_chars < 2* sqrt_k)
+   if (num_freq_chars < 2* sqrt_k)
    {
       printf("CASE 1\n");
    
@@ -1388,7 +1389,7 @@ void k_mismatches_case2(  const char *text,
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
    
-  // pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
+   pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
 
    // Construct the extended suffix array.
    
@@ -1397,21 +1398,21 @@ void k_mismatches_case2(  const char *text,
    constructESA(pattern, m, &esa);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
- //  construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
+  construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);
    
    
    
    printf("NEW ONE: \n");
-  // display_pRepresentation(pRepresentation,     pattern, n);
+   //display_pRepresentation(pRepresentation_old,     pattern, n);
    
    printf("\n\nOLD ONE: \n");
-   //display_pRepresentation(pRepresentation_old, pattern, n);
+   //display_pRepresentation(pRepresentation, pattern, n);
    
    
    
    
       
-   /*
+   
    
    
    
@@ -1445,7 +1446,7 @@ void k_mismatches_case2(  const char *text,
    
    
    
-   */
+   
    
    
    
