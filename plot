@@ -24,6 +24,6 @@ set size 0.7, 0.5
 
 # plot './data' using 1:4 t "Wins by X", 'data' using 1:4 t "Wins by O", 'data' using 1:4 t "Draws"
 
-plot './test_data/naive.out'   using 1:2 t  "Naive O(nk)",  './test_data/naive_h.out' using 1:2 t  "Naive O(nm)", './test_data/km.out' using 1:2 t  "K-mismatches (Case 2)"
+plot './test_data/naive.out'   using 1:2 t  "Naive O(nk)",  './test_data/naive_h.out' using 1:2 t  "Naive O(nm)", './test_data/km_huge.out' using 1:2 t  "K-mismatches (Case 2)"
 
 !epstopdf out && rm out
