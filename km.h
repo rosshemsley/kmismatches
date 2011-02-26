@@ -58,6 +58,16 @@ void k_mismatches_case2(  const char *text,
                                 int   m,
                                 int  *matches          );          
                                 
+                                
+void markMatches(                     const int*      lookup,        
+                                 const int*      lookup_matrix,
+                                       int       l,
+                                       int*      matches,
+                                 const char*     text,
+                                       int       n,       
+                                       int       m                             );                                
+                                
+                                
 //int extendInterval(pTriple *P, const char *text, const char *pattern, int n, int m, const ESA *esa);
                                                                                        
 /******************************************************************************/

@@ -228,7 +228,7 @@ void markMatches2(                     int*      matches,
 
 /******************************************************************************/
 // Mark the positions where the text could match given this look up table.
-
+/*
 void markMatches(                      int*      matches, 
                                  const char*     text, 
                                        char      symbol, 
@@ -267,7 +267,7 @@ void markMatches(                      int*      matches,
       }      
    }
 } 
-
+*/
 /******************************************************************************/
 // Count how many frequent symbols their are by going through the lookup table.
 
@@ -735,11 +735,18 @@ void abrahamson_kosaraju(        const char*     text,
    // algorithm.
    
    // This will become a look up for each frequent character.
-   int *symbol_lookup = malloc(sizeof(int)*threshold);
    
-   // TODO: block frequent characters and perform many at once: 
-   // this should reduce memory bottlenecks.
-   // This method proved VERY effective in case 2 k-mismatches.
+   
+   int block_size = 5;
+   int block      = 0;
+      
+   int LOOKUP[ALPHABET_SIZE];   
+   
+   int *symbol_lookup = malloc(sizeof(int)* threshold *(block_size+1));
+   
+
+   for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i]=-1;
    
    for (int i=0; i<ALPHABET_SIZE; i++)
    { 
@@ -748,13 +755,36 @@ void abrahamson_kosaraju(        const char*     text,
          printf("Method 2\n");
          printf("%c\n", i);
 
+         LOOKUP[(unsigned char)i] = block*threshold;
+         
             
-         // Create lookup for this symbol.
-         createLookup(symbol_lookup, i, pattern, m, threshold);
+         // Create lookup for this symbol, and store it in the look up 
+         // matrix.
+         createLookup(symbol_lookup + block*threshold , i, pattern, m, threshold);
+         
+         printf("Creating block: %d\n", block);
+         block ++;
+      } 
+  
+         
+      // Perform marking when we have filled up the lookup matrix,
+      // or when we are at the end of the alphabet)
+      if (block >= block_size || i == ALPHABET_SIZE-1)
+      {
+         printf("REACHED END OF BLOCK SIZE: %d\n", block);
+         
+            
       
-         // match this symbol in the text.
-         markMatches(matches, text, i, symbol_lookup, n, m, threshold);
+         markMatches(LOOKUP, symbol_lookup, threshold, matches, text, n,m);
+      
+         // Zero the look-up table.
+         for (int i=0; i<ALPHABET_SIZE; i++)
+            LOOKUP[i]=-1;
+         
+         // reset the block value.
+         block = 0;
       }
+         
    }
    
    // We have calculuated the number of matches.
@@ -1299,7 +1329,7 @@ void kmismatches(         const char *text,
             createLookup(pattern_lookup, i, pattern, m, sqrt_k);
          
             // match this symbol in the text.
-            markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
+          //  markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
          }
       }
    
@@ -1309,7 +1339,53 @@ void kmismatches(         const char *text,
       k_mismatches_case2(text, pattern, frequency_table, k, n, m, matches);
    
    }
-}                                
+}                     
+
+/******************************************************************************/
+// We give a lookup table which takes symbols in the alphabet to rows in the
+// lookup_matrix. l Gives the max length of any given row (-1 terminates a row
+// early). We thus go through the text marking the positions where each 
+// symbol would be in relation to a start of the pattern. We do this in blocks
+// like this since it reduces memory bottle necking.
+
+void markMatches(                     const int*      lookup,        
+                                 const int*      lookup_matrix,
+                                       int       l,
+                                       int*      matches,
+                                 const char*     text,
+                                       int       n,      
+                                       int       m                             )
+                                       
+{
+   printf("Doing Marking\n");
+   
+   for (int i=0; i<n; i++)
+   {
+      // If this symbol is one of our look-up characters.
+      // Then this will give us the offset into the lookup matrix.
+      int x = lookup[(unsigned char)text[i]];
+     
+      if (x != -1)
+      {
+         // Create a pointer to the row we are interested in.
+         const int *this_table = lookup_matrix + x;
+         
+         for (int j=0; j<l; j++)
+         {
+            // if this table is terminated early.
+            if (this_table[j] == -1) break;
+            
+            // TODO: CHECK THIS IS RIGHT
+            if (i-this_table[j] >= n-m+1) break;            
+            
+            if ( i - this_table[j] >= 0 )
+               ++ matches[i-this_table[j]];
+         }
+      }
+   }
+   
+   printf("Done Marking\n");
+}                                        
 
 /******************************************************************************/
 
@@ -1361,31 +1437,11 @@ void k_mismatches_case2(  const char *text,
       }
    }
    
-   printf("Doing Marking\n");
-   for (int i=0; i<n; i++)
-   {
-      // If this symbol is one of our look-up characters.
-      int l = LOOKUP[(unsigned char)text[i]];
-     
-      if (l != -1)
-      {
-         int *this_table = pattern_lookup + l;
-         
-         for (int j=0; j<sqrt_k; j++)
-         {
-            // TODO: CHECK THIS IS RIGHT
-            if (i-this_table[j] >= n-m+1) break;            
-            
-            if ( i - this_table[j] >= 0 )
-               ++ matches[i-this_table[j]];
-         }
-      }
-   }
+   markMatches(LOOKUP, pattern_lookup, sqrt_k, matches, text, n,m);
    
    // We no longer need this.
    free(pattern_lookup);   
 
-   printf("Done Marking\n");
    //---------------//
    
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
