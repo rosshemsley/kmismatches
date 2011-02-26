@@ -23,12 +23,15 @@ if (os.path.exists(sys.argv[3])):
          sys.exit()
       if (cont == 'y'):
          break
-   
+
 
 
 # Flush the log before starting
-#f= open('test.log', 'w')
-#f.close()
+f= open('test.log', 'w')
+f.close()
+
+f= open(sys.argv[3], 'w')
+f.close()
 
 
 for x in range(2,maxVal):

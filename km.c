@@ -1559,12 +1559,7 @@ void kangaroo(            const char *text,
   
    // Construct the p-representation.
    printf("Constructing p-Representation.\n");
-   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
-   
-   
-
-   
-   
+   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m); 
    
    int t=0;
    
@@ -1572,7 +1567,7 @@ void kangaroo(            const char *text,
    printf("Looking for k-Mismatches.\n");
    for (int i=0,x=0; i<n-m+1; i++)
    {
-      loadBar(i,n,100,40);
+     // loadBar(i,n,100,40);
    
       // Advance through the p-reprsentation.
       if (t + pRepresentation[x].l <= i)
@@ -1583,7 +1578,7 @@ void kangaroo(            const char *text,
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
 
-      matches[i] = v;
+      matches[i] = m-v;
       
    }
    
@@ -1616,6 +1611,7 @@ int main(int argc, char **argv)
    
    int naive         = 0;
    int naive_hamming = 0;
+   int _kangaroo      = 0;
    if (argc == 3)
    {
       for (int i=2; i<argc; i++)
@@ -1630,6 +1626,11 @@ int main(int argc, char **argv)
             printf("Using Naive Hamming distance Algorithm\n");
             naive_hamming = 1;  
          }
+         else if(strcmp(argv[i], "-kangaroo")==0)
+         {
+            printf("Using Kangarooing\n");
+            _kangaroo = 1;  
+         }         
          
       
       }   
@@ -1659,6 +1660,8 @@ int main(int argc, char **argv)
       kmismatches_naive(t,p,k,n,m,matches);
    else if(naive_hamming)
       hamming_naive(t,p,n,m,matches);
+   else if(_kangaroo)
+      kangaroo(t,p,k,n,m,matches);
    else
       kmismatches(t,p,k,n,m,matches);
       

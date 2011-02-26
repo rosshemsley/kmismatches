@@ -19,12 +19,11 @@ set key left top
 # plot './data' using 1:2 t "Wins with Bolzmann 0.001", 'data' using 1:3 t "Wins by Greedy 0.1", 'data' using 1:4 t "Draws"
 
 set term postscript enhanced color 
-set output 'out.eps'
+set output 'out'
 set size 0.7, 0.5 
 
 # plot './data' using 1:4 t "Wins by X", 'data' using 1:4 t "Wins by O", 'data' using 1:4 t "Draws"
 
-plot './test_data/naive.out' using 1:2 t  "Naive" 
-#, './test_data/km' using 1:3 t "K-mismatches (Case 2)"
+plot './test_data/naive.out'   using 1:2 t  "Naive O(nk)",  './test_data/naive_h.out' using 1:2 t  "Naive O(nm)", './test_data/km.out' using 1:2 t  "K-mismatches (Case 2)"
 
-
+!epstopdf out && rm out
