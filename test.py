@@ -10,7 +10,7 @@ if(len(sys.argv) < 4):
 
 repeats = int(sys.argv[1])
 maxVal  = int(sys.argv[2])
-data    = './tests/english.50MB'
+data    = './tests/dna.50MB'
 
 print 'Writing output to', sys.argv[3]
 

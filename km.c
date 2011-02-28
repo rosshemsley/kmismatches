@@ -697,13 +697,13 @@ void abrahamson_kosaraju(        const char*     text,
    // Count the number of occurences of each symbol and store in lookup
    sp_km_count_symbols(pattern, m, lookup);
 
-   int threshold = sqrt( m * log(m)/log(2) );
+   int threshold =  sqrt( m * log(m)/log(2) );
          
    printf("Threshold: %d\n", threshold);
 
 
 
-   /*--- Frequent characters ---*/
+   /*--- Frequent characters ---  */
 
    // Go through every symbol, looking for frequent symbols.
    // then perform FFT matching on each one.
@@ -717,7 +717,7 @@ void abrahamson_kosaraju(        const char*     text,
          match_with_FFT(matches, i, text, pattern,  n, m);
       }
    }   
-   
+ 
    /*--- Infrequent characters ---*/
    
    // Now, deal with the infrequent characters using a simple counting
@@ -1075,7 +1075,6 @@ void constructChildValues(ESA *esa)
    freeStack(s);
 }
 
-
 /******************************************************************************/
 
 // Construct an extended suffix array for some string of length n.s
@@ -1114,7 +1113,160 @@ void constructESA(const char *s, int n, ESA *esa)
 
 }
 
+
+
 /******************************************************************************/
+
+// This is the second case in the k-mismatches algorithm.
+void k_mismatches_case2(  const char *text, 
+                          const char *pattern,
+                          const int  *frequency_table,
+                                int   k,
+                                int   n,
+                                int   m,
+                                int  *matches                                  )
+{
+
+   // Find the positions where the pattern may match. 
+   // We do this first for memory efficiency
+   int sqrt_k = (int)(sqrt((double)k) + 0.5);
+   
+   // Create a look up matrix with 2k positions.
+   int *pattern_lookup = malloc(sizeof(int)*sqrt_k*2*sqrt_k);
+
+   // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
+   // where they match.
+   
+   //  printf("Finding first %d characters and choosing first %d "                
+   //         "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
+           
+           
+    // This will map symbols in the alphabet to look up tables. 
+    // -1 means ignore.
+    int LOOKUP[ALPHABET_SIZE];
+    for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i] = -1;
+           
+   for (int i=0, j=0; i<ALPHABET_SIZE &&  j<2*sqrt_k; i++)
+   {
+      // Symbols that appear more than 
+      if ( frequency_table[i] >= sqrt_k )
+      {
+       //  printf("%c is a frequent character.\n", i);
+         
+         // Create lookup for this symbol.
+         // we store the look-ups in columns. 
+         createLookup(pattern_lookup + j*sqrt_k, i, pattern, m, sqrt_k);
+
+         // The position of the look up table for this character.
+         LOOKUP[i] = j*sqrt_k;
+         
+         j++;
+      }
+   }
+   
+   markMatches(LOOKUP, pattern_lookup, sqrt_k, matches, text, n,m);
+   
+   // We no longer need this.
+   free(pattern_lookup);   
+
+   //---------------//
+   
+   pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
+   
+   //pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
+
+   // Construct the extended suffix array.
+   
+   printf("Constructing ESA and p-representation\n");
+   ESA esa;   
+   constructESA(pattern, m, &esa);
+   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
+   
+   //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
+   //display_pRepresentation(pRepresentation_old,     pattern, n);
+   //display_pRepresentation(pRepresentation, pattern, n);
+   
+   /*
+     printf("%d\n", n);
+   for (int i=0; i<n; i++)
+   {
+      if (pRepresentation[i].j != pRepresentation_old[i].j)
+      {
+         
+         printf("j FAILED HERE: %d\n",i);
+         printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
+         
+         exit(0);
+      }
+      
+      if (pRepresentation[i].l != pRepresentation_old[i].l)
+      {
+         printf("l FAILED HERE: %d\n",i);
+         printf("found: %d, expected: %d\n", pRepresentation[i].l, pRepresentation_old[i].l);
+                  printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
+         exit(0);
+      }
+      
+      if (pRepresentation[i].j == -2)
+      {
+         break;
+      }
+   
+   }
+   
+  
+   */
+   
+   printf("Done\n");
+   
+   //printf("%s\n", text);
+   //display_pRepresentation(pRepresentation, pattern, n);
+
+   // exit(0);
+   
+   // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
+   RMQ_succinct(esa.LCP, esa.n);  
+     
+   // We need to keep track of our location in the p-representation
+   // AND the text.
+
+   // The value t will keep track of the i position of the previously
+   // seen p-triple.
+   // The x value will keep track of the current position in the triple
+   // array.
+   int t=0;   
+   
+   int count=0;
+   for (int i=0,x=0; i<n-m+1; i++)
+   {
+      if (t + pRepresentation[x].l <= i)
+      {   
+         t += pRepresentation[x].l;
+         ++x;
+      }
+      
+      //printf("%d\n", matches[i]);
+      
+      // If there could be a possible match here.
+      if (matches[i] >= k)
+      {
+      
+        // printf("\nVerifying position: %d\n", i);
+         
+         // Verify this location    
+         matches[i] = verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m);     
+         ++count;
+      } else matches[i] = k+1;
+         
+   }
+   printf("Perfomed %d verifications\n", count);
+   freeESA(&esa);
+   free(pRepresentation);
+}
+
+/******************************************************************************/
+
 
 void kmismatches(         const char *text, 
                           const char *pattern,
@@ -1273,157 +1425,9 @@ void markMatches(                const int*      lookup,
    printf("Done Marking\n");
 }                                        
 
-/******************************************************************************/
 
-// This is the second case in the k-mismatches algorithm.
-void k_mismatches_case2(  const char *text, 
-                          const char *pattern,
-                          const int  *frequency_table,
-                                int   k,
-                                int   n,
-                                int   m,
-                                int  *matches                                  )
-{
 
-   // Find the positions where the pattern may match. 
-   // We do this first for memory efficiency
-   int sqrt_k = (int)(sqrt((double)k) + 0.5);
-   
-   // Create a look up matrix with 2k positions.
-   int *pattern_lookup = malloc(sizeof(int)*sqrt_k*2*sqrt_k);
-
-   // Find the first 2\sqrt{k} frequenct symbols, and mark all the positions
-   // where they match.
-   
-   //  printf("Finding first %d characters and choosing first %d "                
-   //         "instances of them in the pattern\n", 2*sqrt_k, sqrt_k);
-           
-           
-    // This will map symbols in the alphabet to look up tables. 
-    // -1 means ignore.
-    int LOOKUP[ALPHABET_SIZE];
-    for (int i=0; i<ALPHABET_SIZE; i++)
-      LOOKUP[i] = -1;
-           
-   for (int i=0, j=0; i<ALPHABET_SIZE &&  j<2*sqrt_k; i++)
-   {
-      // Symbols that appear more than 
-      if ( frequency_table[i] >= sqrt_k )
-      {
-       //  printf("%c is a frequent character.\n", i);
-         
-         // Create lookup for this symbol.
-         // we store the look-ups in columns. 
-         createLookup(pattern_lookup + j*sqrt_k, i, pattern, m, sqrt_k);
-
-         // The position of the look up table for this character.
-         LOOKUP[i] = j*sqrt_k;
-         
-         j++;
-      }
-   }
-   
-   markMatches(LOOKUP, pattern_lookup, sqrt_k, matches, text, n,m);
-   
-   // We no longer need this.
-   free(pattern_lookup);   
-
-   //---------------//
-   
-   pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
-   
-   //pTriple *pRepresentation_old = malloc(sizeof(pTriple) * n);   
-
-   // Construct the extended suffix array.
-   
-   printf("Constructing ESA and p-representation\n");
-   ESA esa;   
-   constructESA(pattern, m, &esa);
-   construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
-   
-   //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
-   //display_pRepresentation(pRepresentation_old,     pattern, n);
-   //display_pRepresentation(pRepresentation, pattern, n);
-   
-   /*
-     printf("%d\n", n);
-   for (int i=0; i<n; i++)
-   {
-      if (pRepresentation[i].j != pRepresentation_old[i].j)
-      {
-         
-         printf("j FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         
-         exit(0);
-      }
-      
-      if (pRepresentation[i].l != pRepresentation_old[i].l)
-      {
-         printf("l FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].l, pRepresentation_old[i].l);
-                  printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         exit(0);
-      }
-      
-      if (pRepresentation[i].j == -2)
-      {
-         break;
-      }
-   
-   }
-   
-  
-   */
-   
-   printf("Done\n");
-   
-   //printf("%s\n", text);
-   //display_pRepresentation(pRepresentation, pattern, n);
-
-   // exit(0);
-   
-   // INITIALISE THE RMQ structure so we can perform O(1) RMQ lookups.
-   RMQ_succinct(esa.LCP, esa.n);  
-     
-   // We need to keep track of our location in the p-representation
-   // AND the text.
-
-   // The value t will keep track of the i position of the previously
-   // seen p-triple.
-   // The x value will keep track of the current position in the triple
-   // array.
-   int t=0;   
-   
-   for (int i=0,x=0; i<n-m+1; i++)
-   {
-      if (t + pRepresentation[x].l <= i)
-      {   
-         t += pRepresentation[x].l;
-         ++x;
-      }
-      
-      //printf("%d\n", matches[i]);
-      
-      // If there could be a possible match here.
-      if (matches[i] >= k)
-      {
-      
-         printf("\nVerifying position: %d\n", i);
-
-         // Verify this location    
-         matches[i] = verifyMatch(pRepresentation, text, pattern, &esa, x, t, i, k, n, m);     
-      } else matches[i] = k+1;
-         
-   }
-   
-   freeESA(&esa);
-   free(pRepresentation);
-}
-
-/******************************************************************************/
-
-void hamming_naive(   const char *text, 
+void hamming_naive(       const char *text, 
                           const char *pattern,
                                 int   n,
                                 int   m,
@@ -1526,140 +1530,6 @@ void kangaroo(            const char *text,
    freeESA(&esa);
 }
 
-/******************************************************************************/
-//
-// NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
-//
-//
-/******************************************************************************/
-
-int main(int argc, char **argv)
-{
-
-   if (argc < 2)
-   {
-      fprintf(stderr, "No input file provided\n");
-      exit(1);
-   }
-   
-   int naive          = 0;
-   int naive_hamming  = 0;
-   int _kangaroo      = 0;
-   int abrahamson     = 0;
-   int bs_abrahamson  = 0;
-   if (argc == 3)
-   {
-      for (int i=2; i<argc; i++)
-      {
-         if (strcmp(argv[i], "-naive") == 0)
-         {
-            printf("USING NAIVE ALGORITHM\n");
-            naive=1;
-         }
-            else if(strcmp(argv[i], "-naive_nm") == 0)
-         {
-            printf("Using Naive Hamming distance Algorithm\n");
-            naive_hamming = 1;  
-         }
-            else if(strcmp(argv[i], "-kangaroo") == 0)
-         {
-            printf("Using Kangarooing\n");
-            _kangaroo = 1;  
-         } 
-            else if (strcmp(argv[i], "-abrahamson") == 0)
-         {
-            printf("Using Abrahamson/Kosaraju\n");
-            abrahamson=1;
-         } 
-            else if (strcmp(argv[i], "-bs_abrahamson") == 0)
-         {
-            printf("Using Ben Smither's Abrahamson/Kosaraju\n");
-            bs_abrahamson = 1;
-         }
-            else 
-         {
-            printf("Invalid arguments. Exiting.\n");
-            exit(1);
-         } 
-      }   
-   }
-   
-   // the length of the text and pattern.
-   int m;
-   int n;
-   int k;
-   int pos;
-
-   // The text and pattern strings.
-   char *t = NULL;
-   char *p = NULL;
-
-   // Load the test file.
-   load(argv[1], &n, &m, &k, &pos, &t, &p);
-
-   // An array to put the matching locations in.
-   int  *matches        = malloc(sizeof(int)  * (n-m+1));
-
-
-   // Perform matching.
-   if (naive)
-      kmismatches_naive(t,p,k,n,m,matches);
-   else if(naive_hamming)
-      hamming_naive(t,p,n,m,matches);
-   else if(_kangaroo)
-      kangaroo(t,p,k,n,m,matches);
-   else if(abrahamson)
-      abrahamson_kosaraju(t,p,n,m,matches);
-   else if(bs_abrahamson)
-   {
-      printf("DOING IT\n");
-      struct SP_KM_MATCHING_POSITIONS *listOfMatches = sp_km_create_new_list_of_matches();
-      int numMatches = 0;
-
-	   //SP_KM_FIRST_MATCH_ONLY - stop after finding the first match
-	   sp_km_unbounded_kmismatch(t,p,n,m,k, &numMatches,listOfMatches,0);
-	   
-	   
-      exit(0);
-   }   
-   else
-      kmismatches(t,p,k,n,m,matches);
-      
-      
-      
-   // Verify the output.   
-   int pass=0;
-   for (int b=0;b<n-m+1; b++)
-   {
-      if (matches[b] <=k) 
-      {
-         printf("Position: %d, mismatches: %d\n", b, matches[b]);  
-         if (b == pos && matches[b] == k)
-         {
-            printf("PASSED TEST\n");
-            pass = 1;
-         }
-      }  
-   }
-   
-   if (!pass)
-   {
-      fprintf(stderr, "FAILED TEST\n");
-      exit(1);
-   }   
-
-
-   
-   free(p);
-   free(t);
-   free(matches);
-   
-   // This needs to be fixed.
-   // FreeRMQ_succinct();   
-   
-   return 0;
-   
-}
 
 /*******************************************************************************
 * UNIT TESTING

@@ -1,3 +1,6 @@
+#ifndef STACK_H_
+#define STACK_H_
+
 /* This structure is how we represent a stack. (Very similar to array list). */
 typedef struct 
 {
@@ -28,3 +31,5 @@ int         isEmpty(stack *s);
 //------------------------------------------------------------------------------
 void        emptyStack(stack *s);
 /******************************************************************************/
+
+#endif
