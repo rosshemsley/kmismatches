@@ -35,6 +35,7 @@ typedef struct _pTriple
 * Functions.
 
 *******************************************************************************/
+/*
 void sp_km_unbounded_kmismatch      ( const char   *text, 
                                      const char   *pattern, 
                                      int           n, 
@@ -42,6 +43,7 @@ void sp_km_unbounded_kmismatch      ( const char   *text,
                                      int           k,
 		                               int          *matches,
 		                               unsigned int  flags    );
+		                               */
 //----------------------------------------------------------------------------//
 void sp_km_FFT_match_symbol        ( char         *A,
                                      char          s, 

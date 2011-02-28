@@ -11,6 +11,7 @@
 #include "sais.h"
 #include "stack.h"
 #include "RMQ_succinct.h"
+#include "./sp_km_unbounded_matcher.h"
 
 #define DEBUG
 
@@ -552,7 +553,7 @@ void construct_pRepresentation(        pTriple*  P,
                                        int       m                             )
 {
 
-
+   // Look up table for each character, giving first occurence in the SA.
    int LOOKUP[ALPHABET_SIZE];
    
    // Set every item to -1.
@@ -563,11 +564,9 @@ void construct_pRepresentation(        pTriple*  P,
    for (int i=0; i<m; i++)
    {
       // only when the LCP is 0 do we have a new character.
-      if (esa->LCP[i]==0)
-         LOOKUP[(unsigned char)pattern[esa->SA[i]]] = i;
-   
+      if (esa->LCP[i] == 0)
+         LOOKUP[ (unsigned char)pattern[esa->SA[i]] ] = i;   
    }
-   
 
    // Position in the text.
    int t = 0;
@@ -575,39 +574,32 @@ void construct_pRepresentation(        pTriple*  P,
    int x = 0;
    
    // Go through every value in the text.
-   while (t<n)
-   {
-   // if(x>39) return;
-      
-      // not in pattern.
+   while (t < n)
+   {      
+      // Is the symbol in the pattern?
       if (LOOKUP[(unsigned char)text[t]] == -1)
       {
          P[x].j = -1;
-         P[x].l = 1;
-         
+         P[x].l = 1;         
          ++t;
-      } else {
-      //rintf("First value (NEW) %d\n", i);
-      //printf("Found match of length %d starting at %d (%s)\n", l-1, i, pattern + esa->SA[i]);
-      
+      } 
+         else
+      {
          t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
-      
       }
-      ++x;
-
-           
+        
+      ++x;           
    }
-   
-   
+      
+   // Terminate the p-representation if it is shorter than the worst case.
    if (x<n);
-   P[x-1].l=0;
-   P[x-1].j=-2;
-
-
+      P[x-1].l = 0;
+      P[x-1].j = -2;
 
 }
 
 /******************************************************************************/
+// Old, naive p-representation construction.
 
 void construct_pRepresentation_old(    pTriple*  P,
                                  const char*     text, 
@@ -657,9 +649,7 @@ void construct_pRepresentation_old(    pTriple*  P,
       // x = findStart(text[i], pattern, esa->SA, m);
       
       x = LOOKUP[(unsigned char)text[i]];
-      
-
-      
+            
       if (x<0)
       {
          P[p].j = -1;
@@ -737,14 +727,15 @@ void abrahamson_kosaraju(        const char*     text,
    // This will become a look up for each frequent character.
    
    
-   int block_size = 5;
+   int block_size = 10;
    int block      = 0;
       
+   // Lookup table to give the position of the symbol lookup row 
+   // in the look up matrix.
    int LOOKUP[ALPHABET_SIZE];   
    
    int *symbol_lookup = malloc(sizeof(int)* threshold *(block_size+1));
    
-
    for (int i=0; i<ALPHABET_SIZE; i++)
       LOOKUP[i]=-1;
    
@@ -756,11 +747,10 @@ void abrahamson_kosaraju(        const char*     text,
          printf("%c\n", i);
 
          LOOKUP[(unsigned char)i] = block*threshold;
-         
-            
+                     
          // Create lookup for this symbol, and store it in the look up 
          // matrix.
-         createLookup(symbol_lookup + block*threshold , i, pattern, m, threshold);
+         createLookup(symbol_lookup + block*threshold ,i,pattern, m, threshold);
          
          printf("Creating block: %d\n", block);
          block ++;
@@ -772,9 +762,7 @@ void abrahamson_kosaraju(        const char*     text,
       if (block >= block_size || i == ALPHABET_SIZE-1)
       {
          printf("REACHED END OF BLOCK SIZE: %d\n", block);
-         
-            
-      
+               
          markMatches(LOOKUP, symbol_lookup, threshold, matches, text, n,m);
       
          // Zero the look-up table.
@@ -790,10 +778,9 @@ void abrahamson_kosaraju(        const char*     text,
    // We have calculuated the number of matches.
    // subtract this from m to get the number of mismatches.
    for (int i=0; i<n-m+1; i++)
-      matches[i] = m -matches[i]-1;
+      matches[i] = m - matches[i]-1;
    
 }                                
-
 
 /******************************************************************************/
 
@@ -846,14 +833,13 @@ void displaySA(                  const ESA*      esa,
 {
    printf("|i  |SA |LCP|U  |D  |A  |\n");
    for (int i=0; i<m; i++)
-      printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i], esa->up[i], esa->down[i], esa->accross[i] );
+      printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i],                                     
+                                    esa->up[i], esa->down[i], esa->accross[i] );
       
    printf("\n\n");
    
    for (int i=0; i<m;i++)
       printf("%3d: %d %s\n", i, esa->LCP[i], (pattern+esa->SA[i]));
-
-
 }
 
 /******************************************************************************/
@@ -1033,6 +1019,11 @@ void freeESA(ESA *esa)
 
 
 /******************************************************************************/
+// Construct the child_table for the ESA. TODO: Compress this down to one field
+// using the optimised outlined in the relevant paper.
+// 
+// These algorithms are copied verbatim from the paper "Replacing the suffix 
+// tree with the enhanced suffix array".
 
 void constructChildValues(ESA *esa)
 {
@@ -1045,21 +1036,16 @@ void constructChildValues(ESA *esa)
    
    // TODO: Make sure that this correctly reaches the end.
    for (int i=1; i<n; i++)
-   {
-   
+   {   
       while (esa->LCP[i] < esa->LCP[ peek(s) ])
          pop(s);
          
       if (esa->LCP[i] == esa->LCP[ peek(s) ])
          esa->accross[pop(s)] = i;
    
-      push(s, i);
-      
+      push(s, i);      
    }
    
-   
-   
-
    /**   Construct Up/Down values.   ***************/
    
    // Reset the stack.   
@@ -1088,11 +1074,7 @@ void constructChildValues(ESA *esa)
       push(s, i);
    }  
    
-   //for (int i=0; i<esa->n; i++)
-   //{
-   //   printf("%3d %3d %3d\n",esa->up[i], esa->down[i], esa->accross[i]);
-   //}
-   
+   freeStack(s);
 }
 
 
@@ -1120,154 +1102,20 @@ void constructESA(const char *s, int n, ESA *esa)
 
    //esa->SA [n ] = -1;
    //esa->SAi[-1] = n;
-   esa->LCP[n ] = 0;
    
-   /*
-   esa->SA[0]  = 2;
-   esa->SA[1]  = 3;
-   esa->SA[2]  = 0;
-   esa->SA[3]  = 4;
-   esa->SA[4]  = 6;
-   esa->SA[5]  = 8;
-   esa->SA[6]  = 1;
-   esa->SA[7]  = 5;
-   esa->SA[8]  = 7;
-   esa->SA[9]  = 9;
-   esa->SA[10] = 10;
+   // This is needed for the child table values to be computed
+   // correctly.
+   esa->LCP[n] = 0;
    
-   esa->LCP[0]  = 0;
-   esa->LCP[1]  = 2;
-   esa->LCP[2]  = 1;
-   esa->LCP[3]  = 3;
-   esa->LCP[4]  = 1;
-   esa->LCP[5]  = 2;
-   esa->LCP[6]  = 0;
-   esa->LCP[7]  = 2;
-   esa->LCP[8]  = 0;
-   esa->LCP[9]  = 1;
-   esa->LCP[10] = 0;
-
-
-   */
-
+   // Create the child table.
    constructChildValues( esa );
    
-   
-   // Construct 
+   // Construct the inverse suffix array.
    for (int i=0; i<n; i++)
       esa->SAi[esa->SA[i]] = i;
-      
- //  displaySA(esa, s, n);   
-   
-  // printf("\n\n");
-   //exit(0);
 
 }
 
-
-// Attempt to extend the patterh within this l-interval.
-/*
-int extendInterval2(int *_i, int *_j, int depth, char c, const char *str, const ESA *esa)
-{
-
-
-   int i = *_i;
-   int j = *_j;
-   int n = esa->n;
-   
-
-   
-   int v;
-   
-   
-      printf("\n NEW RUN i: %d j: %d c: %c depth: %d\n\n", i, j,c,depth);
-
-      if ( (str + esa->SA[*_i])[depth] == c ) 
-      {  
-  
-
-         printf("Match\n");
-         printf("(%d, %d)\n", *_i, *_j);
-     
-
-         // Succesfully found a match.
-         return 1;
-      }
-  
-   
-   if (i == 0 && j==n)
-   {
-      printf("START\n");
-      v = esa->accross[0];
-   } else {
-   
-
-   if (v==0) v=j;
-
-
-   
-   // the first interval starts at i.
-   int l = i;
-   
-   // Now Loop through the intervals looking for character matches.
-   // This happens at most once for each of the symbols in the alphabet.
-   
-   int STOP=0;
-   while (l<=j)
-   {
-      printf("l: %d v: %d\n", l, v); 
-      printf("Comparing '%c' to '%c'\n", (str + esa->SA[l])[depth], c);
-      // If the start of this l-interval has a character match.
-      if ( (str + esa->SA[l])[depth] == c ) 
-      {  
-  
-      
-         // We are now in the interval (i, v-1)
-         *_i = l;
-         
-         if (v!=0)
-            *_j = v-1;
-          else 
-            *_j = esa->n-1;
-         
-         printf("Match (l is currently %d)\n",depth);
-         printf("(%d, %d)\n", *_i, *_j);
-     
-
-         // Succesfully found a match.
-         return 1;
-      }
-   
-      // Set the start value of this interval.
-      l = v;
-      v = esa->accross[v];
-      printf("Accross value: %d\n", v);
-   
-
-
-      if (STOP) return 0;
-      if (v==0) 
-      {
-         v = j;
-         STOP=1;   
-         
-         
-      }
-            printf("Next accross value: %d\n", esa->accross[v]);
-      
-      printf("(%d, %d).\n", i, j);
-
-
-
-
-      printf("Jumping to next l-interval: %d (l is %d)\n",v,l);
-   }
-   
-
-   // No match occured.
-   return 0;
-}
-*/
 /******************************************************************************/
 
 void kmismatches(         const char *text, 
@@ -1348,7 +1196,7 @@ void kmismatches(         const char *text,
 // symbol would be in relation to a start of the pattern. We do this in blocks
 // like this since it reduces memory bottle necking.
 
-void markMatches(                     const int*      lookup,        
+void markMatches(                const int*      lookup,        
                                  const int*      lookup_matrix,
                                        int       l,
                                        int*      matches,
@@ -1359,6 +1207,7 @@ void markMatches(                     const int*      lookup,
 {
    printf("Doing Marking\n");
    
+    
    for (int i=0; i<n; i++)
    {
       // If this symbol is one of our look-up characters.
@@ -1660,6 +1509,7 @@ int main(int argc, char **argv)
    int naive_hamming  = 0;
    int _kangaroo      = 0;
    int abrahamson     = 0;
+   int bs_abrahamson  = 0;
    if (argc == 3)
    {
       for (int i=2; i<argc; i++)
@@ -1684,6 +1534,11 @@ int main(int argc, char **argv)
             printf("Using Abrahamson/Kosaraju\n");
             abrahamson=1;
          } 
+            else if (strcmp(argv[i], "-bs_abrahamson") == 0)
+         {
+            printf("Using Ben Smither's Abrahamson/Kosaraju\n");
+            bs_abrahamson = 1;
+         }
             else 
          {
             printf("Invalid arguments. Exiting.\n");
@@ -1718,6 +1573,18 @@ int main(int argc, char **argv)
       kangaroo(t,p,k,n,m,matches);
    else if(abrahamson)
       abrahamson_kosaraju(t,p,n,m,matches);
+   else if(bs_abrahamson)
+   {
+      printf("DOING IT\n");
+      struct SP_KM_MATCHING_POSITIONS *listOfMatches = sp_km_create_new_list_of_matches();
+      int numMatches = 0;
+
+	   //SP_KM_FIRST_MATCH_ONLY - stop after finding the first match
+	   sp_km_unbounded_kmismatch(t,p,n,m,k, &numMatches,listOfMatches,0);
+	   
+	   
+      exit(0);
+   }   
    else
       kmismatches(t,p,k,n,m,matches);
       
