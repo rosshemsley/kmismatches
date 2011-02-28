@@ -18,12 +18,18 @@
 //
 /******************************************************************************/
 
+
+
+/******************************************************************************/
+
 int main(int argc, char **argv)
 {
 
    if (argc < 2)
    {
-      fprintf(stderr, "No input file provided\n");
+      fprintf(stderr, "harness [test file] ");
+      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs, -kangaroo, -naive_nm]\n");
+
       exit(1);
    }
    
@@ -58,7 +64,7 @@ int main(int argc, char **argv)
             printf("Using Abrahamson/Kosaraju\n");
             abrahamson=1;
          } 
-            else if (strcmp(argv[i], "-bs_abrahamson") == 0)
+            else if (strcmp(argv[i], "-abrahamson_bs") == 0)
          {
             printf("Using Ben Smither's Abrahamson/Kosaraju\n");
             bs_abrahamson = 1;

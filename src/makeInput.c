@@ -12,7 +12,7 @@
 /******************************************************************************/
 
 void printUsage(){
-	printf("About: Takes a file and generates a text and pattern.\n");
+	printf("About: Takes a file and generates a text and pattern.\n\n");
 	printf("Usage: [inputfile] [outputfile] [m] [k] [options]\n\n");
 	printf("Options: -n value -- specify a maximum length for the text.\n");
 }
