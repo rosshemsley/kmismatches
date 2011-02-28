@@ -32,7 +32,7 @@ else:
    arg = ''
 
 # Make and run the tests using the following.
-run   = './km ./tests/test.test '+arg+' >>test.log'
+run   = './harness .temp.test '+arg+' >>test.log'
 
 # Flush the output files before starting.
 f= open('test.log', 'w')
@@ -57,7 +57,7 @@ for x in range(2,maxVal+1):
       m = x*100
       k = x*5
       
-      maker = './make_input '+data+' ./tests/test.test '+str(m)+' '+ str(k) + ' >>test.log'
+      maker = './make_input '+data+' .temp.test '+str(m)+' '+ str(k) + ' >>test.log'
        
       print 
       print ' $', maker
@@ -84,6 +84,6 @@ for x in range(2,maxVal+1):
    
     
    stats.close()
-   
+   os.system('rm ./.temp.test')
    
    

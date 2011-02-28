@@ -1,0 +1,36 @@
+================================================================================
+| Kmismatches                                                                  |
+|                                                                              |
+| - Created by Ross Hemsley 2011-                                              |
+|                                                                              |   ================================================================================
+                                                                              
+ Currently very much under-construction.
+ 
+ 'make_input'  Can be used to construct test intstances from arbitrary input
+               data. 
+
+                 $ ./make_input test.test dna.50MB 3000 30 - n 10000
+
+               Will create a test input with pattern size 3000, text size
+               10,000 from an input file called dna.50MB.
+
+
+ 
+ 'harness'     Will load output created by 'make_input' and perform various
+               approximate string matching algorithms on the results.
+
+                 $ ./harness ./test.test -kangaroo
+
+               Will load the test 'test.test' and run the O(nk) 
+               Kangarooing algorithm by Landau and Vishkin.
+
+
+ 'test.py'     Python test script that will create and run many different
+               tests and take averages over the results. See file for
+               usage details.
+
+
+ 'plot'        A Gnuplot plotting script intended to load output from the test
+               script. See file for usage details
+
+================================================================================
