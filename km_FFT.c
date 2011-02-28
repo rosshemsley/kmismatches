@@ -32,9 +32,6 @@ fftw_plan plan_pattern_FFT = NULL;
 fftw_plan plan_text_FFT    = NULL;
 fftw_plan plan_FFT_inverse = NULL;
 
-
-
-
 /******************************************************************************/
 
 // Mask the text into a buffer of doubles.

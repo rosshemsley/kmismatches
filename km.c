@@ -15,16 +15,6 @@
 
 #define DEBUG
 
-/******************************************************************************/
-// l-Interval macros.
-
-// Get the first child interval in this l-Interval.
-#define LI_FIRST_CHILD(i,j,esa) (i < esa->up[j+1] && esa->up[j+1] <= j)        \
-                                 ? esa->up[j+1] : esa->down[i]
-   
-// Get the LCP value of this l-Interval.
-#define LI_GET_LCP(i,j,esa) (i< esa->up[j+1] && esa->up[j+1] <=j)              \
-                             ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
 /*******************************************************************************
 *
 * Ideas for optimisations:
@@ -38,9 +28,7 @@
 *
 *******************************************************************************/
 
-   double *FFT_match_p = NULL;
-   double *FFT_match_t = NULL;
-   double *FFT_match_r = NULL;
+
 
 /******************************************************************************/
 // Load a test input.
@@ -57,15 +45,15 @@ void load(                       const char*     filename,
    // Open the input file.
    FILE *f = fopen(filename, "r");
 
-   if (f==NULL) {
+   if (f == NULL) {
       fprintf(stderr, "Failed to open file \"%s\"\n", filename);
       exit(1);
    }
 
    // The first line tells us how the rest of the file looks.  
-   char buff[256];
-   
+   char  buff[256];   
    fgets(buff, 256, f);
+   
    if (sscanf(buff, "%d %d %d %d", n, m, k, pos) != 4)
    {
       fprintf(stderr, "File header improperly formatted.\n");
@@ -228,48 +216,6 @@ void markMatches2(                     int*      matches,
 } 
 
 /******************************************************************************/
-// Mark the positions where the text could match given this look up table.
-/*
-void markMatches(                      int*      matches, 
-                                 const char*     text, 
-                                       char      symbol, 
-                                 const int*      lookup, 
-                                       int       n,
-                                       int       m, 
-                                       int       l                             )
-{
-
-   // TODO: Decide whether or not we want to be able to always do this.
-   int end = l;
-   
-   // Find the last char in the lookup. (Optimisation).
-   for (int i=0; i<l;i++)
-   {
-      if (lookup[i] == -1) 
-      {
-         end = i;
-         break;
-      }  
-   }
-
-   for (int i=0; i<n; i++)
-   {  
-      // Perform the marking.
-      if (text[i] == symbol)
-      {
-         for (int j=0; j<end; j++)
-         {
-            // TODO: CHECK THIS IS RIGHT
-            if (i-lookup[j] >= n-m+1) break;
-            
-            if ( i - lookup[j] >= 0 )
-               ++ matches[i-lookup[j]];
-         }
-      }      
-   }
-} 
-*/
-/******************************************************************************/
 // Count how many frequent symbols their are by going through the lookup table.
 
 int count_frequent_symbols(      const int*      frequency_table, 
@@ -344,64 +290,17 @@ static inline int extend(              char      t,
 
 /******************************************************************************/
 
-static inline int findStart(           char      c, 
-                                 const char*     pattern, 
-                                 const int*      SA, 
-                                       int       m                             )
-{
-
-   // Bin-search:
-   
-   int min = 0;
-   int max = m-1;
-   int mid; 
-   
-   do
-   {
-      mid = (max+min)/2;
-   
-      if (pattern[SA[mid]] == c)
-         return mid;   
-
-      else if (c > pattern[SA[mid]])
-         min = mid+1;
-         
-      else
-         max = mid-1;
-         
-   } 
-   while (min <= max);
-   
-
-/*
-   // For now we are lazy and do a linear search.
-   for (int i=0; i<m; i++)
-      if (pattern[SA[i]] == c) {
-         if(test!=i) printf ("ERROR: found: %d, actual: %d\n", test, i);
-         printf("min: %d, max: %d\n", min, max);
-         exit(0);
-      }
-  
-*/
-  
-   return -1;
-}
-/******************************************************************************/
-
 // Find the maximum possible extension of any suffix and this part of the text 
 // and store it in P.
-static inline int extendInterval(      int*      LOOKUP, 
+static inline int extendInterval(const int*      LOOKUP, 
                                        pTriple*  P, 
                                  const char*     text,
                                  const char*     pattern, 
-                                       int       n,  
-                                       int       m, 
+                                 const int       n,  
+                                 const int       m, 
                                  const ESA*      esa                           )
 {
  
-   //printf("Starting new extension\n");
-   //printf("%s\n%s\n", text, pattern);
-   // getchar();
    // We start with the first l-interval.
    int i = LOOKUP[(unsigned char)text[0]];
    int j = esa->accross[i]-1;
@@ -415,55 +314,31 @@ static inline int extendInterval(      int*      LOOKUP,
    // v is the start of the next l-index.
    int v = LI_FIRST_CHILD(i, j, esa);
       
-   int STOP=0;
+   // We use this to force a stop on the next iteration.
+   int STOP = 0;
 
    // Now, keep traversing the tree until we run out of possibilities. 
    while (1)
    {
-      //printf("Going around loop. i,j:(%d,%d). interval: (%d, %d)\n", i,j,u,v-1);
-   
-      /*
-      // WE MIGHT NEED THIS, WAIT AND SEE.
-      if (u==m)
-      {
-         //printf("CHAR NOT IN PATTERN\n");
-         getchar();
-         break;
-      }
-      */
       
       // Singleton.
       // We have reached a leaf node.
       if (i == j)
       {  
         // printf("Singleton interval\n");
-         while  (text[l-1]!= '\0' && (pattern + esa->SA[u])[l] == text[l])
+         while  (text[l-1] != '\0' && (pattern + esa->SA[u])[l] == text[l])
             l++;
          break;
       }
-            
+                 
       // Find the l-value of this l-interval.
       int lcp = LI_GET_LCP(i,j,esa);
       
-      /*
-      int up = esa->up[j+1];
-      
-      if (i <  up && up <= j ) 
-         lcp = esa->LCP[up];
-      else                  
-         lcp = esa->LCP[esa->down[i]];
-      
-      */
-      //printf("l-value of this l-interval: %d, depth: %d\n",lcp,l);
-      //printf("Comparing: %c to %c\n", (pattern+esa->SA[u])[l], text[l]);
-   
-
-
-   
-   
+      // Set this to zero if the matching failed.
       int match = 1;
       
-      for (;l<lcp;l++)
+      // This will walk us down branches which are multiple symbols long.
+      for (; l < lcp ; l++)
       {
          if ((pattern + esa->SA[u])[l] != text[l])
          {
@@ -478,36 +353,20 @@ static inline int extendInterval(      int*      LOOKUP,
       // Does the start of this l-interval match?
       if ( (pattern + esa->SA[u])[l] == text[l] )       
       {
-      
+         // Increment the 'depth' in the text.
          ++l;      
-         STOP = 0;
-        // printf("Found a match.\n\n");
          
-         // It could be that we do not need to go down a level yet, 
-         // as we could be at the bottom of the tree already.
-         // Check this by looking to see if the next child interval
-         // along shares the same prefix.
-        // if ( (pattern + esa->SA[v-1])[l] == text[l] )  
-        // { 
-        //    l++;       
-        //  printf("Are we at the bottom?\n");
-        //  continue; 
-        // }
-         // If yes, move down the lcp-tree by finding the new
-         // value of v and changing this child interval to the
-         // current l-interval.
+         // If we are in the last interval and find a match, then 
+         // we want to continue looking down the tree and so we do not stop yet.
+         STOP = 0;
+
+         // Move down the tree.
          i = u;
          j = v-1;
          
+         // find the index of the first child interval in the new l-interval.
          v = LI_FIRST_CHILD(i,j,esa);
-
-        // printf("New v: %d\n", v);
-         
-         // We are now working at the next level.       
-    
-         // If we were going to stop before, we're not now.
         
-         
          continue;
       }  
       
@@ -519,26 +378,26 @@ static inline int extendInterval(      int*      LOOKUP,
       // then v will be 0. However, there could still be a match
       // here, so we use STOP to indicate that the next round should
       // be the last.
-      // Obviously, if we find a match, STOP should be reset.
-      
-      if (STOP) {
-       //  printf("STOP-induced break\n");     
+      // Obviously, if we find a match, STOP should be reset.            
+      if (STOP)
          break;
-      }
       
+      // We have reached the end of this l-interval.
+      // Setting v=j+1 will mean that the end of the interval will be set to 
+      // j later on.
+      // We want to stop on the next iteration of there are no matches.
       if (v == 0)
       {
-       //  printf("STOP CRITERIA\n");
          v = j+1;
          STOP = 1;
       }       
    }
    
+   // put our 'results' into this p-block.
    P->l = l;
    P->j = esa->SA[i];
 
-  // printf("\n\n\n");
-
+   // Return the longest match we found.
    return l;
 
 }
@@ -886,9 +745,9 @@ static inline int verifyMatch(   const pTriple*  pRepresentation,
                                        int       i,    
                         
                                        // problem-specific variables.
-                                       int       k,
-                                       int       n,
-                                       int       m                             )
+                                 const int       k,
+                                 const int       n,
+                                 const int       m                             )
 {
 
    // The current position in the pattern.
@@ -1121,9 +980,9 @@ void constructESA(const char *s, int n, ESA *esa)
 void k_mismatches_case2(  const char *text, 
                           const char *pattern,
                           const int  *frequency_table,
-                                int   k,
-                                int   n,
-                                int   m,
+                          const int   k,
+                          const int   n,
+                          const int   m,
                                 int  *matches                                  )
 {
 
@@ -1270,9 +1129,9 @@ void k_mismatches_case2(  const char *text,
 
 void kmismatches(         const char *text, 
                           const char *pattern,
-                                int   k,
-                                int   n,
-                                int   m,
+                          const int   k,
+                          const int   n,
+                          const int   m,
                                 int  *matches  )
 {
                            
@@ -1390,8 +1249,8 @@ void markMatches(                const int*      lookup,
                                        int       l,
                                        int*      matches,
                                  const char*     text,
-                                       int       n,      
-                                       int       m                             )
+                                 const int       n,      
+                                 const int       m                             )
                                        
 {
    printf("Doing Marking\n");
@@ -1429,8 +1288,8 @@ void markMatches(                const int*      lookup,
 
 void hamming_naive(       const char *text, 
                           const char *pattern,
-                                int   n,
-                                int   m,
+                          const int   n,
+                          const int   m,
                                 int  *matches          )
 {
    memset(matches, 0, sizeof(int)*(n-m+1));
@@ -1452,9 +1311,9 @@ void hamming_naive(       const char *text,
 
 void kmismatches_naive(   const char *text, 
                           const char *pattern,
-                                int   k,
-                                int   n,
-                                int   m,
+                          const int   k,
+                          const int   n,
+                          const int   m,
                                 int  *matches          )
 {
    memset(matches, 0, sizeof(int)*(n-m+1));
@@ -1481,9 +1340,9 @@ void kmismatches_naive(   const char *text,
 
 void kangaroo(            const char *text, 
                           const char *pattern,
-                                int   k,
-                                int   n,
-                                int   m,
+                          const int   k,
+                          const int   n,
+                          const int   m,
                                 int  *matches          )
 
 {   

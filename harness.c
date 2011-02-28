@@ -16,7 +16,6 @@
 //
 // NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
 //
-//
 /******************************************************************************/
 
 int main(int argc, char **argv)
@@ -33,18 +32,20 @@ int main(int argc, char **argv)
    int _kangaroo      = 0;
    int abrahamson     = 0;
    int bs_abrahamson  = 0;
+   
+   
    if (argc == 3)
    {
       for (int i=2; i<argc; i++)
       {
          if (strcmp(argv[i], "-naive") == 0)
          {
-            printf("USING NAIVE ALGORITHM\n");
+            printf("Using naive k-mismatches algorithm\n");
             naive=1;
          }
             else if(strcmp(argv[i], "-naive_nm") == 0)
          {
-            printf("Using Naive Hamming distance Algorithm\n");
+            printf("Using Naive Hamming distance algorithm\n");
             naive_hamming = 1;  
          }
             else if(strcmp(argv[i], "-kangaroo") == 0)
@@ -70,51 +71,60 @@ int main(int argc, char **argv)
       }   
    }
    
+   
    // the length of the text and pattern.
    int m;
    int n;
    int k;
    int pos;
+   
 
    // The text and pattern strings.
    char *t = NULL;
    char *p = NULL;
 
+
    // Load the test file.
    load(argv[1], &n, &m, &k, &pos, &t, &p);
 
+
    // An array to put the matching locations in.
-   int  *matches        = malloc(sizeof(int)  * (n-m+1));
+   int  *matches = malloc(sizeof(int)  * (n-m+1));
 
 
    // Perform matching.
    if (naive)
       kmismatches_naive(t,p,k,n,m,matches);
+      
    else if(naive_hamming)
       hamming_naive(t,p,n,m,matches);
+      
    else if(_kangaroo)
       kangaroo(t,p,k,n,m,matches);
+      
    else if(abrahamson)
       abrahamson_kosaraju(t,p,n,m,matches);
+      
    else if(bs_abrahamson)
    {
-      printf("DOING IT\n");
-      struct SP_KM_MATCHING_POSITIONS *listOfMatches = sp_km_create_new_list_of_matches();
+      struct SP_KM_MATCHING_POSITIONS *listOfMatches;
+      listOfMatches = sp_km_create_new_list_of_matches();
+      
       int numMatches = 0;
 
-	   //SP_KM_FIRST_MATCH_ONLY - stop after finding the first match
-	   sp_km_unbounded_kmismatch(t,p,n,m,k, &numMatches,listOfMatches,0);
+	   sp_km_unbounded_kmismatch(t,p,n,m,k, &numMatches,listOfMatches, 0);
 	   
-	   
+	   // Don't attempt to test this method.
       exit(0);
    }   
+   
    else
       kmismatches(t,p,k,n,m,matches);
       
-
-      
+     
    // Verify the output.   
    int pass=0;
+   
    for (int b=0;b<n-m+1; b++)
    {
       if (matches[b] <=k) 
@@ -128,21 +138,24 @@ int main(int argc, char **argv)
       }  
    }
    
+   
    if (!pass)
    {
       fprintf(stderr, "FAILED TEST\n");
       exit(1);
    }   
-
-
-   
+  
+  
    free(p);
    free(t);
-   free(matches);
-   
+   free(matches);   
    // This needs to be fixed.
    // FreeRMQ_succinct();   
+   
    
    return 0;
    
 }
+
+/******************************************************************************/
+
