@@ -34,7 +34,6 @@ else:
 # Make and run the tests using the following.
 run   = './km ./tests/test.test '+arg+' >>test.log'
 
-
 # Flush the output files before starting.
 f= open('test.log', 'w')
 f.close()

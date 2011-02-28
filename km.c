@@ -685,6 +685,8 @@ void abrahamson_kosaraju(        const char*     text,
                                        int       m,
                                        int *     matches                       )
 {
+
+   
          
    // Zero the matches array.
    memset(matches, 0, sizeof(int)*(n-m+1));
@@ -695,11 +697,8 @@ void abrahamson_kosaraju(        const char*     text,
    // Count the number of occurences of each symbol and store in lookup
    sp_km_count_symbols(pattern, m, lookup);
 
-   // Number of appearances required for a character to be classed 'frequent'.
    int threshold = sqrt( m * log(m)/log(2) );
-   
-   
-      
+         
    printf("Threshold: %d\n", threshold);
 
 
@@ -754,8 +753,7 @@ void abrahamson_kosaraju(        const char*     text,
          
          printf("Creating block: %d\n", block);
          block ++;
-      } 
-  
+      }   
          
       // Perform marking when we have filled up the lookup matrix,
       // or when we are at the end of the alphabet)
@@ -1125,7 +1123,7 @@ void kmismatches(         const char *text,
                                 int   m,
                                 int  *matches  )
 {
-         
+                           
    // zero the matches array.
    memset(matches, 0, sizeof(int)*(n-m+1));
 
@@ -1138,7 +1136,7 @@ void kmismatches(         const char *text,
    // Number of appearances required for a character to be classed 'frequent'.
    int sqrt_k = (int)(sqrt((double)k) + 0.5);
    
-    printf("Threshold: \\sqrt k %d.\n", sqrt_k);
+   printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
    int num_freq_chars = count_frequent_symbols(frequency_table, sqrt_k);
    
@@ -1149,41 +1147,80 @@ void kmismatches(         const char *text,
    {
       printf("CASE 1\n");
       
-      fprintf(stderr, "NOT IN CASE 2\n");
-      exit(-1);
-      
-      // This will become a look up for each frequent character.
-      int *pattern_lookup = malloc(sizeof(int)*sqrt_k);
+      /*--- Frequent characters ---*/
 
       // Go through every symbol, looking for frequent symbols.
       // then perform FFT matching on each one.
       for (int i=0; i<ALPHABET_SIZE; i++)
       {
-         if ( frequency_table[i] <= 0 ) continue;
-      
-         if ( frequency_table[i] > sqrt_k )
-         {
-            printf("method 1\n");      
+         if (frequency_table[i] >= sqrt_k)
+         {  
+            printf("Method 1\n");      
             printf("%c\n", i);
 
             match_with_FFT(matches, i, text, pattern,  n, m);
          }
-            else
-         {
-            printf("%c\n", i);
-            printf("method 2\n");
-            
-            // Create lookup for this symbol.
-            createLookup(pattern_lookup, i, pattern, m, sqrt_k);
+      }   
+      
+      /*--- Infrequent characters ---*/
+      
+      // Now, deal with the infrequent characters using a simple counting
+      // algorithm.
+          
+      int block_size = 10;
+      int block      = 0;
          
-            // match this symbol in the text.
-          //  markMatches(matches, text, i, pattern_lookup, n,m, sqrt_k);
-         }
+      // Lookup table to give the position of the symbol lookup row 
+      // in the look up matrix.
+      int LOOKUP[ALPHABET_SIZE];   
+      
+      int *symbol_lookup = malloc(sizeof(int)* sqrt_k *(block_size+1));
+      
+      for (int i=0; i<ALPHABET_SIZE; i++)
+         LOOKUP[i]=-1;
+      
+      for (int i=0; i<ALPHABET_SIZE; i++)
+      { 
+         if (frequency_table[i] < sqrt_k && frequency_table[i] > 0)
+         {
+            printf("Method 2\n");
+            printf("%c\n", i);
+
+            LOOKUP[(unsigned char)i] = block*sqrt_k;
+                        
+            // Create lookup for this symbol, and store it in the look up 
+            // matrix.
+            createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);
+            
+            printf("Creating block: %d\n", block);
+            block ++;
+         }   
+            
+         // Perform marking when we have filled up the lookup matrix,
+         // or when we are at the end of the alphabet)
+         if (block >= block_size || i == ALPHABET_SIZE-1)
+         {
+            printf("REACHED END OF BLOCK SIZE: %d\n", block);
+                  
+            markMatches(LOOKUP, symbol_lookup, sqrt_k, matches, text, n,m);
+         
+            // Zero the look-up table.
+            for (int i=0; i<ALPHABET_SIZE; i++)
+               LOOKUP[i]=-1;
+            
+            // reset the block value.
+            block = 0;
+         }           
       }
-   
+      
+      // We have calculuated the number of matches.
+      // subtract this from m to get the number of mismatches.
+      for (int i=0; i<n-m+1; i++)
+         matches[i] = m - matches[i]-1;
+         
    } else {
    
-    //  printf("CASE 2\n");
+      printf("CASE 2\n");
       k_mismatches_case2(text, pattern, frequency_table, k, n, m, matches);
    
    }
