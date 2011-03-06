@@ -109,6 +109,45 @@ int partition(const char *t, int k, int n, int *kbreaks)
 
 /******************************************************************************/
 
+// We seek a value of l such that there are at least 2k l-breaks, and l<k
+void find_l(const char *t, int n, int k, int *breaks)
+{
+   // Do a linear search for now. 
+   
+   for (int l=0; l<k; i++)
+   {
+      partition(
+   }
+}
+
+/******************************************************************************/
+// b is the maximum number of breaks.
+void displayBreaks(char *t, int *breaks, int n, int b)
+{
+   int z=0;
+      
+   for (int i=0;i<n;i++)
+   {
+      if (breaks[z] == i)
+      {
+         printf("[");
+         int x = i+k;
+         for (;i<x && i<n; i++)
+            printf("%c", t[i]);
+         printf("]");
+         z++;
+         i--;
+      } else {      
+         printf("%c", t[i]);      
+      }
+   }
+   printf("\n");
+
+}
+
+
+/******************************************************************************/
+
 
 int main(int argc, char **argv)
 {
@@ -119,35 +158,21 @@ int main(int argc, char **argv)
    
    int k=7;
    int n=strlen(t);
+
+   int  b      = n/k+1;   
+   int *breaks = calloc (b, sizeof(int));   
    
-   int *kbreaks = calloc (  n/k+1,sizeof(int));   
-   
-   partition(t,k,n,kbreaks);
-   
-   for (int i=0; i<n/k+1; i++)
+   partition(t,k,n,breaks);
+
+   for (int i=0; i<b; i++)
    {
-      printf("%d\n", kbreaks[i]);
-   }
+      printf("%d\n", breaks[i]);
+   } 
+  printf("%s\n\n", t);
   
-   int z=0;
-   printf("%s\n\n", t);
-   for (int i=0;i<n;i++)
-   {
-      if (kbreaks[z] ==i)
-      {
-         printf("[");
-         int x = i+k;
-         for (;i<x && i<n; i++)
-            printf("%c", t[i]);
-         printf("]");
-         z++;
-         i--;
-      } else {
-      
-         printf("%c", t[i]);
-      
-      }
-   }
-   printf("\n");
+  displayBreaks(t, breaks, n, b);
+  
 
 }
+
+
