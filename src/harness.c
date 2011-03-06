@@ -28,7 +28,8 @@ int main(int argc, char **argv)
    if (argc < 2)
    {
       fprintf(stderr, "harness [test file] ");
-      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs, -kangaroo, -naive_nm]\n");
+      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs,                   \
+                                             -kangaroo, -naive_nm]\n");
 
       exit(1);
    }

@@ -37,10 +37,13 @@ fftw_plan plan_FFT_inverse = NULL;
 // Mask the text into a buffer of doubles.
 // We assume that the text is the same length as the buffer for now.
 
-static inline void maskText(double *r, char symbol, const char *text, int n)
+static inline void maskText(          double*    r, 
+                                const char       symbol, 
+                                const char*      text, 
+                                const int        n                             )
 {
    printf("text length: %d\n",n);
-   for (int i=0; i<n; i++)
+   for (int i= 0; i<n; i++)
       r[i] = (text[i] == symbol) ? 1.0 : 0.0;
 
 }
@@ -51,7 +54,11 @@ static inline void maskText(double *r, char symbol, const char *text, int n)
 // We assume that the pattern is half the length of the buffer.
 // To perform matching, we need the pattern to be reversed.
 
-static void maskPattern(double *r, char symbol, const char *pattern, int m, int N)
+static void maskPattern(               double*   r, 
+                                 const char      symbol, 
+                                 const char*     pattern, 
+                                 const int       m, 
+                                 const int       N                             )
 
 {
    // Copy the pattern into the bottom of the buffer.
@@ -73,7 +80,7 @@ static void maskPattern(double *r, char symbol, const char *pattern, int m, int 
 static inline void multiply_half_complex(       double  *r, 
                                           const double  *a, 
                                           const double  *b, 
-                                                int      N  )
+                                          const int      N  )
 {
    // TODO: CHECK THIS IS RIGHT...
    // The first entry is real.
@@ -84,14 +91,16 @@ static inline void multiply_half_complex(       double  *r,
    {
      // Multiply the FFTW half-complex vectors.
      r[i]   = a[i]   * b[i] - a[N-i] * b[N-i];
-     r[N-i] = a[N-i] * b[i] + a[i]   * b[N-i];
+     
+     // The Complex Multiplcation trick.
+     r[N-i] = (a[i] + a[N-i])*(b[i] + b[N-i]) - r[i];
+     
+     // r[N-i] = a[N-i] * b[i] + a[i]   * b[N-i];
    }
 
    // If the length is even, the middle entry is also real.
    if (N % 2 == 0)
      r[N/2] = a[N/2] * b[N/2];
-     
-   //printf("%lf, %lf\n", r[6], r[7]);  
 
         
 }                        
