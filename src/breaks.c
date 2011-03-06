@@ -92,18 +92,16 @@ int partition(const char *t, int k, int n, int *kbreaks)
       // We can now construct a new k-break.
       if (i<n)
       {
-         if (i-k-start > 2*per)
+         if (i-k < start)
          {
-            kbreaks[current] = i-k;
-            current++;
+            kbreaks[current] = start;
+            i = start+k-1;
          } else {
-         printf("THING\n");
-            // We need to be careful about where we put the break.
-            kbreaks[current] = start + 2*per;
+            kbreaks[current] = i-k;
+            i--;
+         }   
+         
             current++;
-            i= start+2*per+k-1;
-            
-         }
       }
           
    }   
@@ -115,11 +113,11 @@ int partition(const char *t, int k, int n, int *kbreaks)
 int main(int argc, char **argv)
 {
    
-   char t[]="abcabcabcdabcabcabcabcfabcabcababababababababfababababab";
-
+   char t[]="abcabcabcdabcabcabcabcfabcabcababababababababfabababababfababk";
+//   char t[]="asdfabababababasdfsd";
   
    
-   int k=2;
+   int k=7;
    int n=strlen(t);
    
    int *kbreaks = calloc (  n/k+1,sizeof(int));   
