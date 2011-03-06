@@ -114,9 +114,9 @@ void find_l(const char *t, int n, int k, int *breaks)
 {
    // Do a linear search for now. 
    
-   for (int l=0; l<k; i++)
+   for (int l=0; l<k; l++)
    {
-      partition(
+//      partition(
    }
 }
 
