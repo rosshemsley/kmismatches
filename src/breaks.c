@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 
   
    
-   int k=7;
+   int k=2;
    int n=strlen(t);
    
    int *kbreaks = calloc (  n/k+1,sizeof(int));   
