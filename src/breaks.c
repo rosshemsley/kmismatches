@@ -24,8 +24,7 @@ int getPeriod(const char *t, int n)
    {
       int match=1;
       for (int j=0; j<i; j++)
-      {  
-      
+      {        
          if (t[j] != t[j+i])
          {
             // This cannot be the period.
@@ -44,11 +43,8 @@ int getPeriod(const char *t, int n)
 /******************************************************************************/
 // Partition into k-breaks.
 
-int partition(const char *t, int k, int n, int *kbreaks)
+int partition(const char *t, int l, int n, int *breaks)
 {
-   // There can be at most n/k distinct k-breaks.
-
-
 
    int current=0;
    
@@ -59,9 +55,9 @@ int partition(const char *t, int k, int n, int *kbreaks)
       int start = i;
       
       // Determine Period.
-      int per = getPeriod(t+i, k);
+      int per = getPeriod(t+i, l);
       
-      printf("Found period %d\n", per);
+      //printf("Found period %d\n", per);
       
       // Jump forwards by the length of the period. 
       // Since we know that the first cycle matches.    
@@ -73,11 +69,11 @@ int partition(const char *t, int k, int n, int *kbreaks)
       {
          for(;i<n;i++)
          {
-            printf("%d, %c, %c\n",i, t[i], t[i+per]);
+          //  printf("%d, %c, %c\n",i, t[i], t[i+per]);
             // The periodic stretch has ended.
             if (t[i] != t[i+per])
             {
-               printf("Periodic stretch ends at %d\n", i);
+            //   printf("Periodic stretch ends at %d\n", i);
                break;           
            }
          }
@@ -92,37 +88,60 @@ int partition(const char *t, int k, int n, int *kbreaks)
       // We can now construct a new k-break.
       if (i<n)
       {
-         if (i-k < start)
+         if (i-l < start)
          {
-            kbreaks[current] = start;
-            i = start+k-1;
+            breaks[current] = start;
+            i = start+l-1;
          } else {
-            kbreaks[current] = i-k;
+            breaks[current] = i-l;
             i--;
          }   
          
-            current++;
+         current++;
       }
           
    }   
+   
+   
+   // Check that this doesn't go out of bounds etc.
+   if (current < n/l)
+      breaks[current] = -1;
+   return current;
 }
+
+
 
 /******************************************************************************/
 
-// We seek a value of l such that there are at least 2k l-breaks, and l<k
-void find_l(const char *t, int n, int k, int *breaks)
+void displaySubStr(const char *t, int _l, int _r, int n, int l, const int *breaks, int b)
 {
-   // Do a linear search for now. 
-   
-   for (int l=0; l<k; l++)
+   int z=0;
+      
+   for (int i=0;i<n && i<_r; i++)
    {
-//      partition(
+      if (breaks[z] == i)
+      {
+         if (i>=_l && i <_r)
+            printf("[");
+         int x = i+l;
+         for (;i<x && i<n; i++)
+            if (i>=_l && i <_r)
+               printf("%c", t[i]);
+         if (i>=_l && i <_r)
+            printf("]");
+         z++;
+         i--;
+      } else {      
+         if (i>=_l && i <_r)
+            printf("%c", t[i]);      
+      }
    }
 }
 
 /******************************************************************************/
 // b is the maximum number of breaks.
-void displayBreaks(char *t, int *breaks, int n, int b)
+
+void displayBreaks(const char *t, int *breaks, int n, int l, int b)
 {
    int z=0;
       
@@ -131,7 +150,7 @@ void displayBreaks(char *t, int *breaks, int n, int b)
       if (breaks[z] == i)
       {
          printf("[");
-         int x = i+k;
+         int x = i+l;
          for (;i<x && i<n; i++)
             printf("%c", t[i]);
          printf("]");
@@ -145,34 +164,237 @@ void displayBreaks(char *t, int *breaks, int n, int b)
 
 }
 
+/******************************************************************************/
+
+// We seek a value of l such that there are at least 2k l-breaks, and l<k
+int find_l(const char *t, int n, int k, int *bn, int *breaks)
+{
+   // Do a linear search for now. 
+   int success=0;
+   for (int l=k; l>=2; l--)
+   {
+      int b = partition(t, l, n, breaks);
+   
+      if (b> 2*k) 
+      {  
+         *bn = b;
+         success=1;
+         printf("DONE: l=%d, b=%d, k=%d\n",l,b,k);
+         return l;
+      }
+   }
+   
+   if (!success)
+   {
+      printf("No such l exists\n");
+   }
+   return -1;
+}
+
+/******************************************************************************/
+// Find the subset of t containing at most 6k l-breaks.
+
+void find_X(const char *t, int n, int l, int b, int *breaks)
+{
+
+}
 
 /******************************************************************************/
 
+void match(char *t, char *p, int *pbreaks, int *tbreaks, int k, int n, int m, int pn, int tn, int *matches)
+{
+   
+   // This index last used in the tbreaks array, so that 
+   // we can perform O(m) look-ups instead of O(n).
+   int b_pos = 0;
+   
+   // These will give the leftmost and rightmost breaks for the set X.
+   int left, right;
+   
+   // For each block of length 2m in the text.
+   for (int i=0; i<n; i+=m)
+   {
+      // u and v are the start and end of this interval.
+      int u = i;
+      int v = i+2*m;
+   
+      // find the special set X in the text which must contain all the matches.
+      
+      // Find the middle break.
+      int middle=0;
+      while (middle < tn && tbreaks[middle] < u+m){ middle ++; }
+            
+      if (middle-3*k < 0 || tbreaks[middle-3*k] < u) 
+      left = i;      
+      else left = tbreaks[middle-3*k];
+      
+      if (middle+3*k >= tn || tbreaks[middle+3*k] > v) 
+      right = i+2*m;
+      else right = tbreaks[middle+3*k];
+      
+      // These are the start and end values in the pbreaks array.
+      // They give the start and end positions of the breaks
+      // which we consider in the breaks for the text.
+      int X_start=0, X_end=0;
+     
+      // Find the starting position of X in the breaks array.
+      while (tbreaks[X_start] < left) X_start ++;
+      while (tbreaks[X_end]   < right) X_end ++;         
+         
+      // Mark all the possible matching locations: at most 24^3 marks
+      // Go through every pbreak, tbreak pairing, marking the 
+      // possible starting positions.
+      for (int x=X_start; x<X_end; x++)
+      {
+         for (int y=0; y<pn; y++)
+         {
+           // printf("Matching block starting at %d with (p)block starting at %d\n", tbreaks[x], pbreaks[y]);
+            // The start position for this break
+            // given that the breaks overlap at the last character
+            // of the pattern break.           
+            int start = tbreaks[x] - pbreaks[y]-k+1;
+            int end   = start+2*k-1;
+            if (end   <= 0)  continue;
+
+            if (start < 0)      start = 0;
+            
+            if (end   > n-m+1)  end   = n-m+1;
+         
+                 //       printf("   start: %d, end: %d\n", start, end);
+         
+            // Mark all the possible starting locations.
+            for (int z=start; z<end; z++)
+               ++matches[z];
+         
+         }         
+      }
+            
+
+         //  break;
+   } 
+   
+   // Verify the locations: at most 24k^2.
+}
+
+/******************************************************************************/
+
+void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
+{
+   // This is the current position in the breaks array.
+   // this means we can look up breaks in O(m) time instead of O(n).
+   int pos=0;
+
+   // Go through blocks of the text of size 2m.
+   for (int i=0; i<n; i+=2*m)
+   {
+      printf("Working with:\n");         
+      displaySubStr(t,i, i+2*m, n, l, breaks, b);
+      printf("\n");      
+   
+      // Seek the index of the last break starting before the middle of the 
+      // current block of the text.
+      int middle=0;
+      int left, right;
+      while (middle < b && breaks[middle] < i+m){ middle++; }
+      printf("middle: %d, chars: %d\n", middle, breaks[middle]);
+
+
+
+      // Find the index 'left'
+      if (middle-3*k < 0 || breaks[middle-3*k] < i) 
+      left = i;
+      else left = breaks[middle-3*k];
+      
+      printf("left: %d\n",left);
+        
+      printf("%d\n", breaks[middle]+3*k);
+
+      printf("breaks: %d\n", middle+3*k);
+      // Find the index 'right'
+      if (middle+3*k >=b || breaks[middle+3*k] > i+2*m) 
+      right = i+2*m;
+      else right = breaks[middle+3*k];
+      
+      printf("right: %d\n",right);
+      
+      
+      displaySubStr(t, i, left, n, l, breaks, b);
+      printf("|");
+      displaySubStr(t, left, right, n, l, breaks, b);
+      printf("|");
+      displaySubStr(t,right, i+2*m, n, l, breaks, b);
+      
+
+      printf("\n");
+      exit(0);
+   
+   }
+   
+   
+}
+
+/******************************************************************************/
 
 int main(int argc, char **argv)
 {
    
-   char t[]="abcabcabcdabcabcabcabcfabcabcababababababababfabababababfababk";
-//   char t[]="asdfabababababasdfsd";
-  
+   char t[]="aafaaaaaaaaaaaadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaaaaaaaaaaaaa";
+   char p[]="aaaaaadaddaadaaaadaaaaaaadaa";  
    
-   int k=7;
-   int n=strlen(t);
+   int k = 2;
+   int n = strlen(t);
+   int m = strlen(p);
 
-   int  b      = n/k+1;   
-   int *breaks = calloc (b, sizeof(int));   
+   // This is the largest possible value of b.
+   int  pn      = m/k+1;   
+   int *pbreaks = calloc (pn, sizeof(int));   
+      
+   // Find the value of l which gives us at least 2k l breaks
+   // for some l.
+   int l = find_l(p, m, k, &pn, pbreaks);
    
-   partition(t,k,n,breaks);
-
-   for (int i=0; i<b; i++)
-   {
-      printf("%d\n", breaks[i]);
-   } 
-  printf("%s\n\n", t);
-  
-  displayBreaks(t, breaks, n, b);
-  
-
+   int  tn      = n/l+1;   
+   int *tbreaks = calloc (tn, sizeof(int));   
+   
+   // Partition in the text into its l-breaks.
+   tn = partition(t, l, n, tbreaks);
+   
+   displayBreaks(p, pbreaks, m, l, pn);
+   displayBreaks(t, tbreaks, n, l, tn);
+   
+   printf("There are %d pattern breaks and %d text breaks\n", pn, tn);
+   
+   if (l<0) 
+   {  
+      printf("Could not find 2k l breaks for any l\n");   
+      exit(0);
+   }
+   
+   printf("Value of l: %d\n", l);
+   
+   int * matches = calloc(n-m+1, sizeof(int));
+   
+   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);
+   
+   for (int i=0; i<n-m+1; i++)
+//      if (matches[i]>k)
+      printf("%d ", matches[i]);
+  //    else 
+    //  printf(" ");
+   printf("\n");
 }
+
+/******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 
