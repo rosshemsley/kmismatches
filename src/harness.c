@@ -9,6 +9,7 @@
 #include "km.h"
 #include "sais.h"
 #include "stack.h"
+#include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "./sp_km_unbounded_matcher.h"
 

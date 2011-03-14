@@ -9,6 +9,7 @@
 #include "km.h"
 #include "sais.h"
 #include "stack.h"
+#include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "./sp_km_unbounded_matcher.h"
 
@@ -16,6 +17,7 @@
 // Get the period of this block of length n.
 // The period can clearly be at most n/2.
 
+// TODO: Do this better!
 // This is just a naive O(n^2) algorithm.
 int getPeriod(const char *t, int n)
 {
@@ -200,7 +202,7 @@ void find_X(const char *t, int n, int l, int b, int *breaks)
 }
 
 /******************************************************************************/
-
+/*
 void match(char *t, char *p, int *pbreaks, int *tbreaks, int k, int n, int m, int pn, int tn, int *matches)
 {
    
@@ -276,7 +278,7 @@ void match(char *t, char *p, int *pbreaks, int *tbreaks, int k, int n, int m, in
    // Verify the locations: at most 24k^2.
 }
 
-/******************************************************************************/
+******************************************************************************
 
 void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 {
@@ -332,54 +334,46 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
    
    
 }
-
+*/
 /******************************************************************************/
 
 int main(int argc, char **argv)
 {
    
-   char t[]="aafaaaaaaaaaaaadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaaaaaaaaaaaaa";
-   char p[]="aaaaaadaddaadaaaadaaaaaaadaa";  
+   char *t="aafadaaaaaaaaaaadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaaaaaaaaaasdf";
+   char *p="aaaaaadaddaadaaaadaaaaaaadaa";  
    
    int k = 2;
    int n = strlen(t);
    int m = strlen(p);
 
+   int pos=0;
+
+   if (argc > 1)
+      load(argv[1], &n, &m, &k, &pos, &t, &p);
+
+
    // This is the largest possible value of b.
    int  pn      = m/k+1;   
-   int *pbreaks = calloc (pn, sizeof(int));   
+   int *breaks = calloc (pn, sizeof(int));   
       
-   // Find the value of l which gives us at least 2k l breaks
-   // for some l.
-   int l = find_l(p, m, k, &pn, pbreaks);
-   
-   int  tn      = n/l+1;   
-   int *tbreaks = calloc (tn, sizeof(int));   
-   
    // Partition in the text into its l-breaks.
-   tn = partition(t, l, n, tbreaks);
+   pn = partition(p, k, m, breaks);
    
-   displayBreaks(p, pbreaks, m, l, pn);
-   displayBreaks(t, tbreaks, n, l, tn);
+  // displayBreaks(p, breaks, m, k, pn);
    
-   printf("There are %d pattern breaks and %d text breaks\n", pn, tn);
+   printf("There are %d pattern breaks\n", pn);
+
+
+   int *SA = malloc(n*sizeof(int)+2);
+   int *LCP = malloc(n*sizeof(int)+2);
+   sais((unsigned char*)t, SA, LCP,  n);
    
-   if (l<0) 
-   {  
-      printf("Could not find 2k l breaks for any l\n");   
-      exit(0);
-   }
+   printf("%d\n", SA[100]);
+
+//   int * matches = calloc(n-m+1, sizeof(int));
    
-   printf("Value of l: %d\n", l);
-   
-   int * matches = calloc(n-m+1, sizeof(int));
-   
-   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);
-   
-   for (int i=0; i<n-m+1; i++)
-//      if (matches[i]>k)
-      printf("%d ", matches[i]);
-  //    else 
+//   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);
     //  printf(" ");
    printf("\n");
 }
