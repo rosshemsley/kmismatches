@@ -14,6 +14,10 @@
 #include "./sp_km_unbounded_matcher.h"
 
 /******************************************************************************/
+
+#define MIN(X,Y) (X) < (Y) ? (X) : (Y)
+
+/******************************************************************************/
 // Get the period of this block of length n.
 // The period can clearly be at most n/2.
 
@@ -196,23 +200,21 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
 
 /******************************************************************************/
 // return 1 if a > b, 0 if a==b and -1 if a < b
+// mle will store the location at which the match fails.
+// In this way we can reduce the number of comparisons we have to do.
 
-int str_gth(const char *a, const char *b, int n)
+int str_gth(const char *a, const char *b, int n, int *i)
 {
-   
-   
-   
-
-   for (int i=0; i<n; i++)
+   for (; *i<n; (*i)++)
    {
       
-      if (a[i]=='\0') return 0;
-      if (b[i]=='\0') return 1;
+      if (a[*i]=='\0') return 0;
+      if (b[*i]=='\0') return 1;
 
-      printf("Comparing: %c to %c\n", a[i], b[i]);
+      printf("Comparing: %c to %c\n", a[*i], b[*i]);
       
-      if ((unsigned char)a[i] > (unsigned char)b[i]) return 1;
-      if ((unsigned char)a[i] < (unsigned char)b[i]) return -1;
+      if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
+      if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
    }
    
    return 0;
@@ -225,23 +227,40 @@ int str_gth(const char *a, const char *b, int n)
 
 int findSubstring(const char *p, const char *t, const int *SA, int n)
 {
-   int min = 0;
-   int max = n-1;
+   int min   = 0;
+   int max   = n-1;
+   
+   // The prefix lengths.
+   int min_p = 0;
+   int max_p = 0;
+   
+   // The number of comparisons done at any particular substring.
+   int x;
+   
    int mid;
+
    
    do 
    {
+      x = MIN(min_p, max_p);
+      
+      printf("x: %d\n", x);
+      
       mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + SA[mid], n);    
+      int c = str_gth(p, t + SA[mid], n, &x);    
       
       
-      printf("min, max: %d, %d, %d\n", min, max,mid);
+      printf("min, max: %d, %d, %d\n", min, max, mid);
       if (c == 1)
-         min = mid+1;
-         
+      {
+         min   = mid+1;
+         min_p = x;
+      }  
       else if (c == -1)
-         max = mid-1;
-         
+      {
+         max   = mid-1;
+         max_p = x;
+      }  
       else if (c == 0)
          return mid;
          
@@ -403,8 +422,6 @@ int main(int argc, char **argv)
       load(argv[1], &n, &m, &k, &pos, &t, &p);
     
     printf("Text length:%d, pat length: %d\n", n,m);
-
-   printf("%s\n", t);
 
     p="accidentally in love";  
 
