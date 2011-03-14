@@ -39,7 +39,7 @@ void load(                       const char*     filename,
    }
   
    // Allocate memory fot the text and pattern.
-   *text    = malloc(sizeof(char) * (*n+1));
+   *text    = malloc(sizeof(char) * (*n+2));
    *pattern = malloc(sizeof(char) * (*m+2)); 
   
    // Load the text and pattern into memory.

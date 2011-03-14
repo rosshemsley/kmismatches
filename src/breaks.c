@@ -193,12 +193,62 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
    return -1;
 }
 
+
 /******************************************************************************/
-// Find the subset of t containing at most 6k l-breaks.
+// return 1 if a > b, 0 if a==b and -1 if a < b
 
-void find_X(const char *t, int n, int l, int b, int *breaks)
+int str_gth(const char *a, const char *b, int n)
 {
+   
+   
+   
 
+   for (int i=0; i<n; i++)
+   {
+      
+      if (a[i]=='\0') return 0;
+      if (b[i]=='\0') return 1;
+
+      printf("Comparing: %c to %c\n", a[i], b[i]);
+      
+      if ((unsigned char)a[i] > (unsigned char)b[i]) return 1;
+      if ((unsigned char)a[i] < (unsigned char)b[i]) return -1;
+   }
+   
+   return 0;
+}
+
+/******************************************************************************/
+// Find the first location of a substring in O(n\log m) [O(n + \log m) 
+// expected time].
+// This algorithm comes from Gusfield.
+
+int findSubstring(const char *p, const char *t, const int *SA, int n)
+{
+   int min = 0;
+   int max = n-1;
+   int mid;
+   
+   do 
+   {
+      mid   = min+(max-min)/2;      
+      int c = str_gth(p, t + SA[mid], n);    
+      
+      
+      printf("min, max: %d, %d, %d\n", min, max,mid);
+      if (c == 1)
+         min = mid+1;
+         
+      else if (c == -1)
+         max = mid-1;
+         
+      else if (c == 0)
+         return mid;
+         
+   } while (min < max);
+
+   // Could not find the substring.
+   return -1;
 }
 
 /******************************************************************************/
@@ -340,8 +390,8 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 int main(int argc, char **argv)
 {
    
-   char *t="aafadaaaaaaaaaaadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadaaaaaaaaaasdf";
-   char *p="aaaaaadaddaadaaaadaaaaaaadaa";  
+   char *t="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";
+   char *p="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";  
    
    int k = 2;
    int n = strlen(t);
@@ -351,7 +401,14 @@ int main(int argc, char **argv)
 
    if (argc > 1)
       load(argv[1], &n, &m, &k, &pos, &t, &p);
+    
+    printf("Text length:%d, pat length: %d\n", n,m);
 
+   printf("%s\n", t);
+
+    p="accidentally in love";  
+
+    m = strlen(p);
 
    // This is the largest possible value of b.
    int  pn      = m/k+1;   
@@ -367,10 +424,14 @@ int main(int argc, char **argv)
 
    int *SA = malloc(n*sizeof(int)+2);
    int *LCP = malloc(n*sizeof(int)+2);
-   sais((unsigned char*)t, SA, LCP,  n);
-   
-   printf("%d\n", SA[100]);
+   sais((unsigned char*)t, SA,LCP, n);
 
+   int x = findSubstring(p, t, SA, n);
+   
+
+   
+   printf("Found substring: %d\n",x);
+  
 //   int * matches = calloc(n-m+1, sizeof(int));
    
 //   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);
