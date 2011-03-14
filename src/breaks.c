@@ -423,7 +423,7 @@ int main(int argc, char **argv)
     
     printf("Text length:%d, pat length: %d\n", n,m);
 
-    p="accidentally in love";  
+    p="accidentally";  
 
     m = strlen(p);
 
