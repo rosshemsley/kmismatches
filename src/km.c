@@ -944,18 +944,20 @@ void constructESA(const char *s, int n, ESA *esa)
    
    // TODO: Change these to malloc's later.
    esa->SA  = calloc( (n+2), sizeof(int) );
-   esa->SAi = calloc( (n+2), sizeof(int) );
+ //  esa->SAi = calloc( (n+2), sizeof(int) );
    esa->LCP = calloc( (n+2), sizeof(int) );
    
    // Child table, we attempt standard construction first,
    // then optimise it to occupy just one field.
-   esa->up      = calloc( (n+2), sizeof(int) );
-   esa->down    = calloc( (n+2), sizeof(int) );
-   esa->accross = calloc( (n+2), sizeof(int) ); 
+ //  esa->up      = calloc( (n+2), sizeof(int) );
+   //esa->down    = calloc( (n+2), sizeof(int) );
+   //esa->accross = calloc( (n+2), sizeof(int) ); 
 
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
+
+   exit(0);
    //esa->SA [n ] = -1;
    //esa->SAi[-1] = n;
    
@@ -1039,7 +1041,11 @@ void k_mismatches_case2(  const char *text,
    
    printf("Constructing ESA and p-representation\n");
    ESA esa;   
-   constructESA(pattern, m, &esa);
+   constructESA(text, n, &esa);
+   
+   
+   
+   exit(0);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
    //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
