@@ -202,26 +202,28 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
 
 // i is the starting position in the text.
 
-int verify(const ESA* esa, int i, int n, int m)
+int verify(const ESA* esa, int k, int i, int n, int m)
 {
    
    // The number of mismatches.
-   int k=0;
+   int mismatches=0;
    
    // The position in the pattern.
    int j=0; 
    
    while (j<m)
    {
-
+      
+      printf("Finding longest extension\n");
       // The longest number of shared characters.
       int l = LCE(i, j, esa);
       
+      printf(" found %d matching chars\n", l);
       i += l+1;
       j += l+1;
       
-      ++k;
-      
+      ++mismatches;
+      if (mismatches > k) return k+1;
    }
    
    return k-1;
@@ -291,7 +293,8 @@ void simpleMatcher(              const char*     text,
       // If there could be a match here.
       if (matches[i] >= k)
       {
-         matches[i] = verify(&esa, i, n, m);         
+         printf("Verifying a location: %d\n", i); 
+         matches[i] = verify(&esa, k, i, n, m);         
       } else 
          matches[i] = k+1;
    }
@@ -472,6 +475,11 @@ int main(int argc, char **argv)
    simpleMatcher(t, p, breaks, matches, k, n, m, pn);
    
 
+   for (int i=0; i<n-m+1; i++)
+   {
+      if (matches[i] <k+1)
+         printf("Found match at: %d\n", i);
+   }
   
 //   int * matches = calloc(n-m+1, sizeof(int));
    
