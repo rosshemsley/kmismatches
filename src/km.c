@@ -9,6 +9,7 @@
 #include "km.h"
 #include "km_FFT.h"
 #include "sais.h"
+#include "esa.h"
 #include "stack.h"
 #include "breaks.h"
 #include "loadTest.h"
@@ -616,53 +617,6 @@ int count_naive(                 const char*     t,
    return count;
    
 }
-
-/******************************************************************************/
-
-void displaySA(                  const ESA*      esa, 
-                                 const char*     pattern, 
-                                       int       m                             )
-{
-   printf("|i  |SA |LCP|U  |D  |A  |\n");
-   for (int i=0; i<m; i++)
-      printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i],                                     
-                                    esa->up[i], esa->down[i], esa->accross[i] );
-      
-   printf("\n\n");
-   
-   for (int i=0; i<m;i++)
-      printf("%3d: %d %s\n", i, esa->LCP[i], (pattern+esa->SA[i]));
-}
-
-/******************************************************************************/
-// Find the Longest Common Extension using the Extended Suffix Array.
-
-static inline int LCE(                 int       i, 
-                                       int       j, 
-                                 const ESA*      esa                           )
-{
-   // Trivial query.
-   if (i == j)
-      return (esa->n - j);     
-
-   // Make sure the indicies are the right way around.
-   register int a = esa->SAi[i];
-   register int b = esa->SAi[j];
-     
-   if (a>b)
-   {
-      register int c = a;
-      a = b;
-      b = c;
-   }
-   
-   register int temp =  query(a+1, b, esa->LCP, esa->n);
-          //*/  query_naive( a+1, b, esa->LCP, esa->n );
-                                  
-   return     esa->LCP[temp];
-               
-}
-
 /******************************************************************************/
 
 // j gives the location in the pattern, 
@@ -799,115 +753,6 @@ static inline int verifyMatch(   const pTriple*  pRepresentation,
 
    return mismatches;
 }
-
-/******************************************************************************/
-
-void freeESA(ESA *esa)
-{
-   free(esa->SA);
-   free(esa->LCP);
-   free(esa->SAi);
-}
-
-
-/******************************************************************************/
-// Construct the child_table for the ESA. TODO: Compress this down to one field
-// using the optimised outlined in the relevant paper.
-// 
-// These algorithms are copied verbatim from the paper "Replacing the suffix 
-// tree with the enhanced suffix array".
-
-void constructChildValues(ESA *esa)
-{
-
-   int n = esa->n+1;
-   
-   stack *s = newStack();
-   
-   push(s, 0);
-   
-   // TODO: Make sure that this correctly reaches the end.
-   for (int i=1; i<n; i++)
-   {   
-      while (esa->LCP[i] < esa->LCP[ peek(s) ])
-         pop(s);
-         
-      if (esa->LCP[i] == esa->LCP[ peek(s) ])
-         esa->accross[pop(s)] = i;
-   
-      push(s, i);      
-   }
-   
-   /**   Construct Up/Down values.   ***************/
-   
-   // Reset the stack.   
-   emptyStack(s);
-   
-   int lastIndex = -1;
-   push(s, 0);
-   for (int i=1; i<n; i++)
-   {
-      while (esa->LCP[i] < esa->LCP[ peek(s) ] )
-      {
-         lastIndex = pop(s);
-         int top   = peek(s);
-         
-         if (    esa->LCP[i]   <= esa->LCP[top] 
-              && esa->LCP[top] != esa->LCP[lastIndex] )
-              
-            esa->down[top] = lastIndex;
-         
-         if (lastIndex != -1)
-         {
-            esa->up[i] = lastIndex;
-            lastIndex  = -1;
-         }
-      }     
-      push(s, i);
-   }  
-   
-   freeStack(s);
-}
-
-/******************************************************************************/
-
-// Construct an extended suffix array for some string of length n.s
-void constructESA(const char *s, int n, ESA *esa)
-{
-   
-   esa->n   = n;
-   
-   // TODO: Change these to malloc's later.
-   esa->SA  = calloc( (n+2), sizeof(int) );
-   esa->SAi = calloc( (n+2), sizeof(int) );
-   esa->LCP = calloc( (n+2), sizeof(int) );
-   
-   // Child table, we attempt standard construction first,
-   // then optimise it to occupy just one field.
-   esa->up      = calloc( (n+2), sizeof(int) );
-   esa->down    = calloc( (n+2), sizeof(int) );
-   esa->accross = calloc( (n+2), sizeof(int) ); 
-
-   // Construct the SA and LCP in linear time.
-   sais((unsigned char*)s, esa->SA, esa->LCP, n);
-
-   //esa->SA [n ] = -1;
-   //esa->SAi[-1] = n;
-   
-   // This is needed for the child table values to be computed
-   // correctly.
-   esa->LCP[n] = 0;
-   
-   // Create the child table.
-   constructChildValues( esa );
-   
-   // Construct the inverse suffix array.
-   for (int i=0; i<n; i++)
-      esa->SAi[esa->SA[i]] = i;
-
-}
-
-
 
 /******************************************************************************/
 

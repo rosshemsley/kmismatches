@@ -13,35 +13,9 @@
 #define ALPHABET_SIZE (1 << CHAR_BIT)
 
 
-//----------------------------------------------------------------------------//   
-// Get the first child interval for an l-Interval.
-//----------------------------------------------------------------------------//   
-#define LI_FIRST_CHILD(i,j,esa) (i < esa->up[j+1] && esa->up[j+1] <= j)        \
-                                 ? esa->up[j+1] : esa->down[i]
-
-
-//----------------------------------------------------------------------------//   
-// Get the LCP value of an l-Interval.
-//----------------------------------------------------------------------------//   
-#define LI_GET_LCP(i,j,esa) (i < esa->up[j+1] && esa->up[j+1] <= j)            \
-                             ? esa->LCP[esa->up[j+1]] : esa->LCP[esa->down[i]]
-
-
 /*******************************************************************************
 * Types:
 *******************************************************************************/
-
-// This is a container for an Extended Suffix Array.
-typedef struct _ESA
-{
-   int   n;
-   int *SA;
-   int *SAi;
-   int *LCP;
-   int *up;
-   int *down;
-   int *accross;
-} ESA;
 
 // Container for a p-block in the p-representation
 // TODO: it's no longer a triple..

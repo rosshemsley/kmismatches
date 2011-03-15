@@ -15,8 +15,6 @@
 
 /******************************************************************************/
 
-#define MIN(X,Y) (X) < (Y) ? (X) : (Y)
-#define MAX(X,Y) (X) > (Y) ? (X) : (Y)
 
 /******************************************************************************/
 // Get the period of this block of length n.
@@ -196,91 +194,6 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
       printf("No such l exists\n");
    }
    return -1;
-}
-
-
-/******************************************************************************/
-// return 1 if a > b, 0 if a==b and -1 if a < b
-// mle will store the location at which the match fails.
-// In this way we can reduce the number of comparisons we have to do.
-
-int str_gth(const char *a, const char *b, int n, int *i)
-{
-   for (; *i<n; (*i)++)
-   {
-      
-      if (a[*i]=='\0') return 0;
-      if (b[*i]=='\0') return 1;
-
-    //  printf("Comparing: %c to %c\n", a[*i], b[*i]);
-      
-      if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
-      if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
-   }
-   
-   return 0;
-}
-
-/******************************************************************************/
-// Find the first location of a substring in O(n\log m) [O(n + \log m) 
-// expected time].
-// This algorithm comes from Gusfield.
-
-// l0 is the start position, r0 is the end position.
-// l is the length found.
-int findSubstring(int l0, int r0, int *l, const char *p, const char *t, const int *SA, int n)
-{
-   int min   = l0;
-   int max   = r0;
-   
-   // The prefix lengths.
-   int min_p = 0;
-   int max_p = 0;
-   
-   // The number of comparisons done at any particular substring.
-   int x;
-   
-   int longest_match = 0; 
-   int longest_pos   = 0;
-   
-   int mid;
-
-   
-   do 
-   {
-      x = MIN(min_p, max_p);
-      
-      //printf("x: %d\n", x);
-      
-      mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + SA[mid], n, &x);    
-      
-      if (x>longest_match)
-      {  
-         longest_match = x;
-         longest_pos   = SA[mid];
-      }
-      
-      //  printf("min, max: %d, %d, %d\n", min, max, mid);
-      if (c == 1)
-      {
-         min   = mid+1;
-         min_p = x;
-      }  
-      else if (c == -1)
-      {
-         max   = mid-1;
-         max_p = x;
-      }  
-      else if (c == 0)
-      {
-         *l = longest_match;
-         return mid;
-       }  
-   } while (min <= max);
-   
-   *l = longest_match;
-   return longest_pos;
 }
 
 /******************************************************************************/
