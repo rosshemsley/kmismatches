@@ -197,6 +197,44 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
 }
 
 /******************************************************************************/
+// When there are at least 2k k breaks, we can do the following in O(n)
+
+int simpleMatcher(               const char*     text,
+                                 const char*     pattern,
+                                 const int*      kbreaks,
+                                       int       k,
+                                       int       n,
+                                       int       m,
+                                       int       bn                            )
+{
+
+   // Construct the ESA for the text.
+   // TODO: Don't bother with child values for this?
+   ESA esa;   
+   constructESA(text, n, &esa);  
+   
+   // Go through all of the k-breaks, and mark the starting positions.
+
+   
+  // int x = findSubstringPosition(0, n-1, pattern, text, &esa, n, m);
+   
+     
+
+  /*
+   while (esa.LCP[x+1] >= m)
+   {
+   x++;
+      printf("'%.10s'\n", t+ esa.SA[x]);
+      
+   }
+  */
+  
+   
+   // kangaroo accross those matching positions.
+
+}
+
+/******************************************************************************/
 /*
 void match(char *t, char *p, int *pbreaks, int *tbreaks, int k, int n, int m, int pn, int tn, int *matches)
 {
@@ -363,27 +401,8 @@ int main(int argc, char **argv)
    // displayBreaks(p, breaks, m, k, pn);   
    printf("There are %d pattern breaks\n", pn);
 
-   // Construct the ESA for the text.
-   ESA esa;   
-   constructESA(t, n, &esa);
 
-   int x = findSubstringPosition(0, n-1, p, t, &esa, n, m);
-   
-   
-   
-   printf("Found substring: %d\n",x);
-  
-  
-      printf("'%.10s'\n", t+ esa.SA[x]);
-  /*
-   while (esa.LCP[x+1] >= m)
-   {
-   x++;
-      printf("'%.10s'\n", t+ esa.SA[x]);
-      
-   }
-  */
-  
+
   
 //   int * matches = calloc(n-m+1, sizeof(int));
    
