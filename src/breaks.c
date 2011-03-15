@@ -275,7 +275,7 @@ int findSubstring(int l0, int r0, int *l, const char *p, const char *t, const in
       else if (c == 0)
       {
          *l = longest_match;
-         return mid;
+         return SA[mid];
        }  
    } while (min <= max);
    
