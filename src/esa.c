@@ -186,7 +186,8 @@ inline int findLongestSubstring(       int       l0,
                                  const char*     p,
                                  const char*     t, 
                                  const ESA*      esa, 
-                                       int       n                             )
+                                       int       n,  
+                                       int       m                             )
 {
    int min   = l0;
    int max   = r0;
@@ -210,7 +211,7 @@ inline int findLongestSubstring(       int       l0,
       //printf("x: %d\n", x);
       
       mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + esa->SA[mid], n, &x);    
+      int c = str_gth(p, t + esa->SA[mid], m, &x);    
       
       if (x>longest_match)
       {  
@@ -251,7 +252,8 @@ inline int findSubstringPosition(      int       l0,
                                  const char*     p,
                                  const char*     t, 
                                  const ESA*      esa, 
-                                       int       n                             )
+                                       int       n,                            
+                                       int       m                             )
 {
    // This allows us to use a lookup table for the initial values. 
    int min   = l0;
@@ -271,7 +273,7 @@ inline int findSubstringPosition(      int       l0,
       x = MIN(min_p, max_p);
       
       mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + esa->SA[mid], n, &x);          
+      int c = str_gth(p, t + esa->SA[mid], m, &x);          
       
       //  printf("min, max: %d, %d, %d\n", min, max, mid);
       if (c == 1)
@@ -286,8 +288,16 @@ inline int findSubstringPosition(      int       l0,
          max_p = x;
       }  
    
+      // We found a match.
       else if (c == 0)
-         return mid;
+      {
+         
+         // Find the first instance of it in the suffix array.
+         // This takes time proportional to the number of matches.
+         while (mid > 0 && esa->LCP[--mid] >= m);
+         
+         return mid;         
+      }
    
    } while (min <= max);
    

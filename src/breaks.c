@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <string.h>
 #include "km.h"
-#include "sais.h"
+#include "esa.h"
 #include "stack.h"
 #include "loadTest.h"
 #include "RMQ_succinct.h"
@@ -332,7 +332,7 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 */
 /******************************************************************************/
 
-int moan(int argc, char **argv)
+int main(int argc, char **argv)
 {
    
    char *t="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";
@@ -349,7 +349,7 @@ int moan(int argc, char **argv)
     
     printf("Text length:%d, pat length: %d\n", n,m);
 
-    p="accidentally";  
+    p="the";  
 
     m = strlen(p);
 
@@ -360,21 +360,30 @@ int moan(int argc, char **argv)
    // Partition in the text into its l-breaks.
    pn = partition(p, k, m, breaks);
    
-  // displayBreaks(p, breaks, m, k, pn);
-   
+   // displayBreaks(p, breaks, m, k, pn);   
    printf("There are %d pattern breaks\n", pn);
 
+   // Construct the ESA for the text.
+   ESA esa;   
+   constructESA(t, n, &esa);
 
-   int *SA = malloc(n*sizeof(int)+2);
-   int *LCP = malloc(n*sizeof(int)+2);
-   sais((unsigned char*)t, SA,LCP, n);
-
- //  int i=0;
-//   int x = findSubstring(&i, p, t, SA, n);
+   int x = findSubstringPosition(0, n-1, p, t, &esa, n, m);
    
-
    
-  // printf("Found substring: %d\n",x);
+   
+   printf("Found substring: %d\n",x);
+  
+  
+      printf("'%.10s'\n", t+ esa.SA[x]);
+  /*
+   while (esa.LCP[x+1] >= m)
+   {
+   x++;
+      printf("'%.10s'\n", t+ esa.SA[x]);
+      
+   }
+  */
+  
   
 //   int * matches = calloc(n-m+1, sizeof(int));
    

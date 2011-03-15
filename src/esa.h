@@ -59,7 +59,16 @@ int findSubstring(                     int       l0,
                                  const char*     p,
                                  const char*     t, 
                                  const ESA*      esa, 
-                                       int       n                            );
+                                       int       n,
+                                       int       m                            );
+//------------------------------------------------------------------------------                                          
+int findSubstringPosition(             int       l0, 
+                                       int       r0, 
+                                 const char*     p,
+                                 const char*     t, 
+                                 const ESA*      esa, 
+                                       int       n,                            
+                                       int       m                            );                                       
 //------------------------------------------------------------------------------                                          
 void freeESA(                          ESA*      esa                          );                                   
 /******************************************************************************/
