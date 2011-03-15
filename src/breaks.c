@@ -286,9 +286,15 @@ void simpleMatcher(              const char*     text,
    // Initialise the RMQ structure.
    RMQ_succinct(esa.LCP, esa.n);  
    
-   
-   
-
+   for (int i=0;i<n-m+1;i++)
+   {
+      // If there could be a match here.
+      if (matches[i] >= k)
+      {
+         matches[i] = verify(&esa, i, n, m);         
+      } else 
+         matches[i] = k+1;
+   }
 }
 
 /******************************************************************************/
@@ -430,24 +436,19 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 int main(int argc, char **argv)
 {
    
-   char *t="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";
-   char *p="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";  
+   char *t; //="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";
+   char *p; //="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";  
    
-   int k = 2;
-   int n = strlen(t);
-   int m = strlen(p);
+   int k; // = 2;
+   int n; // = strlen(t);
+   int m; // = strlen(p);
 
-   int pos=0;
+   int pos = 0;
 
    if (argc > 1)
       load(argv[1], &n, &m, &k, &pos, &t, &p);
-    
-    printf("Text length:%d, pat length: %d\n", n,m);
-
-    p="the";  
-
-    m = strlen(p);
-
+  
+  
    // This is the largest possible value of b.
    int  pn      = m/k+1;   
    int *breaks = calloc (pn, sizeof(int));   
@@ -457,8 +458,19 @@ int main(int argc, char **argv)
    
    // displayBreaks(p, breaks, m, k, pn);   
    printf("There are %d pattern breaks\n", pn);
-
-
+  
+  
+   if (pn >= 2*k)
+      printf("There are enough k-breaks\n");
+   else 
+      printf("There are insufficient k-breaks\n");
+   
+   int *matches = malloc((n-m+1) * sizeof(int));
+  
+  
+   printf("Starting matching.\n");
+   simpleMatcher(t, p, breaks, matches, k, n, m, pn);
+   
 
   
 //   int * matches = calloc(n-m+1, sizeof(int));
