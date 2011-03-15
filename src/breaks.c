@@ -450,6 +450,11 @@ int main(int argc, char **argv)
 
    if (argc > 1)
       load(argv[1], &n, &m, &k, &pos, &t, &p);
+   else
+   {
+      printf("No input file provided.\n");
+      exit(0);
+   }  
   
   
    // This is the largest possible value of b.
