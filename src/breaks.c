@@ -197,16 +197,52 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
 }
 
 /******************************************************************************/
+// Simple Kangarooing, for when we have a full ESA for the text and
+// not just a p-representation.
+
+// i is the starting position in the text.
+
+int verify(const ESA* esa, int i, int n, int m)
+{
+   
+   // The number of mismatches.
+   int k=0;
+   
+   // The position in the pattern.
+   int j=0; 
+   
+   while (j<m)
+   {
+
+      // The longest number of shared characters.
+      int l = LCE(i, j, esa);
+      
+      i += l+1;
+      j += l+1;
+      
+      ++k;
+      
+   }
+   
+   return k-1;
+
+}
+
+/******************************************************************************/
 // When there are at least 2k k breaks, we can do the following in O(n)
 
-int simpleMatcher(               const char*     text,
+void simpleMatcher(              const char*     text,
                                  const char*     pattern,
                                  const int*      kbreaks,
+                                       int*      matches,
                                        int       k,
                                        int       n,
                                        int       m,
                                        int       bn                            )
 {
+
+   // Zero the matches array.
+   memset(matches, 0, sizeof(int)*(n-m+1));
 
    // Construct the ESA for the text.
    // TODO: Don't bother with child values for this?
@@ -214,23 +250,44 @@ int simpleMatcher(               const char*     text,
    constructESA(text, n, &esa);  
    
    // Go through all of the k-breaks, and mark the starting positions.
-
    
-  // int x = findSubstringPosition(0, n-1, pattern, text, &esa, n, m);
-   
-     
-
-  /*
-   while (esa.LCP[x+1] >= m)
+   // Loop through all of the k-breaks.
+   for (int i=0; i<bn; i++)
    {
-   x++;
-      printf("'%.10s'\n", t+ esa.SA[x]);
+      // The k-break we are currently considering.
+      const char *thisBreak = pattern + kbreaks[i];
       
-   }
-  */
-  
+      // Find the first location of this break  in the text (if applicable)
+      // in the suffix array.
+      // TODO: Add a lookup table for first level.
+      int x = findSubstringPosition(0, n-1, thisBreak, text, &esa, n, k); 
+      
+      // Find all locations of this k-break and mark in the matches 
+      // array the starting position.
+      do
+      {      
+         // Text location of this match.
+         int j = esa.SA[x];
+         
+         // If this does not run off the end of the matches array, then
+         // mark in the matches array the possible starting position of the 
+         // pattern.
+         if (j-kbreaks[i] >= 0)
+            ++matches[j-kbreaks[i]];
+            
+      } while (x+1 < n  &&  esa.LCP[x+1] >= m);
+      
+   }  
    
-   // kangaroo accross those matching positions.
+   /**
+   *  kangaroo accross all the potential matching positions.
+   */
+   
+   // Initialise the RMQ structure.
+   RMQ_succinct(esa.LCP, esa.n);  
+   
+   
+   
 
 }
 
