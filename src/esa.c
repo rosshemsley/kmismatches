@@ -232,7 +232,7 @@ inline int findLongestSubstring(       int       l0,
       else if (c == 0)
       {
          *l = longest_match;
-         return mid;
+         return esa->SA[mid];
        }  
    } while (min <= max);
    
