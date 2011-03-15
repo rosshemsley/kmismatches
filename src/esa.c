@@ -162,12 +162,9 @@ void constructESA(const char *s, int n, ESA *esa)
 int str_gth(const char *a, const char *b, int n, int *i)
 {
    for (; *i<n; (*i)++)
-   {
-      
+   {      
       if (a[*i]=='\0') return 0;
       if (b[*i]=='\0') return 1;
-
-    //  printf("Comparing: %c to %c\n", a[*i], b[*i]);
       
       if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
       if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
@@ -177,18 +174,18 @@ int str_gth(const char *a, const char *b, int n, int *i)
 }
 
 /******************************************************************************/
-// Find the first location of a substring in O(n\log m) [O(n + \log m) 
-// expected time].
+// Find the first location of a the longest substring in O(n\log m) 
+// [ O(n + \log m)  expected time ].
 // This algorithm comes from Gusfield.
 
 // l0 is the start position, r0 is the end position.
 // l is the length found.
-int findSubstring(                     int       l0, 
+inline int findLongestSubstring(       int       l0, 
                                        int       r0, 
                                        int*      l, 
                                  const char*     p,
                                  const char*     t, 
-                                 const int*      SA, 
+                                 const ESA*      esa, 
                                        int       n                             )
 {
    int min   = l0;
@@ -213,12 +210,12 @@ int findSubstring(                     int       l0,
       //printf("x: %d\n", x);
       
       mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + SA[mid], n, &x);    
+      int c = str_gth(p, t + esa->SA[mid], n, &x);    
       
       if (x>longest_match)
       {  
          longest_match = x;
-         longest_pos   = SA[mid];
+         longest_pos   = esa->SA[mid];
       }
       
       //  printf("min, max: %d, %d, %d\n", min, max, mid);
@@ -241,6 +238,61 @@ int findSubstring(                     int       l0,
    
    *l = longest_match;
    return longest_pos;
+}
+
+/******************************************************************************/
+// This will find the first position of a given substring in the suffix
+// array using the binary-search technique.
+// We can then use the LCP array to find all given matches in time
+// proportional to the number of occurences.
+
+inline int findSubstringPosition(      int       l0, 
+                                       int       r0, 
+                                 const char*     p,
+                                 const char*     t, 
+                                 const ESA*      esa, 
+                                       int       n                             )
+{
+   // This allows us to use a lookup table for the initial values. 
+   int min   = l0;
+   int max   = r0;
+   
+   // The prefix lengths.
+   int min_p = 0;
+   int max_p = 0;
+      
+   int mid;
+
+   int x;
+
+   do 
+   {
+      // This is the longest prefix of precomputed values.
+      x = MIN(min_p, max_p);
+      
+      mid   = min+(max-min)/2;      
+      int c = str_gth(p, t + esa->SA[mid], n, &x);          
+      
+      //  printf("min, max: %d, %d, %d\n", min, max, mid);
+      if (c == 1)
+      {
+         min   = mid+1;
+         min_p = x;
+      }  
+   
+      else if (c == -1)
+      {
+         max   = mid-1;
+         max_p = x;
+      }  
+   
+      else if (c == 0)
+         return mid;
+   
+   } while (min <= max);
+   
+   // Substring was not found anywhere.
+   return -1;
 }
 
 /******************************************************************************/

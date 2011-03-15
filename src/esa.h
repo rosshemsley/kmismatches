@@ -58,7 +58,7 @@ int findSubstring(                     int       l0,
                                        int*      l, 
                                  const char*     p,
                                  const char*     t, 
-                                 const int*      SA, 
+                                 const ESA*      esa, 
                                        int       n                            );
 //------------------------------------------------------------------------------                                          
 void freeESA(                          ESA*      esa                          );                                   
