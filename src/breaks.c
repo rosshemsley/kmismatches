@@ -16,6 +16,7 @@
 /******************************************************************************/
 
 #define MIN(X,Y) (X) < (Y) ? (X) : (Y)
+#define MAX(X,Y) (X) > (Y) ? (X) : (Y)
 
 /******************************************************************************/
 // Get the period of this block of length n.
@@ -211,7 +212,7 @@ int str_gth(const char *a, const char *b, int n, int *i)
       if (a[*i]=='\0') return 0;
       if (b[*i]=='\0') return 1;
 
-      printf("Comparing: %c to %c\n", a[*i], b[*i]);
+    //  printf("Comparing: %c to %c\n", a[*i], b[*i]);
       
       if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
       if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
@@ -225,10 +226,12 @@ int str_gth(const char *a, const char *b, int n, int *i)
 // expected time].
 // This algorithm comes from Gusfield.
 
-int findSubstring(const char *p, const char *t, const int *SA, int n)
+// l0 is the start position, r0 is the end position.
+// l is the length found.
+int findSubstring(int l0, int r0, int *l, const char *p, const char *t, const int *SA, int n)
 {
-   int min   = 0;
-   int max   = n-1;
+   int min   = 0;//l0;
+   int max   = n-1;//r0;
    
    // The prefix lengths.
    int min_p = 0;
@@ -237,6 +240,9 @@ int findSubstring(const char *p, const char *t, const int *SA, int n)
    // The number of comparisons done at any particular substring.
    int x;
    
+   int longest_match = 0; 
+   int longest_pos   = 0;
+   
    int mid;
 
    
@@ -244,13 +250,18 @@ int findSubstring(const char *p, const char *t, const int *SA, int n)
    {
       x = MIN(min_p, max_p);
       
-      printf("x: %d\n", x);
+      //printf("x: %d\n", x);
       
       mid   = min+(max-min)/2;      
       int c = str_gth(p, t + SA[mid], n, &x);    
       
+      if (x>longest_match)
+      {  
+         longest_match = x;
+         longest_pos   = SA[mid];
+      }
       
-      printf("min, max: %d, %d, %d\n", min, max, mid);
+    //  printf("min, max: %d, %d, %d\n", min, max, mid);
       if (c == 1)
       {
          min   = mid+1;
@@ -262,12 +273,14 @@ int findSubstring(const char *p, const char *t, const int *SA, int n)
          max_p = x;
       }  
       else if (c == 0)
+      {
+         *l = longest_match;
          return mid;
-         
-   } while (min < max);
-
-   // Could not find the substring.
-   return -1;
+       }  
+   } while (min <= max);
+   
+   *l = longest_match;
+   return longest_pos;
 }
 
 /******************************************************************************/
@@ -406,7 +419,7 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 */
 /******************************************************************************/
 
-int main(int argc, char **argv)
+int moan(int argc, char **argv)
 {
    
    char *t="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";
@@ -443,17 +456,20 @@ int main(int argc, char **argv)
    int *LCP = malloc(n*sizeof(int)+2);
    sais((unsigned char*)t, SA,LCP, n);
 
-   int x = findSubstring(p, t, SA, n);
+ //  int i=0;
+//   int x = findSubstring(&i, p, t, SA, n);
    
 
    
-   printf("Found substring: %d\n",x);
+  // printf("Found substring: %d\n",x);
   
 //   int * matches = calloc(n-m+1, sizeof(int));
    
 //   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);
     //  printf(" ");
    printf("\n");
+   
+   return 0;
 }
 
 /******************************************************************************/

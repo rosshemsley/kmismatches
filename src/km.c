@@ -10,6 +10,7 @@
 #include "km_FFT.h"
 #include "sais.h"
 #include "stack.h"
+#include "breaks.h"
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "sp_km_unbounded_matcher.h"
@@ -367,7 +368,7 @@ void construct_pRepresentation(        pTriple*  P,
    int x = 0;
    
    // Go through every value in the text.
-   while (t < n)
+   while (t < n-1)
    {      
       // Is the symbol in the pattern?
       if (LOOKUP[(unsigned char)text[t]] == -1)
@@ -378,7 +379,67 @@ void construct_pRepresentation(        pTriple*  P,
       } 
          else
       {
-         t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
+       //  int r0;
+       //  int l0 = 0; //LOOKUP[(unsigned char)text[t]];
+//         if ((unsigned char)text[t] < ALPHABET_SIZE-1)
+ //           r0 = LOOKUP[(unsigned char)text[t]+1]-1;
+  //       else
+          //  r0 = m-1;
+         
+      
+    //     printf("seeking char: %c, starting at: %d, ending at : %d\n", text[t], l0, r0);
+         
+     //    getchar();
+         
+         int k;
+         P[x].j = findSubstring(0, m-1, &k, text+t, pattern, esa->SA, m);
+         
+         
+         P[x].l = k;
+    //     printf("found a length of length %d at %d\n", P[x].l, P[x].j);   
+         
+         pTriple b;
+         int a = extendInterval(LOOKUP, &b, text + t, pattern, n, m, esa);
+         
+
+         
+         if (a!=P[x].l)
+         {
+         printf("value of t: %d\n", t);
+         printf("value of b.j, %d, P[x].j %d\n", b.j, P[x].j);
+                  printf("'");
+         for (int i=0; i<5; i++)
+            printf("%c", text[t+i]);
+         printf(" '\n");
+         
+            printf("'");
+            for (int i=0; i<a; i++)
+            {
+               printf("%c", pattern[b.j+i]);
+            }
+            printf("'\n'");
+            
+            for (int i=0; i<P[x].l; i++)
+            {
+               printf("%c", pattern[P[x].j+i]);
+            }
+            printf("'\n");
+         
+            printf("wanted: %d, got: %d\n", a, P[x].l);
+
+            printf("ERROR\n");
+            exit(0);
+         
+         }
+         
+//         printf("old value: %d at %d\n",a,P[x].j );
+         
+
+  //       getchar();
+         t+=P[x].l;
+         
+         //pTriple a;
+         //t += extendInterval(LOOKUP, &a, text + t, pattern, n, m, esa);
       }
         
       ++x;           
