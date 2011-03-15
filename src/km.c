@@ -378,29 +378,7 @@ void construct_pRepresentation(        pTriple*  P,
          ++t;
       } 
          else
-      {
-       //  int r0;
-        // int l0 = LOOKUP[(unsigned char)text[t]];
-         
-         //int r0 = esa->accross[l0]-1;
-//         if ((unsigned char)text[t] < ALPHABET_SIZE-1)
- //           r0 = LOOKUP[(unsigned char)text[t]+1]-1;
-  //       else
-          //  r0 = m-1;
-         
-      
-    //     printf("seeking char: %c, starting at: %d, ending at : %d\n", text[t], l0, r0);
-         
-     //    getchar();
-         
-        // int k;
-        // P[x].j = findSubstring(l0, r0, &k, text+t, pattern, esa->SA, m);                 
-        // P[x].l = k;
-
-
-         t += P[x].l;
-         
-         //pTriple a;
+      {       
          t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
       }
         
