@@ -1,5 +1,5 @@
 CC    = gcc
-flags = -std=c99 -Wall -pedantic -o3 -pg -g
+flags = -std=c99 -Wall -pedantic -o3 
 libs  = -lm -lfftw3
 
 all:

@@ -230,8 +230,8 @@ int str_gth(const char *a, const char *b, int n, int *i)
 // l is the length found.
 int findSubstring(int l0, int r0, int *l, const char *p, const char *t, const int *SA, int n)
 {
-   int min   = 0;//l0;
-   int max   = n-1;//r0;
+   int min   = l0;
+   int max   = r0;
    
    // The prefix lengths.
    int min_p = 0;
@@ -261,7 +261,7 @@ int findSubstring(int l0, int r0, int *l, const char *p, const char *t, const in
          longest_pos   = SA[mid];
       }
       
-    //  printf("min, max: %d, %d, %d\n", min, max, mid);
+      //  printf("min, max: %d, %d, %d\n", min, max, mid);
       if (c == 1)
       {
          min   = mid+1;
