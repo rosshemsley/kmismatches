@@ -281,6 +281,9 @@ void simpleMatcher(              const char*     text,
    
    // Go through all of the k-breaks, and mark the starting positions.
    
+   
+   printf(" bn is: %d, k is; %d\n", bn, k);
+   
    // Loop through all of the k-breaks.
    for (int i=0; i<bn; i++)
    {
@@ -292,16 +295,11 @@ void simpleMatcher(              const char*     text,
       // in the suffix array.
       // TODO: Add a lookup table for first level.
 
+      printf("Next break \n");
+
       int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
      
-
-     
-      if (x<0) 
-      {
-         printf("Failed to find a break.\n");
-         continue;
-     
-      }
+    
       // TODO: Fix this!
       // This currently fails sometimes, there seems to be a bug in SAIS.
       assert( x>=0 );
@@ -314,7 +312,7 @@ void simpleMatcher(              const char*     text,
          int j = esa.SA[x];
          
          // Make sure this suffix comes from the text and not the pattern.
-         if (j<n)
+         if (j<n-1 )
          {         
          // If this does not run off the end of the matches array, then
          // mark in the matches array the possible starting position of the 
