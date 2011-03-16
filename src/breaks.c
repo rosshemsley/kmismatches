@@ -299,7 +299,15 @@ void simpleMatcher(              const char*     text,
 
       int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
      
-    
+     
+     printf("The break: '%.27s'\n", thisBreak);
+      for (int i=0; i< 4; i++)
+      {
+         if (esa.SA[x+i] >=n-1) continue;
+         printf("%-5d '%.27s' (%d)\n", esa.LCP[x+i], text+ esa.SA[x+i], esa.SA[x+i]);
+      
+      }
+
       // TODO: Fix this!
       // This currently fails sometimes, there seems to be a bug in SAIS.
       assert( x>=0 );
