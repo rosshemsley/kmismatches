@@ -234,7 +234,7 @@ int verify(const ESA* esa, int k, int i, int n, int m)
 /******************************************************************************/
 // When there are at least 2k k breaks, we can do the following in O(n)
 
-void simpleMatcher(               char*     text,
+void simpleMatcher(                    char*     text,
                                  const char*     pattern,
                                  const int*      kbreaks,
                                        int*      matches,
@@ -252,9 +252,22 @@ void simpleMatcher(               char*     text,
    ESA esa;   
    
    
-   printf("%.10s\n", text + n+m-1 );
+//   printf("%.10s\n", text + n+m-1 );
+   // We need a generalised suffix array: 
+   // Do this by using an auxillary array called tp (text-pattern)
 
-   constructESA(text, n+m-1, &esa);  
+   char *tp = malloc(sizeof(char) *( n+m-1 ) );
+
+   // Copy the text (minus the '\0') into tp.
+   memcpy(tp, text, sizeof(char) * (n-1));
+   
+   // Copy the pattern in after the text.
+   memcpy(tp + n-1, pattern, sizeof(char)*m);
+   
+
+   printf("%.10s\n", tp + n-1 );
+
+   constructESA(tp, n+m-1, &esa);  
    
    // Go through all of the k-breaks, and mark the starting positions.
    

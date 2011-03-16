@@ -41,9 +41,8 @@ void load(                       const char*     filename,
    // Allocate memory fot the text and pattern.
    // The text and pattern will be alloc'd to one contiguous block of memory.
    // This allows us to generate generalised suffix arrays.
-   char *data    = malloc( sizeof(char) * (*n+*m+2) );
-   *text         = data;
-   *pattern      = data + *n + 1; 
+   *text         = malloc( sizeof(char) * (*n+1) );
+   *pattern      = malloc( sizeof(char) * (*m+1) ); 
   
    // Load the text and pattern into memory.
    fread(*pattern, sizeof(char), *m,   f);

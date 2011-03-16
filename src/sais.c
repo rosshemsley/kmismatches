@@ -471,11 +471,7 @@ static void induceSAandLCP(const void *T, sais_index_type *SA,
     }
      
     // update MinStack:
-    if (lcp==0) 
-    { 
-      printf("PROBLEM VALUE(2): %d\n", lcp);
 
-    }
     assert(lcp >= 0); // LCP must already have been computed
     while (lcp <= MinStack[stack_end]) stack_end -= 2; // pop from stack
     MinStack[++stack_end] = i;   // push position on stack
