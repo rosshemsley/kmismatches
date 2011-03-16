@@ -819,7 +819,7 @@ void k_mismatches_case2(  const char *text,
    
    printf("Constructing ESA and p-representation\n");
    ESA esa;   
-   constructESA(pattern, m, &esa);
+   constructESA(pattern, m, &esa, 0);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
    //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
@@ -1132,7 +1132,7 @@ void kangaroo(            const char *text,
    
    // Construct the extended suffix array.
    ESA esa;   
-   constructESA(pattern, m, &esa);   
+   constructESA(pattern, m, &esa, 0);   
    printf("Done ESA\n");
   
    RMQ_succinct(esa.LCP, esa.n); 
