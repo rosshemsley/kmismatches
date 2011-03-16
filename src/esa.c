@@ -308,7 +308,7 @@ int findSubstringPosition(       const char*     p,
          
          // Find the first instance of it in the suffix array.
          // This takes time proportional to the number of matches.
-         while (mid > 0 && esa->LCP[mid-1] >= m) --mid;
+         while (mid > 0 && esa->LCP[mid] >= m) --mid;
          
          return mid;         
       }
