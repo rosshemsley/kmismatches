@@ -334,10 +334,6 @@ void simpleMatcher(              const char*     text,
    *  kangaroo accross all the potential matching positions.
    */
    
-   printf("matches at right val: %d\n", matches[34871780]);
-      printf("matches at +1 right val: %d\n", matches[34871781]);
-         printf("matches at -1 right val: %d\n", matches[34871779]);
-   
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
@@ -377,7 +373,8 @@ int periodicMatching(            const char*     text,
    {    
   
       printf("There are enough k-breaks\n");        
-      simpleMatcher(text, pattern, breaks, matches, k, n, m, pn);   
+      // Only use the first 2k k breaks for matching.
+      simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k);   
  
       return 1;
    }
