@@ -5,7 +5,7 @@
 #include <time.h>
 #include <assert.h>
 #include <string.h>
-#include "sais_old.h"
+#include "sais.h"
 #include "stack.h"
 #include "RMQ_succinct.h"
 #include "esa.h"
@@ -130,7 +130,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    esa->LCP = calloc( (n+2), sizeof(int) );
    
    // Construct the SA and LCP in linear time.
-   sais((unsigned char*)s, esa->SA,/* esa->LCP, */n);
+   sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
    // This is needed for the child table values to be computed
    // correctly.
@@ -307,15 +307,6 @@ int findSubstringPosition(       const char*     p,
    
    } while (min <= max);
    
-   
-   
-   for (int i=-20; i<20; i++)
-   {
-      printf(" %.7s \n", esa->t+esa->SA[mid+i]);
-   }
-
-   
-   printf("Last found: %d, min: %d, max: %d\n", x,min, max);
    // Substring was not found anywhere.
    return -1;
 }

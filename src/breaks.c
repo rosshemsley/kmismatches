@@ -201,40 +201,53 @@ int find_l(const char *t, int n, int k, int *bn, int *breaks)
 // Simple Kangarooing, for when we have a full ESA for the text and
 // not just a p-representation.
 
-// i is the starting position in the text.
+// Calcululate the number of mismatches between the substrings
+// starting at i and j respectively. 
+// If there are more than k, return.
 
-int verify(const ESA* esa, int k, int i, int n, int m)
+// TODO: CHECK END CONDITIONS.
+
+int verify(int i, int j, int m, int k, const ESA* esa)
 {
    
    // The number of mismatches.
    int mismatches=0;
    
    // The position in the pattern.
-   int j=0; 
+   int end = j+m;
    
-   while (j<m)
+   int length=0;
+   
+   while (j < end)
    {
       
-      printf("Finding longest extension\n");
+     // printf("Finding longest extension\n");
       // The longest number of shared characters.
       int l = LCE(i, j, esa);
       
-      printf(" found %d matching chars\n", l);
+      length+=l;
+      
+      //printf(" found %d matching chars\n", l);
       i += l+1;
       j += l+1;
       
-      ++mismatches;
-      if (mismatches > k) return k+1;
+      mismatches ++;
+      
+      if (mismatches > k)
+      {
+         return m-length-1;
+      }  
    }
    
-   return k-1;
+   
+   return m-length-1;
 
 }
 
 /******************************************************************************/
 // When there are at least 2k k breaks, we can do the following in O(n)
 
-void simpleMatcher(                    char*     text,
+void simpleMatcher(              const char*     text,
                                  const char*     pattern,
                                  const int*      kbreaks,
                                        int*      matches,
@@ -251,8 +264,7 @@ void simpleMatcher(                    char*     text,
    // TODO: Don't bother with child values for this?
    ESA esa;   
    
-   
-//   printf("%.10s\n", text + n+m-1 );
+   //   printf("%.10s\n", text + n+m-1 );
    // We need a generalised suffix array: 
    // Do this by using an auxillary array called tp (text-pattern)
 
@@ -263,12 +275,9 @@ void simpleMatcher(                    char*     text,
    memcpy(tp,       text,    sizeof(char) * (n-1) );   
    memcpy(tp + n-1, pattern, sizeof(char) *  m    );
   
- 
-  
    // Construct the suffix array.
    constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
    
-   printf("HELLO\n");
    
    // Go through all of the k-breaks, and mark the starting positions.
    
@@ -282,19 +291,11 @@ void simpleMatcher(                    char*     text,
       // in the suffix array.
       // TODO: Add a lookup table for first level.
 
-
-
       int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
-      printf("x:%d\n", x);
-      if (x<0)
-      {
-         int l;
-         findLongestSubstring(thisBreak, k, &l, 0, n-1, &esa);
-         
-         printf("Longest found: %d\n",l);
-         
-         printf("Suffix %d, %.7s\n", kbreaks[i],  pattern+kbreaks[i]);
-      }
+     
+      // TODO: Fix this!
+      // This currently fails, there seems to be a bug in SAIS.
+      // assert( x>=0 );
       
       // Find all locations of this k-break and mark in the matches 
       // array the starting position.
@@ -303,12 +304,15 @@ void simpleMatcher(                    char*     text,
          // Text location of this match.
          int j = esa.SA[x];
          
+         // Make sure this suffix comes from the text and not the pattern.
+         if (j<n)
+         {         
          // If this does not run off the end of the matches array, then
          // mark in the matches array the possible starting position of the 
          // pattern.
-         if (j-kbreaks[i] >= 0)
-            ++matches[j-kbreaks[i]];
-            
+            if (j-kbreaks[i] >= 0)
+               ++matches[j-kbreaks[i]];
+         }  
       } while (x+1 < n  &&  esa.LCP[x+1] >= m);
       
    }  
@@ -317,19 +321,57 @@ void simpleMatcher(                    char*     text,
    *  kangaroo accross all the potential matching positions.
    */
    
-
    
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
       if (matches[i] >= k)
       {
-         printf("Verifying a location: %d\n", i); 
-         matches[i] = verify(&esa, k, i, n, m);         
+         matches[i] = verify(i, n-1, m,  k, &esa);             
       } else 
          matches[i] = k+1;
    }
 }
+
+/******************************************************************************/
+// Try to use the periodicity properties of the pattern to match.
+// If the pattern is not sufficiently aperiodic (or k is too large)
+// then we return 0. othewrise we return 1 to indicate success.
+
+int periodicMatching(            const char*     text, 
+                                 const char*     pattern,
+                                       int       k,
+                                       int       n,
+                                       int       m,
+                                       int*      matches                       )
+{
+
+   // This is the largest possible value of b.
+   int  pn      = m/k+1;   
+   int *breaks  = calloc (pn, sizeof(int));   
+      
+   // Partition in the text into its l-breaks.
+   pn = partition(pattern, k, m, breaks);
+   
+   // displayBreaks(p, breaks, m, k, pn);   
+   printf("There are %d pattern breaks\n", pn);
+  
+   if (pn >= 2*k)
+   {    
+  
+      printf("There are enough k-breaks\n");        
+      simpleMatcher(text, pattern, breaks, matches, k, n, m, pn);   
+ 
+      return 1;
+   }
+   else 
+   {
+      printf("There are insufficient k-breaks\n");
+      return 0;
+   }
+   
+}
+
 
 /******************************************************************************/
 /*
@@ -488,28 +530,12 @@ int main(int argc, char **argv)
    }  
   
   
-   // This is the largest possible value of b.
-   int  pn      = m/k+1;   
-   int *breaks = calloc (pn, sizeof(int));   
-      
-   // Partition in the text into its l-breaks.
-   pn = partition(p, k, m, breaks);
-   
-   // displayBreaks(p, breaks, m, k, pn);   
-   printf("There are %d pattern breaks\n", pn);
-  
-  
-   if (pn >= 2*k)
-      printf("There are enough k-breaks\n");
-   else 
-      printf("There are insufficient k-breaks\n");
-   
+
    int *matches = malloc((n-m+1) * sizeof(int));
   
   
-   printf("Starting matching.\n");
-   simpleMatcher(t, p, breaks, matches, k, n, m, pn);
-   
+   periodicMatching(t,p,k,n,m,matches);
+  
 
    for (int i=0; i<n-m+1; i++)
    {
