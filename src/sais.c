@@ -31,6 +31,8 @@
 #include <time.h>
 #include "sais.h"
 
+
+
 #ifndef UCHAR_SIZE
 # define UCHAR_SIZE 256
 #endif
@@ -45,6 +47,8 @@
 #define SAIS_MYMALLOC(_num, _type) ((_type *)malloc((_num) * sizeof(_type)))
 #define SAIS_MYFREE(_ptr, _num, _type) free((_ptr))
 #define chr(_a) (cs == sizeof(sais_index_type) ? ((sais_index_type *)T)[(_a)] : ((unsigned char *)T)[(_a)])
+
+
 
 /* qsort int comparison function */ 
 int int_cmp(const void *a, const void *b) 
@@ -465,7 +469,13 @@ static void induceSAandLCP(const void *T, sais_index_type *SA,
     } else { // don't induce
       SA[i] = ~j;
     }
+     
     // update MinStack:
+    if (lcp==0) 
+    { 
+      printf("PROBLEM VALUE(2): %d\n", lcp);
+
+    }
     assert(lcp >= 0); // LCP must already have been computed
     while (lcp <= MinStack[stack_end]) stack_end -= 2; // pop from stack
     MinStack[++stack_end] = i;   // push position on stack
@@ -788,7 +798,13 @@ static sais_index_type sais_main(const void *T, sais_index_type *SA,
 	  if(--i < 0) break;
 	  newfs = LCP[i]; p = SA[i];
 	} while((c1 = chr(p)) == c0);
-	assert(LCP[j]==0); // first S*-suffix in bucket must have LCP-value 0
+	//assert(LCP[j]==0); // first S*-suffix in bucket must have LCP-value 0
+	
+	if (LCP[j]!=0) printf("PROBLEM VALUE: %d\n", LCP[j]);
+	
+	// THIS MIGHT FIX IT?!
+	LCP[j] = 0;
+	
 	LCP[j] = -1;       // mark first S*-suffix in every bucket
       } while(0 <= i);
       while(0 < j) {

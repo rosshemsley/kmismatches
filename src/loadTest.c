@@ -39,8 +39,11 @@ void load(                       const char*     filename,
    }
   
    // Allocate memory fot the text and pattern.
-   *text    = malloc(sizeof(char) * (*n+2));
-   *pattern = malloc(sizeof(char) * (*m+2)); 
+   // The text and pattern will be alloc'd to one contiguous block of memory.
+   // This allows us to generate generalised suffix arrays.
+   char *data    = malloc( sizeof(char) * (*n+*m+2) );
+   *text         = data;
+   *pattern      = data + *n + 1; 
   
    // Load the text and pattern into memory.
    fread(*pattern, sizeof(char), *m,   f);
@@ -50,14 +53,14 @@ void load(                       const char*     filename,
    // Terminate: NOTE: We must add one char to the length to do this.
    (*text)[*n]    = '\0';
    (*pattern)[*m] = '\0';
-   
+/*   
    // We didn't load enough data for some reason.
    if (strlen(*text) != *n || strlen(*pattern) != *m)
    {
       fprintf(stderr, "There was a problem reading the input file.\n");
       exit(1);
    }
-   
+  */ 
    // Display the status.
    printf("===============================================================\n");
    printf("| Loaded test data.                                           |\n");

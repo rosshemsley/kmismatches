@@ -30,6 +30,7 @@ int getPeriod(const char *t, int n)
       int match=1;
       for (int j=0; j<i; j++)
       {        
+         // TODO: stop overflow
          if (t[j] != t[j+i])
          {
             // This cannot be the period.
@@ -233,7 +234,7 @@ int verify(const ESA* esa, int k, int i, int n, int m)
 /******************************************************************************/
 // When there are at least 2k k breaks, we can do the following in O(n)
 
-void simpleMatcher(              const char*     text,
+void simpleMatcher(               char*     text,
                                  const char*     pattern,
                                  const int*      kbreaks,
                                        int*      matches,
@@ -249,7 +250,11 @@ void simpleMatcher(              const char*     text,
    // Construct the ESA for the text.
    // TODO: Don't bother with child values for this?
    ESA esa;   
-   constructESA(text, n, &esa);  
+   
+   
+   printf("%.10s\n", text + n+m-1 );
+
+   constructESA(text, n+m-1, &esa);  
    
    // Go through all of the k-breaks, and mark the starting positions.
    
