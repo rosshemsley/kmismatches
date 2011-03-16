@@ -298,13 +298,13 @@ void simpleMatcher(              const char*     text,
      
       if (x<0) 
       {
-       printf("failed to find a break\n");
+         printf("Failed to find a break.\n");
          continue;
      
       }
       // TODO: Fix this!
-      // This currently fails, there seems to be a bug in SAIS.
-      // assert( x>=0 );
+      // This currently fails sometimes, there seems to be a bug in SAIS.
+      assert( x>=0 );
       
       // Find all locations of this k-break and mark in the matches 
       // array the starting position.
@@ -324,9 +324,9 @@ void simpleMatcher(              const char*     text,
                ++matches[j-kbreaks[i]];
                printf("Marking %d\n", j-kbreaks[i]);   
             }
-         }  
+         } else { printf("Not in text\n"); }
          ++x;
-      } while (x < n  &&  esa.LCP[x] >= m);
+      } while (x < esa.n  &&  esa.LCP[x] >= k);
       
    }  
    
@@ -335,11 +335,13 @@ void simpleMatcher(              const char*     text,
    */
    
    printf("matches at right val: %d\n", matches[34871780]);
+      printf("matches at +1 right val: %d\n", matches[34871781]);
+         printf("matches at -1 right val: %d\n", matches[34871779]);
    
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
-      if (matches[i] >= k+1)
+      if (matches[i] >= k-1)
       {
          printf("Verifying: %d\n", i);
          matches[i] = verify(i, n-1, m,  k, &esa);             
@@ -362,7 +364,7 @@ int periodicMatching(            const char*     text,
 {
 
    // This is the largest possible value of b.
-   int  pn      = m/k+1;   
+   int  pn      = m;   
    int *breaks  = calloc (pn, sizeof(int));   
       
    // Partition in the text into its l-breaks.
@@ -555,7 +557,7 @@ int main(int argc, char **argv)
 
    for (int i=0; i<n-m+1; i++)
    {
-      if (matches[i] <k+1)
+      if (matches[i] < k+1)
          printf("Found match at: %d\n", i);
    }
   
