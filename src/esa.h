@@ -20,18 +20,24 @@
 /*******************************************************************************
 * Types:
 *******************************************************************************/
+
+// Control the generation of the suffix array.
+
+typedef enum { NO_CHILD_TAB=0x1, NO_INV=0x2, NO_RMQ=0x4 } ESA_FLAGS;
+
 // This is a container for an Extended Suffix Array.
 typedef struct _ESA
 {
    int   n;
-   int *SA;
-   int *SAi;
-   int *LCP;
-   int *up;
-   int *down;
-   int *accross;
+   const char *t;
+   int  *SA;
+   int  *SAi;
+   int  *LCP;
+   int  *up;
+   int  *down;
+   int  *accross;
+   ESA_FLAGS flags;
 } ESA;
-
 
 /*******************************************************************************
 * Functions:
@@ -46,29 +52,26 @@ int LCE(                               int       i,
 //------------------------------------------------------------------------------                                                                           
 void constructESA(               const char*     s, 
                                        int       n, 
-                                       ESA*      esa                          );
+                                       ESA*      esa,   
+                                       ESA_FLAGS flags                        );
 //------------------------------------------------------------------------------   
 int str_gth(                     const char*     a, 
                                  const char*     b, 
                                        int       n, 
                                        int*      i                            );
 //------------------------------------------------------------------------------   
-int findSubstring(                     int       l0, 
+int findLongestSubstring(        const char*     p,                                
+                                       int       m,   
+                                       int*      l,                                                              
+                                       int       l0, 
                                        int       r0, 
-                                       int*      l, 
-                                 const char*     p,
-                                 const char*     t, 
-                                 const ESA*      esa, 
-                                       int       n,
-                                       int       m                            );
+                                 const ESA*      esa                          );
 //------------------------------------------------------------------------------                                          
-int findSubstringPosition(             int       l0, 
+int findSubstringPosition(       const char*     p,           
+                                       int       m,    
+                                       int       l0, 
                                        int       r0, 
-                                 const char*     p,
-                                 const char*     t, 
-                                 const ESA*      esa, 
-                                       int       n,                            
-                                       int       m                            );                                       
+                                 const ESA*      esa                          );
 //------------------------------------------------------------------------------                                          
 void freeESA(                          ESA*      esa                          );                                   
 /******************************************************************************/

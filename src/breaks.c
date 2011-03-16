@@ -256,18 +256,19 @@ void simpleMatcher(                    char*     text,
    // We need a generalised suffix array: 
    // Do this by using an auxillary array called tp (text-pattern)
 
-   char *tp = malloc(sizeof(char) *( n+m-1 ) );
+   char *tp = malloc( sizeof(char) * ( n+m-1 ) );
 
-   // Copy the text (minus the '\0') into tp.
-   memcpy(tp, text, sizeof(char) * (n-1));
+   // Copy the text (minus the '\0') into tp,
+   // and the pattern in after the text.
+   memcpy(tp,       text,    sizeof(char) * (n-1) );   
+   memcpy(tp + n-1, pattern, sizeof(char) *  m    );
+  
+ 
+  
+   // Construct the suffix array.
+   constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
    
-   // Copy the pattern in after the text.
-   memcpy(tp + n-1, pattern, sizeof(char)*m);
-   
-
-   printf("%.10s\n", tp + n-1 );
-
-   constructESA(tp, n+m-1, &esa);  
+   printf("HELLO\n");
    
    // Go through all of the k-breaks, and mark the starting positions.
    
@@ -280,7 +281,20 @@ void simpleMatcher(                    char*     text,
       // Find the first location of this break  in the text (if applicable)
       // in the suffix array.
       // TODO: Add a lookup table for first level.
-      int x = findSubstringPosition(0, n-1, thisBreak, text, &esa, n, k); 
+
+
+
+      int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
+      printf("x:%d\n", x);
+      if (x<0)
+      {
+         int l;
+         findLongestSubstring(thisBreak, k, &l, 0, n-1, &esa);
+         
+         printf("Longest found: %d\n",l);
+         
+         printf("Suffix %d, %.7s\n", kbreaks[i],  pattern+kbreaks[i]);
+      }
       
       // Find all locations of this k-break and mark in the matches 
       // array the starting position.
@@ -303,8 +317,7 @@ void simpleMatcher(                    char*     text,
    *  kangaroo accross all the potential matching positions.
    */
    
-   // Initialise the RMQ structure.
-   RMQ_succinct(esa.LCP, esa.n);  
+
    
    for (int i=0;i<n-m+1;i++)
    {
