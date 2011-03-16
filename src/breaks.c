@@ -284,6 +284,7 @@ void simpleMatcher(              const char*     text,
    // Loop through all of the k-breaks.
    for (int i=0; i<bn; i++)
    {
+   
       // The k-break we are currently considering.
       const char *thisBreak = pattern + kbreaks[i];
       
@@ -293,6 +294,14 @@ void simpleMatcher(              const char*     text,
 
       int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
      
+
+     
+      if (x<0) 
+      {
+       printf("failed to find a break\n");
+         continue;
+     
+      }
       // TODO: Fix this!
       // This currently fails, there seems to be a bug in SAIS.
       // assert( x>=0 );
@@ -311,9 +320,13 @@ void simpleMatcher(              const char*     text,
          // mark in the matches array the possible starting position of the 
          // pattern.
             if (j-kbreaks[i] >= 0)
+            {
                ++matches[j-kbreaks[i]];
+               printf("Marking %d\n", j-kbreaks[i]);   
+            }
          }  
-      } while (x+1 < n  &&  esa.LCP[x+1] >= m);
+         ++x;
+      } while (x < n  &&  esa.LCP[x] >= m);
       
    }  
    
@@ -321,15 +334,17 @@ void simpleMatcher(              const char*     text,
    *  kangaroo accross all the potential matching positions.
    */
    
+   printf("matches at right val: %d\n", matches[34871780]);
    
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
-      if (matches[i] >= k)
+      if (matches[i] >= k+1)
       {
+         printf("Verifying: %d\n", i);
          matches[i] = verify(i, n-1, m,  k, &esa);             
       } else 
-         matches[i] = k+1;
+         matches[i] = k+100;
    }
 }
 
@@ -534,8 +549,9 @@ int main(int argc, char **argv)
    int *matches = malloc((n-m+1) * sizeof(int));
   
   
-   periodicMatching(t,p,k,n,m,matches);
+   if (periodicMatching(t,p,k,n,m,matches) )
   
+   {
 
    for (int i=0; i<n-m+1; i++)
    {
@@ -543,6 +559,7 @@ int main(int argc, char **argv)
          printf("Found match at: %d\n", i);
    }
   
+  }
 //   int * matches = calloc(n-m+1, sizeof(int));
    
 //   match(t, p, pbreaks, tbreaks, k, n, m, pn, tn, matches);

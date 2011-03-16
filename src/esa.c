@@ -129,6 +129,8 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    esa->SA  = calloc( (n+2), sizeof(int) );
    esa->LCP = calloc( (n+2), sizeof(int) );
    
+   
+   printf("Constructing SA/LCP\n");
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
@@ -138,6 +140,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    
    if (! (flags & NO_CHILD_TAB) )   
    {
+      printf("Constructing Child table\n");
       // Child table, we attempt standard construction first,
       // then optimise it to occupy just one field.
       esa->up      = calloc( (n+2), sizeof(int) );
@@ -151,6 +154,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    // Construct the inverse suffix array.
    if (! (flags & NO_INV)  )
    {
+      printf("Constructing SAi\n");
       esa->SAi = calloc( (n+2), sizeof(int) );
    
       for (int i=0; i<n; i++)
@@ -159,8 +163,12 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
          
    // Initialise the RMQ structure.           
    if (! (flags & NO_RMQ) )
+   {
+      printf("initialising RMQ\n");
       RMQ_succinct(esa->LCP, n);  
-
+   }
+   
+   printf("Done ESA\n");
 }
 
 /******************************************************************************/
