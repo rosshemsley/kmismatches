@@ -926,7 +926,7 @@ void kmismatches(         const char *text,
    sp_km_count_symbols(pattern, m, frequency_table);
 
    // Number of appearances required for a character to be classed 'frequent'.
-   int sqrt_k = (int)(sqrt((double)k) );
+   int sqrt_k = (int)(sqrt((double)k)+0.5 );
    
    printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
@@ -1006,8 +1006,7 @@ void kmismatches(         const char *text,
             block = 0;
          }           
       }
-      
-      printf("Matches in place: %d\n", matches[5860]);
+
       
       // We have calculuated the number of matches.
       // subtract this from m to get the number of mismatches.

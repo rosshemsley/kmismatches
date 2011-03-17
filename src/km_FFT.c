@@ -37,7 +37,7 @@ fftw_plan plan_FFT_inverse = NULL;
 // Mask the text into a buffer of doubles.
 // We assume that the text is the same length as the buffer for now.
 
-static inline void maskText(          double*    r, 
+static inline void maskText(    double*    r, 
                                 const char       symbol, 
                                 const char*      text, 
                                 const int        n                             )
@@ -90,12 +90,8 @@ static inline void multiply_half_complex(       double  *r,
    for (int i=1; i<=N/2; i++)
    {
      // Multiply the FFTW half-complex vectors.
-     r[i]   = a[i]   * b[i] - a[N-i] * b[N-i];
-     
-     // The Complex Multiplcation trick.
-     r[N-i] = (a[i] + a[N-i])*(b[i] + b[N-i]) - r[i];
-     
-     // r[N-i] = a[N-i] * b[i] + a[i]   * b[N-i];
+     r[i]   = a[i]   * b[i] - a[N-i] * b[N-i];     
+     r[N-i] = a[N-i] * b[i] + a[i]   * b[N-i];
    }
 
    // If the length is even, the middle entry is also real.
@@ -159,7 +155,7 @@ void match_with_FFT(        int  *matches,
       _p       =  fftw_malloc(sizeof(double) * N);
       _t       =  fftw_malloc(sizeof(double) * N);
       _r       =  fftw_malloc(sizeof(double) * N);
-      t_masked =  fftw_malloc(sizeof(double) * (n + N - m ));
+      t_masked =  fftw_malloc(sizeof(double) * (n + N ));
       
       
     
@@ -167,7 +163,7 @@ void match_with_FFT(        int  *matches,
          
 
       // Any overflow over the end of the text should be set to zero.
-      for (int i=n; i < n + N - m; i++)
+      for (int i=n; i < n + N ; i++)
          t_masked[i] = 0.0;
     }       
     
@@ -186,19 +182,21 @@ void match_with_FFT(        int  *matches,
    }
    
    
-   for (int i=0; i<n; i += N-m)
+   /* MATCHING */
+   
+   for (int i=0; i<n-m; i += N-m+1)
    {
       // Copy the text into the buffer x.
       memcpy(x, t_masked+i, sizeof(double)*N);
 
       // FFT x (this block of text) and store it in _t.
-      if (plan_text_FFT == NULL)
-      {
-         plan_text_FFT = fftw_plan_r2r_1d(N, x, _t, FFTW_R2HC, FFTW_ESTIMATE);
-         fftw_execute(plan_text_FFT);
-      } else {
-         fftw_execute_r2r(plan_text_FFT, x, _t);
-      }
+     // if (plan_text_FFT == NULL)
+    //  {
+     //    plan_text_FFT = fftw_plan_r2r_1d(N, x, _t, FFTW_R2HC, FFTW_ESTIMATE);
+     //    fftw_execute(plan_text_FFT);
+    //  } else {
+         fftw_execute_r2r(plan_pattern_FFT, x, _t);
+   //   }
       
 	   // Point-wise multiply the two vectors _p and _t.
       multiply_half_complex(_r, _t, _p, N);
@@ -219,9 +217,9 @@ void match_with_FFT(        int  *matches,
 
    
       // x now contains the matches.
-      for (int j=0; j < N-m; j+=1)
+      for (int j=0; j <= N-m; j+=1)
       {
-         if (i+j >= n-m+1) break;
+         if (i+j > n-m+1) break;
          
          // Add to matches array.
          // The matches we are interested in start half way into the array.
