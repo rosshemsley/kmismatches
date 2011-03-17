@@ -522,7 +522,7 @@ void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
 */
 /******************************************************************************/
 
-int main(int argc, char **argv)
+int maon(int argc, char **argv)
 {
    
    char *t; //="helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadsfasdfasdfasdfasdfasdfasdfasdgsdfhg";

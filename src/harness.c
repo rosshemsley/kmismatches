@@ -8,6 +8,7 @@
 #include <string.h>
 #include "km.h"
 #include "stack.h"
+#include "breaks.h"
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "./sp_km_unbounded_matcher.h"
@@ -39,6 +40,7 @@ int main(int argc, char **argv)
    int _kangaroo      = 0;
    int abrahamson     = 0;
    int bs_abrahamson  = 0;
+   int periodic       = 0;
    
    
    if (argc == 3)
@@ -69,6 +71,11 @@ int main(int argc, char **argv)
          {
             printf("Using Ben Smither's Abrahamson/Kosaraju\n");
             bs_abrahamson = 1;
+         }
+            else if (strcmp(argv[i], "-periodic")   == 0)
+         {
+            printf("Using periodic matching\n");
+            periodic = 1;
          }
             else 
          {
@@ -111,7 +118,14 @@ int main(int argc, char **argv)
       
    else if(abrahamson)
       abrahamson_kosaraju(t,p,n,m,matches);
-      
+   else if(periodic)
+   {
+      if (!periodicMatching(t,p,k,n,m,matches))
+      {
+         fprintf(stderr,"Periodic matching failed.\n");
+         exit(0);
+      }
+   }     
    else if(bs_abrahamson)
    {
       struct SP_KM_MATCHING_POSITIONS *listOfMatches;
