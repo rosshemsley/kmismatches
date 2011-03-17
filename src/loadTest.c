@@ -32,7 +32,10 @@ void load(                       const char*     filename,
    char  buff[256];   
    fgets(buff, 256, f);
    
-   if (sscanf(buff, "%d %d %d %d", n, m, k, pos) != 4)
+   float R;
+   long seed;
+   
+   if (sscanf(buff, "%d %d %d %d %f %ld", n, m, k, pos, &R, &seed) != 6)
    {
       fprintf(stderr, "File header improperly formatted.\n");
       exit(1);
@@ -67,6 +70,7 @@ void load(                       const char*     filename,
    printf("|       Text: %-10d bytes                                |\n", *n );
    printf("|    Pattern: %-10d bytes                                |\n", *m );
    printf("| Mismatches: %-10d                                      |\n", *k );
+   printf("| Uniformity: %.3f                                           |\n", R   );      
    printf("|   Position: %-10d                                      |\n", *pos);
    printf("|                                                             |\n");
    printf("===============================================================\n");
