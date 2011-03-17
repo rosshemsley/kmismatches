@@ -27,10 +27,8 @@ int main(int argc, char **argv)
 {
 
    if (argc < 2)
-   {
-      fprintf(stderr, "harness [test file] ");
-      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs,                   \
-                                             -kangaroo, -naive_nm]\n");
+   {      fprintf(stderr, "harness [test file] ");
+      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs, -kangaroo, -naive_nm -periodic]\n");
 
       exit(1);
    }
@@ -74,7 +72,7 @@ int main(int argc, char **argv)
          }
             else if (strcmp(argv[i], "-periodic")   == 0)
          {
-            printf("Using periodic matching\n");
+            printf("Using periodic matching.\n");
             periodic = 1;
          }
             else 
