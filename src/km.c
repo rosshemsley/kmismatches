@@ -71,7 +71,8 @@ void sp_km_count_symbols(        const char*     t,
    for (i=0; i<ALPHABET_SIZE; i++)
       A[i] = 0;
    
-   for (i=0; i<n; i++)
+   // NOTE, WE DO NOT COUNT LAST SYMBOL.
+   for (i=0; i<n-1; i++)
       A[(unsigned char)t[i]] ++;
 }
 
@@ -819,11 +820,7 @@ void k_mismatches_case2(  const char *text,
    
    printf("Constructing ESA and p-representation\n");
    ESA esa;   
-   constructESA(text, n, &esa);
-   
-   
-   
-   exit(0);
+   constructESA(pattern, m, &esa, 0);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
    //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
@@ -929,7 +926,7 @@ void kmismatches(         const char *text,
    sp_km_count_symbols(pattern, m, frequency_table);
 
    // Number of appearances required for a character to be classed 'frequent'.
-   int sqrt_k = (int)(sqrt((double)k) + 0.5);
+   int sqrt_k = (int)(sqrt((double)k)+0.5 );
    
    printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
@@ -957,6 +954,8 @@ void kmismatches(         const char *text,
          }
       }   
       
+      
+
       /*--- Infrequent characters ---*/
       
       // Now, deal with the infrequent characters using a simple counting
@@ -979,13 +978,13 @@ void kmismatches(         const char *text,
          if (frequency_table[i] < sqrt_k && frequency_table[i] > 0)
          {
             printf("Method 2\n");
-            printf("%c\n", i);
+            printf("'%c'\n", i);
 
             LOOKUP[(unsigned char)i] = block*sqrt_k;
                         
             // Create lookup for this symbol, and store it in the look up 
             // matrix.
-            createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);
+            createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);                      
             
             printf("Creating block: %d\n", block);
             block ++;
@@ -993,7 +992,7 @@ void kmismatches(         const char *text,
             
          // Perform marking when we have filled up the lookup matrix,
          // or when we are at the end of the alphabet)
-         if (block >= block_size || i == ALPHABET_SIZE-1)
+         if (block >= block_size || (i == ALPHABET_SIZE-1 && block > 0))
          {
             printf("REACHED END OF BLOCK SIZE: %d\n", block);
                   
@@ -1007,6 +1006,7 @@ void kmismatches(         const char *text,
             block = 0;
          }           
       }
+
       
       // We have calculuated the number of matches.
       // subtract this from m to get the number of mismatches.
@@ -1136,7 +1136,7 @@ void kangaroo(            const char *text,
    
    // Construct the extended suffix array.
    ESA esa;   
-   constructESA(pattern, m, &esa);   
+   constructESA(pattern, m, &esa, 0);   
    printf("Done ESA\n");
   
    RMQ_succinct(esa.LCP, esa.n); 

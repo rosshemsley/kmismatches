@@ -119,39 +119,56 @@ void constructChildValues(ESA *esa)
 /******************************************************************************/
 
 // Construct an extended suffix array for some string of length n.s
-void constructESA(const char *s, int n, ESA *esa)
+void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
 {
-   
-   esa->n   = n;
-   
+   esa->t     = s;
+   esa->n     = n;
+   esa->flags = flags;
+         
    // TODO: Change these to malloc's later.
    esa->SA  = calloc( (n+2), sizeof(int) );
-   esa->SAi = calloc( (n+2), sizeof(int) );
    esa->LCP = calloc( (n+2), sizeof(int) );
    
-   // Child table, we attempt standard construction first,
-   // then optimise it to occupy just one field.
-   esa->up      = calloc( (n+2), sizeof(int) );
-   esa->down    = calloc( (n+2), sizeof(int) );
-   esa->accross = calloc( (n+2), sizeof(int) ); 
-
+   
+   printf("Constructing SA/LCP\n");
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
-   //esa->SA [n ] = -1;
-   //esa->SAi[-1] = n;
-   
    // This is needed for the child table values to be computed
    // correctly.
    esa->LCP[n] = 0;
    
-   // Create the child table.
-   constructChildValues( esa );
+   if (! (flags & NO_CHILD_TAB) )   
+   {
+      printf("Constructing Child table\n");
+      // Child table, we attempt standard construction first,
+      // then optimise it to occupy just one field.
+      esa->up      = calloc( (n+2), sizeof(int) );
+      esa->down    = calloc( (n+2), sizeof(int) );
+      esa->accross = calloc( (n+2), sizeof(int) ); 
+
+      // Create the child table.
+      constructChildValues( esa );
+   }
    
    // Construct the inverse suffix array.
-   for (int i=0; i<n; i++)
-      esa->SAi[esa->SA[i]] = i;
-
+   if (! (flags & NO_INV)  )
+   {
+      printf("Constructing SAi\n");
+      esa->SAi = calloc( (n+2), sizeof(int) );
+   
+      for (int i=0; i<n; i++)
+         esa->SAi[esa->SA[i]] = i;
+   }
+         
+   // Initialise the RMQ structure.           
+   if (! (flags & NO_RMQ) )
+   {
+      printf("initialising RMQ\n");
+      RMQ_succinct(esa->LCP, n);  
+   }
+   
+   printf("Done ESA\n");
 }
 
 /******************************************************************************/
@@ -162,12 +179,9 @@ void constructESA(const char *s, int n, ESA *esa)
 int str_gth(const char *a, const char *b, int n, int *i)
 {
    for (; *i<n; (*i)++)
-   {
-      
+   {      
       if (a[*i]=='\0') return 0;
-      if (b[*i]=='\0') return 1;
-
-    //  printf("Comparing: %c to %c\n", a[*i], b[*i]);
+      if (b[*i]=='\0') return 0;
       
       if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
       if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
@@ -177,19 +191,18 @@ int str_gth(const char *a, const char *b, int n, int *i)
 }
 
 /******************************************************************************/
-// Find the first location of a substring in O(n\log m) [O(n + \log m) 
-// expected time].
+// Find the first location of a the longest substring in O(n\log m) 
+// [ O(n + \log m)  expected time ].
 // This algorithm comes from Gusfield.
 
 // l0 is the start position, r0 is the end position.
 // l is the length found.
-int findSubstring(                     int       l0, 
+int findLongestSubstring(        const char*     p,                                
+                                       int       m,   
+                                       int*      l,                                                              
+                                       int       l0, 
                                        int       r0, 
-                                       int*      l, 
-                                 const char*     p,
-                                 const char*     t, 
-                                 const int*      SA, 
-                                       int       n                             )
+                                 const ESA*      esa                           )
 {
    int min   = l0;
    int max   = r0;
@@ -213,12 +226,12 @@ int findSubstring(                     int       l0,
       //printf("x: %d\n", x);
       
       mid   = min+(max-min)/2;      
-      int c = str_gth(p, t + SA[mid], n, &x);    
+      int c = str_gth(p, esa->t + esa->SA[mid], m, &x);    
       
       if (x>longest_match)
       {  
          longest_match = x;
-         longest_pos   = SA[mid];
+         longest_pos   = esa->SA[mid];
       }
       
       //  printf("min, max: %d, %d, %d\n", min, max, mid);
@@ -235,12 +248,75 @@ int findSubstring(                     int       l0,
       else if (c == 0)
       {
          *l = longest_match;
-         return mid;
+         return esa->SA[mid];
        }  
    } while (min <= max);
    
    *l = longest_match;
    return longest_pos;
+}
+
+/******************************************************************************/
+// This will find the first position of a given substring in the suffix
+// array using the binary-search technique.
+// We can then use the LCP array to find all given matches in time
+// proportional to the number of occurences.
+
+int findSubstringPosition(       const char*     p,           
+                                       int       m,     
+                                       int       l0, 
+                                       int       r0, 
+                                 const ESA*      esa                           )
+{
+   // This allows us to use a lookup table for the initial values. 
+   int min   = l0;
+   int max   = r0;
+   
+   // The prefix lengths.
+   int min_p = 0;
+   int max_p = 0;
+      
+   int mid;
+
+   int x;
+
+   do 
+   {
+      // This is the longest prefix of precomputed values.
+      x = MIN(min_p, max_p);
+      
+      mid   = min+(max-min)/2;      
+      int c = str_gth(p, esa->t + esa->SA[mid], m, &x);    
+            
+      
+      //  printf("min, max: %d, %d, %d\n", min, max, mid);
+      if (c == 1)
+      {
+         min   = mid+1;
+         min_p = x;
+      }  
+   
+      else if (c == -1)
+      {
+         max   = mid-1;
+         max_p = x;
+      }  
+   
+      // We found a match.
+      else if (c == 0)
+      {
+         
+         // Find the first instance of it in the suffix array.
+         // This takes time proportional to the number of matches.
+         while (mid > 0 && esa->LCP[mid] >= m) --mid;
+         
+         return mid;         
+      }
+   
+   } while (min <= max);
+   
+   // Substring was not found anywhere.
+   return -1;
 }
 
 /******************************************************************************/
