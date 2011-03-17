@@ -926,7 +926,7 @@ void kmismatches(         const char *text,
    sp_km_count_symbols(pattern, m, frequency_table);
 
    // Number of appearances required for a character to be classed 'frequent'.
-   int sqrt_k = (int)(sqrt((double)k) + 0.5);
+   int sqrt_k = (int)(sqrt((double)k) );
    
    printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
@@ -1049,7 +1049,6 @@ void markMatches(                const int*      lookup,
      
       if (x != -1)
       {
-         printf("on table: %d\n", i);
          // Create a pointer to the row we are interested in.
          const int *this_table = lookup_matrix + x;
          
