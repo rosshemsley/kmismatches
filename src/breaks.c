@@ -282,12 +282,13 @@ void simpleMatcher(              const char*     text,
    // Go through all of the k-breaks, and mark the starting positions.
    
    
-   printf(" bn is: %d, k is; %d\n", bn, k);
+   printf("bn is: %d, k is; %d\n", bn, k);
    
    // Loop through all of the k-breaks.
    for (int i=0; i<bn; i++)
    {
    
+
       // The k-break we are currently considering.
       const char *thisBreak = pattern + kbreaks[i];
       
@@ -295,7 +296,7 @@ void simpleMatcher(              const char*     text,
       // in the suffix array.
       // TODO: Add a lookup table for first level.
 
-    //  printf("Next break \n");
+      //  printf("Next break \n");
 
       int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
      
@@ -321,7 +322,7 @@ void simpleMatcher(              const char*     text,
                ++matches[j-kbreaks[i]];
              //  printf("Marking %d\n", j-kbreaks[i]);   
             }
-         } else // printf("Not in text\n"); 
+         } //else // printf("Not in text\n"); 
          ++x;
       } while (x < esa.n  &&  esa.LCP[x] >= k);
       

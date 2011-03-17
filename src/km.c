@@ -71,7 +71,8 @@ void sp_km_count_symbols(        const char*     t,
    for (i=0; i<ALPHABET_SIZE; i++)
       A[i] = 0;
    
-   for (i=0; i<n; i++)
+   // NOTE, WE DO NOT COUNT LAST SYMBOL.
+   for (i=0; i<n-1; i++)
       A[(unsigned char)t[i]] ++;
 }
 
@@ -953,6 +954,8 @@ void kmismatches(         const char *text,
          }
       }   
       
+      
+
       /*--- Infrequent characters ---*/
       
       // Now, deal with the infrequent characters using a simple counting
@@ -975,13 +978,13 @@ void kmismatches(         const char *text,
          if (frequency_table[i] < sqrt_k && frequency_table[i] > 0)
          {
             printf("Method 2\n");
-            printf("%c\n", i);
+            printf("'%c'\n", i);
 
             LOOKUP[(unsigned char)i] = block*sqrt_k;
                         
             // Create lookup for this symbol, and store it in the look up 
             // matrix.
-            createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);
+            createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);                      
             
             printf("Creating block: %d\n", block);
             block ++;
@@ -989,7 +992,7 @@ void kmismatches(         const char *text,
             
          // Perform marking when we have filled up the lookup matrix,
          // or when we are at the end of the alphabet)
-         if (block >= block_size || i == ALPHABET_SIZE-1)
+         if (block >= block_size || (i == ALPHABET_SIZE-1 && block > 0))
          {
             printf("REACHED END OF BLOCK SIZE: %d\n", block);
                   
@@ -1003,6 +1006,8 @@ void kmismatches(         const char *text,
             block = 0;
          }           
       }
+      
+      printf("Matches in place: %d\n", matches[5860]);
       
       // We have calculuated the number of matches.
       // subtract this from m to get the number of mismatches.
@@ -1044,6 +1049,7 @@ void markMatches(                const int*      lookup,
      
       if (x != -1)
       {
+         printf("on table: %d\n", i);
          // Create a pointer to the row we are interested in.
          const int *this_table = lookup_matrix + x;
          
