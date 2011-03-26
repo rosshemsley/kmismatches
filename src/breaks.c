@@ -357,11 +357,11 @@ int constructLookups(            const int*      breaks,
    
    for (int i=0; i<2*k; i++)
    {   
-      printf("Looking for break: %d\n", breaks[i]); 
+   //   printf("Looking for break: %d\n", breaks[i]); 
       // Find the first instance of this substring.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
-      printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
+   //   printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
 
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.      
@@ -371,15 +371,11 @@ int constructLookups(            const int*      breaks,
       do {
          int x = esa->SA[j];
        
-         printf("Match: %d\n", x);
+      //   printf("Match: %d\n", x);
          if (x<n-1)
          {
 
-
-            
-
-         
-            if (breakPositions[x] != -1) { printf("Found duplicate\n"); break; }
+            if (breakPositions[x] != -1) break; 
             
             if (non_dup == 0)
             {
@@ -407,14 +403,14 @@ int constructLookups(            const int*      breaks,
 
    printf("First 2k distinct breaks:\n");
    for(int i=0; i<2*k; i++)
-   {
-    printf("%d,\n", disjointBreaks[i]);
-   }
+      printf("%d, %.5s\n", disjointBreaks[i], pattern + disjointBreaks[i]);
+   
    printf("Break locations:\n");
    for (int i=0; i<n; i++)
-   {
-      printf("%d ", breakPositions[i]);
-   }
+      if (breakPositions[i] <0)
+         printf(" ");
+      else printf("%d", breakPositions[i]);
+ 
    printf("\n");
    
    // breakPositions now contains a look up for all the breaks.
@@ -589,7 +585,7 @@ int periodicMatching(            const char*     text,
       printf("Constructing look-ups\n");
 
       displayBreaks(pattern, lbreaks, m, l, ln);
-      displaySA(&esa);
+    //  displaySA(&esa);
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m,lookup, indicies);
    
 
