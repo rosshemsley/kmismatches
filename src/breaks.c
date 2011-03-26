@@ -544,15 +544,7 @@ int periodicMatching(            const char*     text,
   
    // Construct the suffix array.
    constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
-   
-   
-  
-   for (int i=0; i<n; i++)
-   {
-      if (text[i] == '\n') printf("HERE: %d\n", i);
-   }
-   
-   exit(0);
+
    // Partition in the text into its l-breaks.
    pn = partition(pattern, k, m, breaks);
    

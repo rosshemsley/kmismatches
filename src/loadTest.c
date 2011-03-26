@@ -48,9 +48,9 @@ void load(                       const char*     filename,
    *pattern      = malloc( sizeof(char) * (*m+1) ); 
   
    // Load the text and pattern into memory.
-   fread(*pattern, sizeof(char), *m,   f);
-   fgets( buff,    1,                  f);
-   fread(*text,    sizeof(char), *n,   f);
+   fread(*pattern, sizeof(char), 30,   f);
+   fread( buff,    sizeof(char),  1,   f);
+   fread(*text,    sizeof(char), 100,  f);
    
    // Terminate: NOTE: We must add one char to the length to do this.
    (*text)[*n]    = '\0';
