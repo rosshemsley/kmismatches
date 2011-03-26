@@ -425,7 +425,25 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
    
    // We now copy the breaks into the lookup table, keeping them sorted
    // by maintaining pointers into the correct positions in the array.
+   int *temp_pointers = malloc(sizeof(int) * count);
    
+   // The temporary pointers point to the last location inserted in the 
+   // lookup for each break.
+   for (int i=0; i<count; i++)
+      temp_pointeres[i] = breakIndicies[i];
+   
+   // Go through the break positions array, and put all the instances
+   // of each break in the correct place in the lookup.
+   for (int i=0; i<n; i++)
+   {
+      lookup[temp_pointers[breakPositions[i]]] = disjointBreaks[breakPositions[i]];
+      temp_pointers[breakPositions[i]]]++;
+   }
+   
+   // We now have a lookup containing all the positions of the disjoint breaks,
+   // sorted first by break index, and then by pattern index.
+   // We now require n/k sets of 2k pointers to index this array in order
+   // to perform "algorithm-2" efficiently
 
 
 }
