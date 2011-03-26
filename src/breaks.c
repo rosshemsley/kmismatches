@@ -147,7 +147,7 @@ void displaySubStr(const char *t, int _l, int _r, int n, int l, const int *break
 /******************************************************************************/
 // b is the maximum number of breaks.
 
-void displayBreaks(const char *t, int *breaks, int n, int l, int b)
+void displayBreaks(const char *t, const int *breaks, int n, int l, int b)
 {
    int z=0;
       
@@ -184,8 +184,10 @@ int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbr
    
       if (*ln >= 2*k && *mn <= 2*k) 
       {  
+         printf("There are %d l-breaks\n", *ln);
+         printf("There are %d m-breaks\n", *mn);         
          printf("DONE: l=%d, k=%d\n",l,k);
-         return l;
+         return l-1;
       }
    }
    
@@ -352,44 +354,55 @@ int constructLookups(            const int*      breaks,
    int count=0;
    
    for (int i=0; i<2*k; i++)
-   {  
+   {   
+      printf("Looking for break: %d\n", breaks[i]); 
       // Find the first instance of this substring.    
       int j = findSubstringPosition(text + breaks[i], l, 0, esa->n, esa); 
+
       // Assume the esa is a generalised suffix tree, and so we always find a 
-      // match.
+      // match.      
+      assert(j >= 0);
       
-      int x = esa->SA[j];
-    
-      assert(x >= 0);
+      int non_dup = 0;
+      do {
+         int x = esa->SA[j];
+         if (x>n-1)
+         {
+            ++j;
+            continue;
+         }
+         printf("Match: %d\n", x);
+         
+         printf("B pos: %d\n", breakPositions[x]);
       
-      // If this match is in the text, not the pattern.
-      // If it does not appear in the text, we ignore it.
-      if (x<n-1)
-      {
-         // Have we ever found this as a match before?
-         // If yes, then we must have a duplicate break.
-         if (breakPositions[i] == -1)
+         if (breakPositions[x] != -1) break;
+         
+         if (non_dup == 0)
          {
             // This is a new break.
             disjointBreaks[count] = breaks[i];
             breakPositions[x]     = count;
             breakCounts[count]    = 1;
-         }
-         
-         ++j;
-         
-         while (j < esa->n  &&  esa->LCP[j] >= k)
-         {
+            count++;
+            non_dup = 1;
+        } else
+        {
             x = esa->SA[j];
             breakPositions[x]  = breaks[i];
             breakCounts[count] ++;
             ++j;
          }
-         
-         count++;
-      } 
+      } while (j < esa->n  &&  esa->LCP[j] >= k);
    }
-   
+      
+
+  
+   displayBreaks(text, breaks, n, l, bn);
+   printf("First 2k distinct breaks:\n");
+   for(int i=0; i<2*k; i++)
+   {
+    printf("%d,\n", disjointBreaks[i]);
+   }
    printf("Break locations:\n");
    for (int i=0; i<n; i++)
    {
@@ -485,7 +498,7 @@ int constructLookups(            const int*      breaks,
 
 
 /******************************************************************************/
-
+/*
 // Find the matches in a region of length l.
 int algorithm_2(int x0, char* text, char *pattern, int breaks, int bn, int l, ESA *esa, int k)
 {
@@ -493,7 +506,7 @@ int algorithm_2(int x0, char* text, char *pattern, int breaks, int bn, int l, ES
    
    return 0;
 }
-
+*/
 
 /******************************************************************************/
 // Try to use the periodicity properties of the pattern to match.
@@ -561,7 +574,8 @@ int periodicMatching(            const char*     text,
       int *mbreaks = malloc(sizeof(n)*n);
       
       printf("Finding l-boundary\n");      
-      int l = find_l(text, n, k, &ln, &mn, lbreaks, mbreaks);
+      int l = find_l(pattern, n, k, &ln, &mn, lbreaks, mbreaks);
+      int m = l+1; 
       
       
    
@@ -571,7 +585,7 @@ int periodicMatching(            const char*     text,
       int *indicies = NULL;
    
       printf("Constructing look-ups\n");
-      constructLookups(lbreaks, ln, text, &esa, l, k, n, lookup, indicies);
+      constructLookups(lbreaks, ln, pattern, &esa, l, k, n, lookup, indicies);
    
 
       return 1;
