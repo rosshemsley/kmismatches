@@ -172,29 +172,24 @@ void displayBreaks(const char *t, int *breaks, int n, int l, int b)
 
 /******************************************************************************/
 
-// We seek a value of l such that there are at least 2k (l-1)-breaks, and 
-// fewer than 2k l-breaks.
-int find_l(const char *t, int n, int k, int *bn, int *breaks)
+// We seek a value of l and m such that there are at least 2k l-breaks, and 
+// fewer than 2k m-breaks.
+int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbreaks)
 {
    // Do a linear search for now. 
-   int success=0;
    for (int l=k; l>=2; l--)
    {
-      int b = partition(t, l, n, breaks);
+      *ln = partition(t, l-1, n, lbreaks);
+      *mn = partition(t, l,   n, mbreaks);
    
-      if (b> 2*k) 
+      if (*ln >= 2*k && *mn <= 2*k) 
       {  
-         *bn = b;
-         success=1;
-         printf("DONE: l=%d, b=%d, k=%d\n",l,b,k);
+         printf("DONE: l=%d, k=%d\n",l,k);
          return l;
       }
    }
    
-   if (!success)
-   {
-      printf("No such l exists\n");
-   }
+   printf("No such l exists\n");   
    return -1;
 }
 
@@ -515,7 +510,7 @@ int periodicMatching(            const char*     text,
 
    // This is the largest possible value of b.
    int  pn      = m;   
-   int *breaks  = calloc (pn, sizeof(int));   
+   int *breaks  = calloc(pn, sizeof(int));   
       
    // Partition in the text into its l-breaks.
    pn = partition(pattern, k, m, breaks);
@@ -538,6 +533,13 @@ int periodicMatching(            const char*     text,
       // ** Initialise the structures for algorithm 2 **
      
       // 1) Find l-boundary
+      int  ln;
+      int  mn;
+      int *lbreaks = malloc(sizeof(n)*n);
+      int *mbreaks = malloc(sizeof(n)*n);
+      
+      
+      int l = find_l(text, n, k, &ln, &mn, lbreaks, mbreaks);
       
       // 2) Construct ESA.
    
