@@ -353,7 +353,7 @@ int constructLookups(            const int*      breaks,
       breakPositions[i] = -1;
    
    // This counts the number of disjoint breaks.
-   int count=0;
+   int count=-1;
    
    for (int i=0; i<2*k; i++)
    {   
@@ -361,7 +361,7 @@ int constructLookups(            const int*      breaks,
       // Find the first instance of this substring.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
-   //   printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
+      printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
 
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.      
@@ -371,7 +371,7 @@ int constructLookups(            const int*      breaks,
       do {
          int x = esa->SA[j];
        
-      //   printf("Match: %d\n", x);
+        printf("Match: %d\n", x);
          if (x<n-1)
          {
 
@@ -379,26 +379,24 @@ int constructLookups(            const int*      breaks,
             
             if (non_dup == 0)
             {
+               count++;
+               printf("last count:%d\n", breakCounts[count]);
                // This is a new break.
                disjointBreaks[count] = breaks[i];
-               breakPositions[x]     = count;
-               breakCounts[count]    = 1;
-               count++;
-
+               breakPositions[x]     = count;               
                non_dup = 1;
            } else
            {
                x = esa->SA[j];
                breakPositions[x]  = breaks[i];
                breakCounts[count] ++;
-
             }
          }
          ++j;
       } while (j < esa->n  &&  esa->LCP[j] >= l);
    }
       
-
+   count +=1;
   
 
    printf("First 2k distinct breaks:\n");
@@ -410,6 +408,12 @@ int constructLookups(            const int*      breaks,
       if (breakPositions[i] <0)
          printf(" ");
       else printf("%d", breakPositions[i]);
+ 
+   printf("Counts: \n");
+   for (int i=0; i<count; i++)
+   {
+      printf("%d\n", breakCounts[i]);
+   }
  
    printf("\n");
    
@@ -433,6 +437,8 @@ int constructLookups(            const int*      breaks,
    // the matches for the breaks.
    lookup = malloc(sizeof(int)*  breakIndicies[count]);
    
+   printf("Total number of disjoint breaks: %d\n", breakIndicies[count]);
+   
    // We now copy the breaks into the lookup table, keeping them sorted
    // by maintaining pointers into the correct positions in the array.
    int *temp_pointers = malloc(sizeof(int) * count);
@@ -448,6 +454,14 @@ int constructLookups(            const int*      breaks,
    {
       lookup[temp_pointers[breakPositions[i]]] = disjointBreaks[breakPositions[i]];
       temp_pointers[breakPositions[i]]++;
+   }
+   exit(0);
+   printf("Lookup:\n");
+   
+   for (int i=0; i<breakIndicies[count]; i++)
+   {
+      printf("%d\n", lookup[i]);
+   
    }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
