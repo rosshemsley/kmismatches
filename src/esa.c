@@ -13,19 +13,26 @@
 
 /******************************************************************************/
 
-void displaySA(                  const ESA*      esa, 
-                                 const char*     pattern, 
-                                       int       m                             )
+void displaySA(                  const ESA*      esa )
 {
+typedef enum { NO_CHILD_TAB=0x1, NO_INV=0x2, NO_RMQ=0x4 } ESA_FLAGS;
+
+   
    printf("|i  |SA |LCP|U  |D  |A  |\n");
-   for (int i=0; i<m; i++)
-      printf("|%3d|%3d|%3d|%3d|%3d|%3d|\n", i, esa->SA[i], esa->LCP[i],                                     
-                                    esa->up[i], esa->down[i], esa->accross[i] );
-      
+   for (int i=0; i<esa->n; i++)
+   {
+      printf("|%3d|%3d|%3d|", i, esa->SA[i], esa->LCP[i] );
+  
+      if (! (esa->flags & NO_CHILD_TAB) )
+         printf("%3d|%3d|%3d|\n", esa->up[i], esa->down[i], esa->accross[i] );
+      else 
+         printf("   |   |   |\n");
+   
+   }  
    printf("\n\n");
    
-   for (int i=0; i<m;i++)
-      printf("%3d: %d %s\n", i, esa->LCP[i], (pattern+esa->SA[i]));
+   for (int i=0; i<esa->n;i++)
+      printf("%3d: %3d %.10s\n", i, esa->LCP[i], (esa->t+esa->SA[i]));
 }
 
 /******************************************************************************/

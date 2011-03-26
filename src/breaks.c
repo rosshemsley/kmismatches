@@ -334,12 +334,14 @@ void simpleMatcher(              const char*     text,
 
 // Create n/k sets of 2k pointers to sorted arrays of distinct l-breaks.
 int constructLookups(            const int*      breaks, 
-                                       int       bn, 
-                                 const char*     text, 
+                                       int       bn,                                  
+                                 const char*     text,
+                                 const char*     pattern, 
                                  const ESA*      esa, 
                                        int       l, 
                                        int       k, 
                                        int       n, 
+                                       int       m,
                                        int*      lookup, 
                                        int*      indicies                      )
 {
@@ -357,7 +359,7 @@ int constructLookups(            const int*      breaks,
    {   
       printf("Looking for break: %d\n", breaks[i]); 
       // Find the first instance of this substring.    
-      int j = findSubstringPosition(text + breaks[i], l, 0, esa->n, esa); 
+      int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.      
@@ -366,31 +368,32 @@ int constructLookups(            const int*      breaks,
       int non_dup = 0;
       do {
          int x = esa->SA[j];
-         if (x>n-1)
-         {
-            ++j;
-            continue;
-         }
+         
          printf("Match: %d\n", x);
-         
-         printf("B pos: %d\n", breakPositions[x]);
-      
-         if (breakPositions[x] != -1) break;
-         
-         if (non_dup == 0)
+         if (x<n-1)
          {
-            // This is a new break.
-            disjointBreaks[count] = breaks[i];
-            breakPositions[x]     = count;
-            breakCounts[count]    = 1;
-            count++;
-            non_dup = 1;
-        } else
-        {
-            x = esa->SA[j];
-            breakPositions[x]  = breaks[i];
-            breakCounts[count] ++;
-            ++j;
+
+
+            
+            printf("B pos: %d\n", breakPositions[x]);
+         
+            if (breakPositions[x] != -1) { printf("Found duplicate\n"); break; }
+            
+            if (non_dup == 0)
+            {
+               // This is a new break.
+               disjointBreaks[count] = breaks[i];
+               breakPositions[x]     = count;
+               breakCounts[count]    = 1;
+               count++;
+               non_dup = 1;
+           } else
+           {
+               x = esa->SA[j];
+               breakPositions[x]  = breaks[i];
+               breakCounts[count] ++;
+               ++j;
+            }
          }
       } while (j < esa->n  &&  esa->LCP[j] >= k);
    }
@@ -575,7 +578,7 @@ int periodicMatching(            const char*     text,
       
       printf("Finding l-boundary\n");      
       int l = find_l(pattern, n, k, &ln, &mn, lbreaks, mbreaks);
-      int m = l+1; 
+//      int _m = l+1; 
       
       
    
@@ -585,8 +588,10 @@ int periodicMatching(            const char*     text,
       int *indicies = NULL;
    
       printf("Constructing look-ups\n");
+
       displayBreaks(pattern, lbreaks, m, l, ln);
-      constructLookups(lbreaks, ln, text, &esa, l, k, n, lookup, indicies);
+      displaySA(&esa);
+      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m,lookup, indicies);
    
 
       return 1;
