@@ -172,7 +172,8 @@ void displayBreaks(const char *t, int *breaks, int n, int l, int b)
 
 /******************************************************************************/
 
-// We seek a value of l such that there are at least 2k l-breaks, and l<k
+// We seek a value of l such that there are at least 2k (l-1)-breaks, and 
+// fewer than 2k l-breaks.
 int find_l(const char *t, int n, int k, int *bn, int *breaks)
 {
    // Do a linear search for now. 
@@ -350,13 +351,13 @@ void simpleMatcher(              const char*     text,
 // TODO: Think carefully about unsigned types.
 
 // Create n/k sets of 2k pointers to sorted arrays of distinct l-breaks.
-constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
+int constructLookups(const int *breaks, int bn, char *text, const ESA *esa, int l, int k, int n, int *lookup, int *indicies)
 {
    int *breakPositions = malloc(sizeof(int)*n);
    int *breakCounts    = calloc(2*k, sizeof(int));
    int *disjointBreaks = malloc(sizeof(int)*bn);
    
-   for (int i=0; i<n, i++)
+   for (int i=0; i<n; i++)
       breakPositions[i] = -1;
    
    // This counts the number of disjoint breaks.
@@ -365,7 +366,7 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
    for (int i=0; i<2*k; i++)
    {  
       // Find the first instance of this substring.    
-      int j = findSubstringPosition(thisBreak, l, 0, esa.n, esa); 
+      int j = findSubstringPosition(text + breaks[i], l, 0, esa->n, esa); 
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.
       
@@ -389,7 +390,7 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
          
          ++j;
          
-         while (j < esa.n  &&  esa.LCP[j] >= k)
+         while (j < esa->n  &&  esa->LCP[j] >= k)
          {
             x = esa->SA[j];
             breakPositions[x]  = breaks[i];
@@ -405,7 +406,8 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
    
    // Create an array which will point to the start positions of the
    // disjoint breaks in the lookup array we will create shortly.
-   int *breakIndicies = malloc(sizeof(int)*count);
+   // it stores the last value too, to make end caes easier.
+   int *breakIndicies = malloc(sizeof(int)*(count+1));
    
    // Now, set those break indicies to point to placeholders in the
    // lookup array.
@@ -413,15 +415,12 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
    // The first break starts at index 0.
    // TODO: think about end case.
    breakIndicies[0]=0;
-   for (int i=0; i<count; i++)
+   for (int i=0; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
-   
-   // We now know the total number of disjoint breaks:
-   int total_disjoint_breaks = breakIndicies[count-1] + breakCounts[i-1];
-   
+
    // Allocate just enough space in the lookup table to contain all of
    // the matches for the breaks.
-   int *lookup = malloc(sizeof(int)* total_disjoint_breaks);
+   lookup = malloc(sizeof(int)*  breakIndicies[count]);
    
    // We now copy the breaks into the lookup table, keeping them sorted
    // by maintaining pointers into the correct positions in the array.
@@ -430,23 +429,76 @@ constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
    // The temporary pointers point to the last location inserted in the 
    // lookup for each break.
    for (int i=0; i<count; i++)
-      temp_pointeres[i] = breakIndicies[i];
+      temp_pointers[i] = breakIndicies[i];
    
    // Go through the break positions array, and put all the instances
    // of each break in the correct place in the lookup.
    for (int i=0; i<n; i++)
    {
       lookup[temp_pointers[breakPositions[i]]] = disjointBreaks[breakPositions[i]];
-      temp_pointers[breakPositions[i]]]++;
+      temp_pointers[breakPositions[i]]++;
    }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
    // sorted first by break index, and then by pattern index.
-   // We now require n/k sets of 2k pointers to index this array in order
+   // We now require n/k sets of 2k (>=count) pointers to index this array in order
    // to perform "algorithm-2" efficiently
+   
+   // No longer needed.
+   free(breakPositions);
+      
+   int partitions = (int)( (float)n/(k+0.5) );
+   indicies = malloc(sizeof(int) * partitions * count);
+
+      
+     
+   // We now set the pointers to give the locations of the start points for
+   // each set of breaks within each of the n/k blocks of length k
+
+   // For each disjoint break, go through all the locations setting pointers
+   // to the start and end of the set of breaks within the blocks of length k.
+   for (int i=0; i<count; i++)
+   {
+      // This is the sorted array of all the i'th breaks in the text.
+      int *breakArr = lookup + breakIndicies[i];
+      int  length   = breakCounts[i];
+      
+      // We go through all of the break instances, and set pointers every time
+      // we go over a block of length k.
+      int boundary = 0;
+      for (int j=0; j<length; j++)
+      {
+         // This is the block within this break should be:
+         int x = breakArr[j]/k;
+         
+         // If we have moved to a new boundary.
+         if (x>boundary)
+         {
+            // It may be that we have 'skipped a few' of the partitions.
+            // We must therefore copy back the correct end value in order
+            // for the algorithm to work properly.
+            for (int k=indicies[boundary]+1; k<x; k++)
+               indicies[k] = j;         
+         }
+         
+      }
+   }
 
 
+   return 0;
 }
+
+
+/******************************************************************************/
+
+// Find the matches in a region of length l.
+int algorithm_2(int x0, char* text, char *pattern, int breaks, int bn, int l, ESA *esa, int k)
+{
+   
+   
+   return 0;
+}
+
 
 /******************************************************************************/
 // Try to use the periodicity properties of the pattern to match.
@@ -482,8 +534,15 @@ int periodicMatching(            const char*     text,
    }
    else 
    {
+   
+      // ** Initialise the structures for algorithm 2 **
+     
+      // 1) Find l-boundary
+      
+      // 2) Construct ESA.
+   
       printf("There are insufficient k-breaks\n");
-      return 0;
+      return 1;
    }
    
 }
