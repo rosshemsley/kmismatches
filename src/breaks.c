@@ -361,6 +361,8 @@ int constructLookups(            const int*      breaks,
       // Find the first instance of this substring.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
+      printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
+
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.      
       assert(j >= 0);
@@ -368,14 +370,14 @@ int constructLookups(            const int*      breaks,
       int non_dup = 0;
       do {
          int x = esa->SA[j];
-         
+       
          printf("Match: %d\n", x);
          if (x<n-1)
          {
 
 
             
-            printf("B pos: %d\n", breakPositions[x]);
+
          
             if (breakPositions[x] != -1) { printf("Found duplicate\n"); break; }
             
@@ -386,16 +388,18 @@ int constructLookups(            const int*      breaks,
                breakPositions[x]     = count;
                breakCounts[count]    = 1;
                count++;
+
                non_dup = 1;
            } else
            {
                x = esa->SA[j];
                breakPositions[x]  = breaks[i];
                breakCounts[count] ++;
-               ++j;
+
             }
          }
-      } while (j < esa->n  &&  esa->LCP[j] >= k);
+         ++j;
+      } while (j < esa->n  &&  esa->LCP[j] >= l);
    }
       
 
