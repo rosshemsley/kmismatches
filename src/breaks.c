@@ -250,29 +250,14 @@ void simpleMatcher(              const char*     text,
                                        int       k,
                                        int       n,
                                        int       m,
-                                       int       bn                            )
+                                       int       bn,
+                                 const ESA*      esa   )
 {
 
    // Zero the matches array.
    memset(matches, 0, sizeof(int)*(n-m+1));
 
-   // Construct the ESA for the text.
-   // TODO: Don't bother with child values for this?
-   ESA esa;   
-   
-   //   printf("%.10s\n", text + n+m-1 );
-   // We need a generalised suffix array: 
-   // Do this by using an auxillary array called tp (text-pattern)
 
-   char *tp = malloc( sizeof(char) * ( n+m-1 ) );
-
-   // Copy the text (minus the '\0') into tp,
-   // and the pattern in after the text.
-   memcpy(tp,       text,    sizeof(char) * (n-1) );   
-   memcpy(tp + n-1, pattern, sizeof(char) *  m    );
-  
-   // Construct the suffix array.
-   constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
    
    
    // Go through all of the k-breaks, and mark the starting positions.
@@ -294,7 +279,7 @@ void simpleMatcher(              const char*     text,
 
       //  printf("Next break \n");
 
-      int x = findSubstringPosition(thisBreak, k, 0, esa.n, &esa); 
+      int x = findSubstringPosition(thisBreak, k, 0, esa->n, esa); 
      
       // TODO: Fix this!
       // This currently fails sometimes, there seems to be a bug in SAIS.
@@ -305,7 +290,7 @@ void simpleMatcher(              const char*     text,
       do
       {      
          // Text location of this match.
-         int j = esa.SA[x];
+         int j = esa->SA[x];
          
          // Make sure this suffix comes from the text and not the pattern.
          if (j<n-1 )
@@ -320,7 +305,7 @@ void simpleMatcher(              const char*     text,
             }
          } //else // printf("Not in text\n"); 
          ++x;
-      } while (x < esa.n  &&  esa.LCP[x] >= k);
+      } while (x < esa->n  &&  esa->LCP[x] >= k);
       
    }  
    
@@ -335,7 +320,7 @@ void simpleMatcher(              const char*     text,
       if (matches[i] >= k-1)
       {
          printf("Verifying: %d\n", i);
-         matches[i] = verify(i, n-1, m,  k, &esa);             
+         matches[i] = verify(i, n-1, m,  k, esa);             
       } else 
          matches[i] = k+100;
    }
@@ -346,7 +331,15 @@ void simpleMatcher(              const char*     text,
 // TODO: Think carefully about unsigned types.
 
 // Create n/k sets of 2k pointers to sorted arrays of distinct l-breaks.
-int constructLookups(const int *breaks, int bn, char *text, const ESA *esa, int l, int k, int n, int *lookup, int *indicies)
+int constructLookups(            const int*      breaks, 
+                                       int       bn, 
+                                 const char*     text, 
+                                 const ESA*      esa, 
+                                       int       l, 
+                                       int       k, 
+                                       int       n, 
+                                       int*      lookup, 
+                                       int*      indicies                      )
 {
    int *breakPositions = malloc(sizeof(int)*n);
    int *breakCounts    = calloc(2*k, sizeof(int));
@@ -436,8 +429,8 @@ int constructLookups(const int *breaks, int bn, char *text, const ESA *esa, int 
    
    // We now have a lookup containing all the positions of the disjoint breaks,
    // sorted first by break index, and then by pattern index.
-   // We now require n/k sets of 2k (>=count) pointers to index this array in order
-   // to perform "algorithm-2" efficiently
+   // We now require n/k sets of 2k (>=count) pointers to index this array in 
+   // order to perform "algorithm-2" efficiently
    
    // No longer needed.
    free(breakPositions);
@@ -511,7 +504,29 @@ int periodicMatching(            const char*     text,
    // This is the largest possible value of b.
    int  pn      = m;   
    int *breaks  = calloc(pn, sizeof(int));   
-      
+   
+   // Construct the ESA for the text.
+   ESA esa;   
+   
+   //   printf("%.10s\n", text + n+m-1 );
+   // We need a generalised suffix array: 
+   // Do this by using an auxillary array called tp (text-pattern)
+
+   char *tp = malloc( sizeof(char) * ( n+m-1 ) );
+
+   // Copy the text (minus the '\0') into tp,
+   // and the pattern in after the text.
+   memcpy(tp,       text,    sizeof(char) * (n-1) );   
+   memcpy(tp + n-1, pattern, sizeof(char) *  m    );
+  
+   // Construct the suffix array.
+   constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
+   
+   
+  
+   
+   
+   
    // Partition in the text into its l-breaks.
    pn = partition(pattern, k, m, breaks);
    
@@ -523,13 +538,13 @@ int periodicMatching(            const char*     text,
   
       printf("There are enough k-breaks\n");        
       // Only use the first 2k kbreaks for matching.
-      simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k);   
+      simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k, &esa);   
  
       return 1;
    }
    else 
    {
-   
+      printf("Constructing lookup-tables for Algorithm 2\n");
       // ** Initialise the structures for algorithm 2 **
      
       // 1) Find l-boundary
@@ -538,12 +553,20 @@ int periodicMatching(            const char*     text,
       int *lbreaks = malloc(sizeof(n)*n);
       int *mbreaks = malloc(sizeof(n)*n);
       
-      
+      printf("Finding l-boundary\n");      
       int l = find_l(text, n, k, &ln, &mn, lbreaks, mbreaks);
       
-      // 2) Construct ESA.
+      
    
-      printf("There are insufficient k-breaks\n");
+      // 2) Create look-up structure.
+   
+      int *lookup   = NULL;
+      int *indicies = NULL;
+   
+      printf("Constructing look-ups\n");
+      constructLookups(lbreaks, ln, text, &esa, l, k, n, lookup, indicies);
+   
+
       return 1;
    }
    
