@@ -388,7 +388,7 @@ int constructLookups(            const int*      breaks,
            } else
            {
                x = esa->SA[j];
-               breakPositions[x]  = breaks[i];
+               breakPositions[x]  = count;
                breakCounts[count] ++;
             }
          }
@@ -433,6 +433,11 @@ int constructLookups(            const int*      breaks,
    for (int i=0; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
 
+   printf("Break indicies: \n");
+   
+   for (int i=0; i<count; i++)
+      printf("%d\n", breakIndicies[i]);
+
    // Allocate just enough space in the lookup table to contain all of
    // the matches for the breaks.
    lookup = malloc(sizeof(int)*  breakIndicies[count]);
@@ -451,12 +456,15 @@ int constructLookups(            const int*      breaks,
    // Go through the break positions array, and put all the instances
    // of each break in the correct place in the lookup.
    for (int i=0; i<n; i++)
-   {
-      lookup[temp_pointers[breakPositions[i]]] = disjointBreaks[breakPositions[i]];
+   { 
+      if(breakPositions[i]<0) continue;
+     // printf("  break position: %d\n", breakPositions[i]);
+      //printf("  pat position:   %d\n",   disjointBreaks[breakPositions[i]]);
+      lookup[temp_pointers[breakPositions[i]]] = i;
       temp_pointers[breakPositions[i]]++;
    }
-   exit(0);
-   printf("Lookup:\n");
+
+   printf("Lookup: (length: %d)\n", breakIndicies[count]);
    
    for (int i=0; i<breakIndicies[count]; i++)
    {
