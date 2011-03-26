@@ -383,7 +383,8 @@ int constructLookups(            const int*      breaks,
                printf("last count:%d\n", breakCounts[count]);
                // This is a new break.
                disjointBreaks[count] = breaks[i];
-               breakPositions[x]     = count;               
+               breakPositions[x]     = count;      
+               breakCounts[count]    = 1;         
                non_dup = 1;
            } else
            {
@@ -466,10 +467,13 @@ int constructLookups(            const int*      breaks,
 
    printf("Lookup: (length: %d)\n", breakIndicies[count]);
    
-   for (int i=0; i<breakIndicies[count]; i++)
+   for (int i=0; i<count; i++)
    {
-      printf("%d\n", lookup[i]);
-   
+      printf("  Next: \n");
+      for (int j=breakIndicies[i]; j<breakIndicies[i+1]; j++)
+      {
+         printf("%d\n", lookup[j]);
+      } 
    }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
