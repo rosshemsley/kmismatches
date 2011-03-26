@@ -148,7 +148,7 @@ int main(int argc, char **argv)
    {
       if (matches[b] <=k) 
       {
-         printf("Position: %d, mismatches: %d\n", b, matches[b]);  
+       //  printf("Position: %d, mismatches: %d\n", b, matches[b]);  
          if (b == pos && matches[b] == k)
          {
             printf("PASSED TEST\n");
@@ -160,6 +160,7 @@ int main(int argc, char **argv)
    
    if (!pass)
    {
+      printf("FAILED TEST\n");
       fprintf(stderr, "FAILED TEST\n");
       exit(1);
    }   

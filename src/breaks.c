@@ -345,6 +345,91 @@ void simpleMatcher(              const char*     text,
    }
 }
 
+
+/******************************************************************************/
+// TODO: Think carefully about unsigned types.
+
+// Create n/k sets of 2k pointers to sorted arrays of distinct l-breaks.
+constructLookups(int *breaks, int bn, ESA *esa, int l, int k, int n)
+{
+   int *breakPositions = malloc(sizeof(int)*n);
+   int *breakCounts    = calloc(2*k, sizeof(int));
+   int *disjointBreaks = malloc(sizeof(int)*bn);
+   
+   for (int i=0; i<n, i++)
+      breakPositions[i] = -1;
+   
+   // This counts the number of disjoint breaks.
+   int count=0;
+   
+   for (int i=0; i<2*k; i++)
+   {  
+      // Find the first instance of this substring.    
+      int j = findSubstringPosition(thisBreak, l, 0, esa.n, esa); 
+      // Assume the esa is a generalised suffix tree, and so we always find a 
+      // match.
+      
+      int x = esa->SA[j];
+    
+      assert(x >= 0);
+      
+      // If this match is in the text, not the pattern.
+      // If it does not appear in the text, we ignore it.
+      if (x<n-1)
+      {
+         // Have we ever found this as a match before?
+         // If yes, then we must have a duplicate break.
+         if (breakPositions[i] == -1)
+         {
+            // This is a new break.
+            disjointBreaks[count] = breaks[i];
+            breakPositions[x]     = count;
+            breakCounts[count]    = 1;
+         }
+         
+         ++j;
+         
+         while (j < esa.n  &&  esa.LCP[j] >= k)
+         {
+            x = esa->SA[j];
+            breakPositions[x]  = breaks[i];
+            breakCounts[count] ++;
+            ++j;
+         }
+         
+         count++;
+      } 
+   }
+   
+   // breakPositions now contains a look up for all the breaks.
+   
+   // Create an array which will point to the start positions of the
+   // disjoint breaks in the lookup array we will create shortly.
+   int *breakIndicies = malloc(sizeof(int)*count);
+   
+   // Now, set those break indicies to point to placeholders in the
+   // lookup array.
+   
+   // The first break starts at index 0.
+   // TODO: think about end case.
+   breakIndicies[0]=0;
+   for (int i=0; i<count; i++)
+      breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
+   
+   // We now know the total number of disjoint breaks:
+   int total_disjoint_breaks = breakIndicies[count-1] + breakCounts[i-1];
+   
+   // Allocate just enough space in the lookup table to contain all of
+   // the matches for the breaks.
+   int *lookup = malloc(sizeof(int)* total_disjoint_breaks);
+   
+   // We now copy the breaks into the lookup table, keeping them sorted
+   // by maintaining pointers into the correct positions in the array.
+   
+
+
+}
+
 /******************************************************************************/
 // Try to use the periodicity properties of the pattern to match.
 // If the pattern is not sufficiently aperiodic (or k is too large)
