@@ -547,9 +547,12 @@ int periodicMatching(            const char*     text,
    
    
   
+   for (int i=0; i<n; i++)
+   {
+      if (text[i] == '\n') printf("HERE: %d\n", i);
+   }
    
-   
-   
+   exit(0);
    // Partition in the text into its l-breaks.
    pn = partition(pattern, k, m, breaks);
    
