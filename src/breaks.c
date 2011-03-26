@@ -397,7 +397,7 @@ int constructLookups(            const int*      breaks,
       
 
   
-   displayBreaks(text, breaks, n, l, bn);
+
    printf("First 2k distinct breaks:\n");
    for(int i=0; i<2*k; i++)
    {
@@ -585,7 +585,8 @@ int periodicMatching(            const char*     text,
       int *indicies = NULL;
    
       printf("Constructing look-ups\n");
-      constructLookups(lbreaks, ln, pattern, &esa, l, k, n, lookup, indicies);
+      displayBreaks(pattern, lbreaks, m, l, ln);
+      constructLookups(lbreaks, ln, text, &esa, l, k, n, lookup, indicies);
    
 
       return 1;
