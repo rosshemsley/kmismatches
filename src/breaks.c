@@ -390,6 +390,13 @@ int constructLookups(            const int*      breaks,
       } 
    }
    
+   printf("Break locations:\n");
+   for (int i=0; i<n; i++)
+   {
+      printf("%d ", breakPositions[i]);
+   }
+   printf("\n");
+   
    // breakPositions now contains a look up for all the breaks.
    
    // Create an array which will point to the start positions of the
