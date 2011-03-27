@@ -323,21 +323,73 @@ void simpleMatcher(              const char*     text,
    }
 }
 
+
+/******************************************************************************/
+// Return  0 for equality.
+// return -1 for less than.
+// Return  1 for greater than.
+
+int set_cmp(int a, int b, int l)
+{
+   if (a < b   ) return -1;  
+   if (a > b+l ) return  1;
+   
+   return 0;
+   
+}
+
+/******************************************************************************/
+// Perform a binary search for this break.
+// Given a region of length from {x,...,x+l}, find any value in lookup
+// which is contained within that region.
+int binaryBreakSearch(int x, int l, const int *lookup, int n)
+{
+   int mid;
+   int min = 0;
+   int max = n-1;
+   
+   do
+   {
+      mid = min + (max-min)/2;     
+     
+      int e = set_cmp(lookup[mid], x,l);
+      
+      if (e > 0)
+         max = mid - 1;
+      else if (e < 0)
+         min = mid + 1;
+      else 
+         return mid;
+      
+   } while ( min <= max );
+
+   return -1;
+  
+}
+
 /******************************************************************************/
 
 // Perform matching in O(k log k) for contiguous blocks of length l.
-int algorithm_2(                       int       l,
+int algorithm_2(                       int       i,
+                                       int       l,
                                        int       n,
                                        int       k,
+                                       int       bn,
                                  const ESA*      esa,
                                  const int*      breaks,
                                  const int*      lookup,
-                                 const int*      indicies                      
+                                 const int*      indicies,                      
                                        int*      matches                       )
 {
-   // Perform Marking //
+   // Perform Marking //   
    
    // For each of the at most 2k disjoint l-breaks.
+   for (int i=0; i<bn; i++)
+   {
+      // Find the first instance of this break in the correct position.
+   
+   }
+   
    
    // Do a binary search to find the exact matches.
 
