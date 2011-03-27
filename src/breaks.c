@@ -73,16 +73,11 @@ int partition(const char *t, int l, int n, int *breaks)
       // stretch for as long as possible.
       if (per!=0)
       {
-         for(;i<n;i++)
-         {
-          //  printf("%d, %c, %c\n",i, t[i], t[i+per]);
-            // The periodic stretch has ended.
-            if (t[i] != t[i+per])
-            {
-            //   printf("Periodic stretch ends at %d\n", i);
+         for(;i<n;i++)            
+            // The periodic stretch has ended.                     
+            if ((i+per < n) && t[i] != t[i+per])
                break;           
-           }
-         }
+         
          // This is the position of the mismatch.
          i = i+per+1;         
       }
@@ -314,7 +309,7 @@ void simpleMatcher(              const char*     text,
    /**
    *  kangaroo accross all the potential matching positions.
    */
-   //   printf("matches at right val: %d\n", matches[34871780]);
+   //   printf("matches at right val: %d\n", matches[348717i80]);
    
    for (int i=0;i<n-m+1;i++)
    {
@@ -598,7 +593,7 @@ int periodicMatching(            const char*     text,
       int *mbreaks = malloc(sizeof(n)*n);
       
       printf("Finding l-boundary\n");      
-      int l = find_l(pattern, n, k, &ln, &mn, lbreaks, mbreaks);
+      int l = find_l(pattern, m, k, &ln, &mn, lbreaks, mbreaks);
 //      int _m = l+1; 
       
       
