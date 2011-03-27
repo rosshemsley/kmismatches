@@ -506,12 +506,12 @@ int constructLookups(            const int*      breaks,
       indicies[0]  = 0;
       for (int j=0; j<length; j++)
       {
-         printf("Looking at: %d:%d\n",j, breakArr[j]);
+         //printf("Looking at: %d:%d\n",j, breakArr[j]);
          
          // This is the block within this break should be:
          int x = breakArr[j]/k;
          
-         printf("Fits into block: %d\n", x);
+         //printf("Fits into block: %d\n", x);
          
          // If we have moved to a new boundary.
          if (x>=boundary)
@@ -521,7 +521,7 @@ int constructLookups(            const int*      breaks,
             // for the algorithm to work properly.
             for (int k=boundary; k<=x; k++)
             {
-               printf("Setting index: %d to %d\n", k, j);
+               //printf("Setting index: %d to %d\n", k, j);
                indicies[k] = j;         
              }  
             boundary = x+1;
@@ -530,12 +530,8 @@ int constructLookups(            const int*      breaks,
       }
       
       // Test output //
-      for (int i=0; i<n/k; i++)
-      {
-         printf("Boundary: %d, k-value: %d\n", indicies[i], i*k);
-      }
-      
-      exit(0);
+      //for (int i=0; i<n/k; i++)      
+      //  printf("Boundary: %d, k-value: %d\n", indicies[i], i*k);
    }
 
 
