@@ -335,7 +335,7 @@ int set_cmp(int a, int b, int l)
    if (a > b+l ) return  1;
    
    return 0;
-   
+  
 }
 
 /******************************************************************************/
@@ -370,7 +370,7 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
 /******************************************************************************/
 
 // Perform matching in O(k log k) for contiguous blocks of length l.
-int algorithm_2(                       int       i,
+int algorithm_2(                       int       x,
                                        int       l,
                                        int       n,
                                        int       k,
@@ -387,7 +387,37 @@ int algorithm_2(                       int       i,
    for (int i=0; i<bn; i++)
    {
       // Find the first instance of this break in the correct position.
-   
+      //int binaryBreakSearch(int x, int l, const int *lookup, int n)
+       
+      
+      printf("Looking for break:   %d (%d)\n", i, breaks[i]);
+      printf("Looking in block: %d\n", (x+breaks[i])/k);
+      
+      // This is the block index.
+      int block = (x + breaks[i])/k;
+      
+      // This is the index into the lookup array of the start of this sorted
+      // array.
+      int start = (indicies + bn*i)[ block ];
+      
+      // The following gives us the end point:      
+      int end   = (indicies + bn*i)[ block+1 ];
+      
+      printf("Start: %d\n", start);
+      printf("End:   %d\n", end);
+
+         
+      
+      // arr now contains all the pointers to the starts of each instance of this
+      // break for each block of length k
+      
+      // We find out which block we are intersted in: it is (x+breaks[i])/k, 
+      //((x+breaks[i])/k +1)
+      
+      
+                       
+     
+      
    }
    
    
@@ -397,7 +427,7 @@ int algorithm_2(                       int       i,
    
    
    // Perform Verification on the, at most 4 locations with >=k marks //
-
+   return 0;
 }
 
 /******************************************************************************/
@@ -413,22 +443,23 @@ int constructLookups(            const int*      breaks,
                                        int       k, 
                                        int       n, 
                                        int       m,
+                                       int*      dbreaks,
                                        int*      lookup, 
                                        int*      indicies                      )
 {
    int *breakPositions = malloc(sizeof(int)*n);
    int *breakCounts    = calloc(2*k, sizeof(int));
-   int *disjointBreaks = malloc(sizeof(int)*bn);
+  // int *dbreaks = malloc(sizeof(int)*bn);
    
    for (int i=0; i<n; i++)
       breakPositions[i] = -1;
    
    // This counts the number of disjoint breaks.
-   int count=-1;
+   int count = -1;
    
    for (int i=0; i<2*k; i++)
    {   
-   //   printf("Looking for break: %d\n", breaks[i]); 
+      // printf("Looking for break: %d\n", breaks[i]); 
       // Find the first instance of this substring.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
@@ -453,7 +484,7 @@ int constructLookups(            const int*      breaks,
                count++;
                printf("last count:%d\n", breakCounts[count]);
                // This is a new break.
-               disjointBreaks[count] = breaks[i];
+               dbreaks[count] = breaks[i];
                breakPositions[x]     = count;      
                breakCounts[count]    = 1;         
                non_dup = 1;
@@ -473,7 +504,7 @@ int constructLookups(            const int*      breaks,
 
    printf("First 2k distinct breaks:\n");
    for(int i=0; i<count; i++)
-      printf("%d, %.2s\n", disjointBreaks[i], pattern + disjointBreaks[i]);
+      printf("%d, %.2s\n", dbreaks[i], pattern + dbreaks[i]);
    
    printf("Break locations:\n");
    for (int i=0; i<n; i++)
@@ -513,7 +544,7 @@ int constructLookups(            const int*      breaks,
 
    // Allocate just enough space in the lookup table to contain all of
    // the matches for the breaks.
-   lookup = malloc(sizeof(int)*  breakIndicies[count]);
+   //lookup = malloc(sizeof(int)*  breakIndicies[count]);
    
    printf("Total number of disjoint breaks: %d\n", breakIndicies[count]);
    
@@ -532,7 +563,7 @@ int constructLookups(            const int*      breaks,
    { 
       if(breakPositions[i]<0) continue;
      // printf("  break position: %d\n", breakPositions[i]);
-      //printf("  pat position:   %d\n",   disjointBreaks[breakPositions[i]]);
+      //printf("  pat position:   %d\n",   dbreaks[breakPositions[i]]);
       lookup[temp_pointers[breakPositions[i]]] = i;
       temp_pointers[breakPositions[i]]++;
    }
@@ -558,8 +589,8 @@ int constructLookups(            const int*      breaks,
    free(breakPositions);
    free(temp_pointers);
       
-   int partitions = (int)( (float)n/(k+0.5) );
-   indicies = malloc(sizeof(int) * partitions * count);
+//   int partitions = (int)( (float)n/(k+0.5) );
+
 
       
      
@@ -606,11 +637,12 @@ int constructLookups(            const int*      breaks,
       }
       
       // Test output //
-      //for (int i=0; i<n/k; i++)      
-      //  printf("Boundary: %d, k-value: %d\n", indicies[i], i*k);
+      for (int i=0; i<n/k; i++)      
+        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], i*k);
    }
 
-   return 0;
+   // Return the number of disjoint breaks found.
+   return count;
 }
 
 
@@ -693,14 +725,20 @@ int periodicMatching(            const char*     text,
    
       // 2) Create look-up structure.
    
-      int *lookup   = NULL;
-      int *indicies = NULL;
-   
+      int *lookup   =  malloc(sizeof(int)* n);
+      int *indicies =  malloc(sizeof(int)* 2*n);
+      int *dbreaks  =  malloc(sizeof(int)* 2*k);
+      
       printf("Constructing look-ups\n");
 
       displayBreaks(pattern, lbreaks, m, l, ln);
-    //  displaySA(&esa);
-      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m,lookup, indicies);
+      //  displaySA(&esa);
+      
+      
+      int bn = constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
+   
+   
+      algorithm_2(0, l, n, k, bn, &esa, dbreaks, lookup, indicies, matches);
    
 
       return 1;
