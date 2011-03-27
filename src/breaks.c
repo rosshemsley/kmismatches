@@ -470,6 +470,7 @@ int constructLookups(            const int*      breaks,
       {
          printf("%d\n", lookup[j]);
       } 
+      break;
    }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
@@ -499,23 +500,42 @@ int constructLookups(            const int*      breaks,
       
       // We go through all of the break instances, and set pointers every time
       // we go over a block of length k.
-      int boundary = 0;
+      int boundary = 1;
+      
+      // The first boundary is at 0.
+      indicies[0]  = 0;
       for (int j=0; j<length; j++)
       {
+         printf("Looking at: %d:%d\n",j, breakArr[j]);
+         
          // This is the block within this break should be:
          int x = breakArr[j]/k;
          
+         printf("Fits into block: %d\n", x);
+         
          // If we have moved to a new boundary.
-         if (x>boundary)
+         if (x>=boundary)
          {
-            // It may be that we have 'skipped a few' of the i80s.
+            // It may be that we have 'skipped a few' of the i's.
             // We must therefore copy back the correct end value in order
             // for the algorithm to work properly.
-            for (int k=indicies[boundary]+1; k<x; k++)
+            for (int k=boundary; k<=x; k++)
+            {
+               printf("Setting index: %d to %d\n", k, j);
                indicies[k] = j;         
+             }  
+            boundary = x+1;
          }
          
       }
+      
+      // Test output //
+      for (int i=0; i<n/k; i++)
+      {
+         printf("Boundary: %d, k-value: %d\n", indicies[i], i*k);
+      }
+      
+      exit(0);
    }
 
 
