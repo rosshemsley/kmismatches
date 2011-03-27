@@ -323,6 +323,30 @@ void simpleMatcher(              const char*     text,
    }
 }
 
+/******************************************************************************/
+
+// Perform matching in O(k log k) for contiguous blocks of length l.
+int algorithm_2(                       int       l,
+                                       int       n,
+                                       int       k,
+                                 const ESA*      esa,
+                                 const int*      breaks,
+                                 const int*      lookup,
+                                 const int*      indicies                      
+                                       int*      matches                       )
+{
+   // Perform Marking //
+   
+   // For each of the at most 2k disjoint l-breaks.
+   
+   // Do a binary search to find the exact matches.
+
+   // Mark the location the pattern would need to start in.   
+   
+   
+   // Perform Verification on the, at most 4 locations with >=k marks //
+
+}
 
 /******************************************************************************/
 // TODO: Think carefully about unsigned types.
@@ -533,7 +557,6 @@ int constructLookups(            const int*      breaks,
       //for (int i=0; i<n/k; i++)      
       //  printf("Boundary: %d, k-value: %d\n", indicies[i], i*k);
    }
-
 
    return 0;
 }
