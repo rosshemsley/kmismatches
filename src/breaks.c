@@ -396,14 +396,15 @@ int constructLookups(            const int*      breaks,
   
 
    printf("First 2k distinct breaks:\n");
-   for(int i=0; i<2*k; i++)
-      printf("%d, %.5s\n", disjointBreaks[i], pattern + disjointBreaks[i]);
+   for(int i=0; i<count; i++)
+      printf("%d, %.2s\n", disjointBreaks[i], pattern + disjointBreaks[i]);
    
    printf("Break locations:\n");
    for (int i=0; i<n; i++)
       if (breakPositions[i] <0)
          printf(" ");
       else printf("%d", breakPositions[i]);
+  printf("\n");
  
    printf("Counts: \n");
    for (int i=0; i<count; i++)
@@ -426,7 +427,7 @@ int constructLookups(            const int*      breaks,
    // The first break starts at index 0.
    // TODO: think about end case.
    breakIndicies[0]=0;
-   for (int i=0; i<count+1; i++)
+   for (int i=1; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
 
    printf("Break indicies: \n");
@@ -478,6 +479,7 @@ int constructLookups(            const int*      breaks,
    
    // No longer needed.
    free(breakPositions);
+   free(temp_pointers);
       
    int partitions = (int)( (float)n/(k+0.5) );
    indicies = malloc(sizeof(int) * partitions * count);
@@ -506,7 +508,7 @@ int constructLookups(            const int*      breaks,
          // If we have moved to a new boundary.
          if (x>boundary)
          {
-            // It may be that we have 'skipped a few' of the partitions.
+            // It may be that we have 'skipped a few' of the i80s.
             // We must therefore copy back the correct end value in order
             // for the algorithm to work properly.
             for (int k=indicies[boundary]+1; k<x; k++)
