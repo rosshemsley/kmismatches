@@ -393,15 +393,22 @@ int algorithm_2(                       int       x,
       printf("Looking for break:   %d (%d)\n", i, breaks[i]);
       printf("Looking in block: %d\n", (x+breaks[i])/k);
       
+      
+      
       // This is the block index.
       int block = (x + breaks[i])/k;
       
       // This is the index into the lookup array of the start of this sorted
       // array.
-      int start = (indicies + bn*i)[ block ];
+      for (int z=0; z<k; z++)
+      {
+         printf("%d\n", (indicies + (n/k)*i)[ z ]);
+      }
+      
+      int start = (indicies + (n/k)*i)[ block ];
       
       // The following gives us the end point:      
-      int end   = (indicies + bn*i)[ block+1 ];
+      int end   = (indicies + (n/k)*i)[ block+1 ];
       
       printf("Start: %d\n", start);
       printf("End:   %d\n", end);
@@ -605,12 +612,14 @@ int constructLookups(            const int*      breaks,
       int *breakArr = lookup + breakIndicies[i];
       int  length   = breakCounts[i];
       
+      int *indiciesArr = indicies + i * n/k;
+      
       // We go through all of the break instances, and set pointers every time
       // we go over a block of length k.
       int boundary = 1;
       
       // The first boundary is at 0.
-      indicies[0]  = 0;
+      indiciesArr[0]  = 0;
       for (int j=0; j<length; j++)
       {
          //printf("Looking at: %d:%d\n",j, breakArr[j]);
@@ -629,18 +638,18 @@ int constructLookups(            const int*      breaks,
             for (int k=boundary; k<=x; k++)
             {
                //printf("Setting index: %d to %d\n", k, j);
-               indicies[k] = j;         
+               indiciesArr[k] = j;         
              }  
             boundary = x+1;
          }
          
       }
       
-      // Test output //
-      for (int i=0; i<n/k; i++)      
-        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], i*k);
-   }
 
+   }
+      // Test output //
+      for (int i=0; i<n; i++)      
+        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], i*k);
    // Return the number of disjoint breaks found.
    return count;
 }
