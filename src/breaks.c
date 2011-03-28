@@ -447,7 +447,7 @@ int algorithm_2(                       int       x,
       //((x+breaks[i])/k +1)
       
       
-                       
+      printf("\n");               
      
       
    }
