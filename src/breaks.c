@@ -252,7 +252,7 @@ void simpleMatcher(              const char*     text,
 {
 
    // Zero the matches array.
-   memset(matches, 0, sizeof(int)*(n-m+1));
+
 
 
    
@@ -314,12 +314,12 @@ void simpleMatcher(              const char*     text,
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
-      if (matches[i] >= k-1)
+      if (matches[i] >= k)
       {
          printf("Verifying: %d\n", i);
          matches[i] = verify(i, n-1, m,  k, esa);             
       } else 
-         matches[i] = k+100;
+         matches[i] = k+1;
    }
 }
 
@@ -384,6 +384,7 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
 int algorithm_2(                       int       x,
                                        int       l,
                                        int       n,
+                                       int       m,
                                        int       k,
                                        int       ln,
                                  const ESA*      esa,
@@ -450,12 +451,12 @@ int algorithm_2(                       int       x,
       
       
       printf("Found: %d (%d)\n", f, lookup[f]);
-      
-
+      matches[lookup[f]-lbreaks[i]] += 1;
       
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
-               printf("Found: %d\n", f+1);
+         printf("Found: %d (%d)\n", f+1, lookup[f+1]);
+         matches[lookup[f+1]-lbreaks[i]] += 1;
       }
       
       // arr now contains all the pointers to the starts of each instance of this
@@ -469,14 +470,22 @@ int algorithm_2(                       int       x,
      
       
    }
-   
-   
-   // Do a binary search to find the exact matches.
-
-   // Mark the location the pattern would need to start in.   
-   
-   
+      
    // Perform Verification on the, at most 4 locations with >=k marks //
+   
+   
+   for (int i=x; i< x+l-1; i++)
+   {
+      // If there could be a match here.
+      if (matches[i] >= k)
+      {
+         printf("Verifying: %d\n", i);
+         matches[i] = verify(i, n-1, m,  k, esa);             
+      } else 
+         matches[i] = k+1;
+   }
+   
+
    return 0;
 }
 
@@ -688,7 +697,7 @@ int constructLookups(            const int*      breaks,
             {
                //printf("Setting index: %d to %d\n", k, j);
                indiciesArr[k] = j + breakIndicies[i];         
-             }  
+            }  
             boundary = x+1;
          }
          
@@ -727,6 +736,8 @@ int periodicMatching(            const char*     text,
                                        int       m,
                                        int*      matches                       )
 {
+
+   memset(matches, 0, sizeof(int)*(n-m+1));
 
    // This is the largest possible value of b.
    int  pn      = m;   
@@ -796,7 +807,7 @@ int periodicMatching(            const char*     text,
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
-      algorithm_2(0, l, n, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
+      algorithm_2(0, l, n, m, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
    
 
       return 1;
