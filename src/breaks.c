@@ -342,6 +342,10 @@ int set_cmp(int a, int b, int l)
 // Perform a binary search for this break.
 // Given a region of length from {x,...,x+l}, find any value in lookup
 // which is contained within that region.
+
+// There can be at most two matches in this special case we are considering.
+// Thus we look at the previous value, and if it also satisfies the critiera, 
+// we return it. In this way, we always know we have the first.
 int binaryBreakSearch(int x, int l, const int *lookup, int n)
 {
    int mid;
@@ -359,7 +363,13 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
       else if (e < 0)
          min = mid + 1;
       else 
-         return mid;
+      {
+         // We always want to return the first possible match.
+         if (mid>0 && set_cmp(lookup[mid-1],x,l) == 0)
+            return mid-1;
+         else 
+            return mid;         
+      }   
       
    } while ( min <= max );
 
@@ -369,51 +379,58 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
 
 /******************************************************************************/
 
+
 // Perform matching in O(k log k) for contiguous blocks of length l.
 int algorithm_2(                       int       x,
                                        int       l,
                                        int       n,
                                        int       k,
-                                       int       bn,
+                                       int       ln,
                                  const ESA*      esa,
-                                 const int*      breaks,
+                                 const int*      lbreaks,
+                                 const int*      dbreaks,
                                  const int*      lookup,
                                  const int*      indicies,                      
                                        int*      matches                       )
 {
    // Perform Marking //   
    
-   // For each of the at most 2k disjoint l-breaks.
-   for (int i=0; i<bn; i++)
+   // For each of the first 2k breaks.
+   for (int i=0; i<2*k; i++)
    {
-      // Find the first instance of this break in the correct position.
-      //int binaryBreakSearch(int x, int l, const int *lookup, int n)
-       
+      // This is the correct lookup offset for this break (I hope).
+      const int* breakArr = indicies + (n/k) * dbreaks[i];   
+      int        block    = (x + lbreaks[i])/k;
       
-      printf("Looking for break:   %d (%d)\n", i, breaks[i]);
-      printf("Looking in block: %d\n", (x+breaks[i])/k);
+      // Figure out which of the disjoint breaks we are looking at.
       
+      // This is the index of the distinc break:
+      printf("Looking for break: (lbreak) %d (dbreak) %d\n", lbreaks[i], dbreaks[i]);
+      // This is the index of the current pattern-break.
+      printf("Looking in block: %d\n", block);
       
+            
+      // This is the block index, it gives the index of the block
+      // that this break would have to fall into if the pattern were lined
+      // up to start at x.     
       
-      // This is the block index.
-      int block = (x + breaks[i])/k;
-      
-      // This is the index into the lookup array of the start of this sorted
-      // array.
+      // Have a peek at the block.
       for (int z=0; z<k; z++)
-      {
-         printf("%d\n", (indicies + (n/k)*i)[ z ]);
-      }
-      
-      int start = (indicies + (n/k)*i)[ block ];
+         printf("%d\n", breakArr[ z ]);
+            
+      // This is the index into the lookup array of the start of this sorted
+      // array.      
+      int start = breakArr[ block ];
       
       // The following gives us the end point:      
-      int end   = (indicies + (n/k)*i)[ block+1 ];
+      int end   = breakArr[ block+1 ];
       
       printf("Start: %d\n", start);
       printf("End:   %d\n", end);
 
-         
+      int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]);
+      
+      printf("Found: %d\n", f);
       
       // arr now contains all the pointers to the starts of each instance of this
       // break for each block of length k
@@ -480,18 +497,24 @@ int constructLookups(            const int*      breaks,
       do {
          int x = esa->SA[j];
        
-        printf("Match: %d\n", x);
+         printf("Match: %d\n", x);
          if (x<n-1)
          {
 
-            if (breakPositions[x] != -1) break; 
+            // Duplicate break.
+            // Label it in the dbreaks array and continue.
+            if (breakPositions[x] != -1)
+            {
+               dbreaks[i] = breakPositions[x];
+               break;
+            }
             
             if (non_dup == 0)
             {
                count++;
                printf("last count:%d\n", breakCounts[count]);
                // This is a new break.
-               dbreaks[count] = breaks[i];
+               dbreaks[i]            = count;
                breakPositions[x]     = count;      
                breakCounts[count]    = 1;         
                non_dup = 1;
@@ -744,10 +767,10 @@ int periodicMatching(            const char*     text,
       //  displaySA(&esa);
       
       
-      int bn = constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
+      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
-      algorithm_2(0, l, n, k, bn, &esa, dbreaks, lookup, indicies, matches);
+      algorithm_2(0, l, n, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
    
 
       return 1;
