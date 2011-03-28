@@ -807,8 +807,10 @@ int periodicMatching(            const char*     text,
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
-      algorithm_2(0, l, n, m, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
-   
+      for (int i=0; i<n; i+=l)
+      {
+         algorithm_2(i, l, n, m, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
+      }
 
       return 1;
    }
