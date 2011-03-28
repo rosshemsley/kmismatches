@@ -758,8 +758,8 @@ int periodicMatching(            const char*     text,
       int l = find_l(pattern, m, k, &ln, &mn, lbreaks, mbreaks);
 //      int _m = l+1; 
       
-      printf("l: %d\n",l);
       
+   
       // 2) Create look-up structure.
    
       int *lookup   =  malloc(sizeof(int)* n);
@@ -768,11 +768,11 @@ int periodicMatching(            const char*     text,
       
       printf("Constructing look-ups\n");
 
-      displayBreaks(pattern, lbreaks, m, l, ln);
+      displayBreaks(pattern, mbreaks, m, l, ln);
       //  displaySA(&esa);
-         
       
-      constructLookups(lbreaks, ln, text, pattern, &esa, m, k, n, m, dbreaks, lookup, indicies);
+      
+      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
       algorithm_2(0, l, n, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
