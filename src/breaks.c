@@ -464,13 +464,18 @@ int algorithm_2(                       int       x,
       if ( lookup[f] - lbreaks[i] > n-m+1) continue;
     //  printf("Found: %d (%d)\n", f, lookup[f]);
     
-    
-      if (lookup[f]-lbreaks[i] >=0)
-         matches[lookup[f]-lbreaks[i]] ++;
       
+      int t = lookup[f]-lbreaks[i];
+      if (t >=x && t< x+l && t < n-m+1)
+       {  matches[t] ++;
+         
+
+      }
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
          int t = lookup[f+1] - lbreaks[i];
+         
+
          //  printf("Found: %d (%d)\n", f+1, lookup[f+1]);
          if (t >=0 && t < n-m+1)
             matches[t] ++;
@@ -492,7 +497,7 @@ int algorithm_2(                       int       x,
    
    for (int i=x; i< x+l && i<n-m+1; i++)
    {
-   if (i== 488) printf("HERE\n");
+
    
    //   matches[i] = 93;
    
