@@ -428,9 +428,10 @@ int algorithm_2(                       int       x,
       printf("Start: %d\n", start);
       printf("End:   %d\n", end);
 
-      int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]);
+      int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]) + start;
       
-      printf("Found: %d\n", f);
+      
+      printf("Found: %d (%d)\n", f, lookup[f]);
       
       printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
       
