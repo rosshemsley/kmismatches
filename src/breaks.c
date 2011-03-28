@@ -202,23 +202,20 @@ int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbr
 
 int verify(int i, int j, int m, int k, const ESA* esa)
 {
-   
    // The number of mismatches.
-   int mismatches=0;
+   int mismatches = 0;
    
    // The position in the pattern.
-   int end = j+m;
-   
-   int length=0;
+   int end        = j+m;
+   int length     = 0;
    
    while (j < end)
    {
-      
-     // printf("Finding longest extension\n");
+      // printf("Finding longest extension\n");
       // The longest number of shared characters.
       int l = LCE(i, j, esa);
       
-      length+=l;
+      length += l;
       
       //printf(" found %d matching chars\n", l);
       i += l+1;
@@ -227,14 +224,10 @@ int verify(int i, int j, int m, int k, const ESA* esa)
       mismatches ++;
       
       if (mismatches > k+1)
-      {
          return k+1;
-      }  
    }
    
-   
-   return mismatches-1;//m-length-1;
-
+   return mismatches - 1;
 }
 
 /******************************************************************************/
@@ -248,7 +241,7 @@ void simpleMatcher(              const char*     text,
                                        int       n,
                                        int       m,
                                        int       bn,
-                                 const ESA*      esa   )
+                                 const ESA*      esa                           )
 {
 
    printf("bn is: %d, k is; %d\n", bn, k);
@@ -300,7 +293,6 @@ void simpleMatcher(              const char*     text,
    /**
    *  kangaroo accross all the potential matching positions.
    */
-   //   printf("matches at right val: %d\n", matches[348717i80]);
    
    for (int i=0;i<n-m+1;i++)
    {
@@ -322,11 +314,10 @@ void simpleMatcher(              const char*     text,
 
 int set_cmp(int a, int b, int l)
 {
-   if (a < b   ) return -1;  
+   if (a <  b   ) return -1;  
    if (a >= b+l ) return  1;
    
    return 0;
-  
 }
 
 /******************************************************************************/
@@ -346,8 +337,7 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
    
    do
    {
-      mid = min + (max-min)/2;     
-     
+      mid   = min + (max-min)/2;          
       int e = set_cmp(lookup[mid], x,l);
       
       if (e > 0)
@@ -366,7 +356,6 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
    } while ( min <= max );
 
    return -1;
-  
 }
 
 /******************************************************************************/
@@ -385,112 +374,74 @@ int algorithm_2(                       int       x,
                                  const int*      indicies,                      
                                        int*      matches                       )
 {
-   // Perform Marking //   
    
-   // For each of the first 2k breaks.
+   // For each of the first 2k breaks. (Not necesarily disjoint).
    for (int i=0; i<2*k; i++)
    {
    
-      if (x + lbreaks[i] >= n)continue;
+      // If this would go off the end.
+      // if (x + lbreaks[i] >= n) continue;
       
-      // This is the correct lookup offset for this break (I hope).
+      // This is the correct lookup offset for this break.
       const int* breakArr = indicies + (n/k) * dbreaks[i];   
       int        block    = (x + lbreaks[i])/k;
       
-      // Figure out which of the disjoint breaks we are looking at.
-      
-      // This is the index of the distinc break:
-    //  printf("Looking for break: (lbreak) %d (dbreak) %d\n", lbreaks[i], dbreaks[i]);
-      // This is the index of the current pattern-break.
-     // printf("Looking in block: %d\n", block);
-      
-            
-      // This is the block index, it gives the index of the block
-      // that this break would have to fall into if the pattern were lined
-      // up to start at x.     
-      
-      // Have a peek at the block.
-    //  for (int z=0; z<k; z++)
-      //   printf("%d\n", breakArr[ z ]);
-            
       // This is the index into the lookup array of the start of this sorted
       // array.      
       int start = breakArr[ block ];
       
-      // For now, assume that we go over a break boundary.
-      // This probably doesn't add any overhead.
-      
-
+      // For now, assume that we always go over a break boundary.
+      // This probably doesn't add any overhead in reality.
       int end;
+      
       // The following gives us the end point:      
       // TODO: CHECK THE LOGIC HERE
       if (block + 2 <= ln)
          end = breakArr[ block+2 ];
       else 
          end = breakArr[ block+1 ];
-         
-     // printf("Start: %d\n", start);
-     // printf("End:   %d\n", end);
-     // printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
-
-
-  //    printf("Doing search on the following:\n");
-      
-   //   for (int y=start; y<end; y++)
-    //  {
-     //    printf("%d\n", (lookup)[y]);
-    //  }
-
-//      if (end >= ln*(n/k)) end = ln*(n/k)-1;
-
-
+               
+      // If this lookup doesn't exist.   
+      // TODO: decide how this happens.
       if (lookup[end] - lookup[start] < 0) continue;
       
-         //   printf("%d\n", lookup[end]-lookup[start]);
+      const int* arr = lookup + start;
+      int        len = lookup[end]-lookup[start];
       
-      int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]) + start;
+      // Binary search for breaks which match.   
+      int f = binaryBreakSearch(x + lbreaks[i], l, arr, len) + start;
       
-      if (f<0) continue;
+      // If the break was not found, continue.
+      if (f < 0) continue;
       
-      if ( lookup[f] - lbreaks[i] > n-m+1) continue;
-    //  printf("Found: %d (%d)\n", f, lookup[f]);
-    
-      
+      // If the break goes over the end, continue.
+      //if ( lookup[f] - lbreaks[i] > n-m+1 ){ continue;}
+          
+      // Check that we are within bounds for marking.
       int t = lookup[f]-lbreaks[i];
-      if (t >=x && t< x+l && t < n-m+1)
-       {  matches[t] ++;
-         
-
-      }
+      if (t >=x && t < x+l && t < n-m+1) 
+         matches[t] ++;        
+      
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
          int t = lookup[f+1] - lbreaks[i];
-         
-
-         //  printf("Found: %d (%d)\n", f+1, lookup[f+1]);
-         if (t >=0 && t < n-m+1)
+       
+         if (t >= x && t < x+l && t < n-m+1)
             matches[t] ++;
-      }
-      
-      // arr now contains all the pointers to the starts of each instance of this
-      // break for each block of length k
-      
-      // We find out which block we are intersted in: it is (x+breaks[i])/k, 
-      //((x+breaks[i])/k +1)
-      
-      
-   //   printf("\n");               
-     
-      
+      }      
    }
       
    // Perform Verification on the, at most 4 locations with >=k marks //
    
+   if (x<69998 && 69998 < x+l)
+   {
+      printf("Here:\n");
+      printf("%d\n", matches[69998]);
+   }
+   
    for (int i=x; i< x+l && i<n-m+1; i++)
    {
-
-   
-   
+      
       // If there could be a match here.
       if (matches[i] >= k)
       {
@@ -499,10 +450,8 @@ int algorithm_2(                       int       x,
          
          printf("Found: %d\n", matches[i]);        
       } else 
-         matches[i] = k+1;
-     
-   }
-   
+         matches[i] = k+1;     
+   }   
 
    return 0;
 }
@@ -551,7 +500,7 @@ int constructLookups(            const int*      breaks,
          int x = esa->SA[j];
        
          // If this is a match from within the text, not the pattern.
-         if (x<n-1)
+         if (x < n-1)
          {
             // Duplicate break.
             // Label it in the dbreaks array and continue.
@@ -568,7 +517,7 @@ int constructLookups(            const int*      breaks,
                dbreaks[i]            = count;
                breakPositions[x]     = count;      
                breakCounts[count]    = 1;         
-               non_dup = 1;
+               non_dup               = 1;
            } else {
                // Other instances of this new break.
                x = esa->SA[j];
@@ -593,9 +542,11 @@ int constructLookups(            const int*      breaks,
    int *breakIndicies = malloc(sizeof(int)*(count+1));
    
    // The first break starts at index 0.
-   breakIndicies[0]=0;
+   breakIndicies[0] = 0;
    
    // Calculate the indicies into the lookup array.
+   // Note that this creates on extra index, this makes looking up
+   // values easier later.
    for (int i=1; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
       
@@ -612,9 +563,12 @@ int constructLookups(            const int*      breaks,
    // of each break in the correct place in the lookup.
    for (int i=0; i<n; i++)
    { 
-      if(breakPositions[i]<0) continue;
+      if(breakPositions[i] < 0) continue;
 
+      // Add this to the lookup.
       lookup[temp_pointers[breakPositions[i]]] = i;
+      
+      // Move on the pointer in the lookup.
       temp_pointers[breakPositions[i]]++;
    }
 
@@ -645,7 +599,7 @@ int constructLookups(            const int*      breaks,
       int boundary = 1;
       
       // The first boundary is at 0.
-      indiciesArr[0]  = breakIndicies[i];
+      indiciesArr[0] = breakIndicies[i];
       
       for (int j=0; j<length; j++)
       {
@@ -761,137 +715,4 @@ int periodicMatching(            const char*     text,
 
 
 /******************************************************************************/
-/*
-void match(char *t, char *p, int *pbreaks, int *tbreaks, int k, int n, int m, int pn, int tn, int *matches)
-{
-   
-   // This index last used in the tbreaks array, so that 
-   // we can perform O(m) look-ups instead of O(n).
-   int b_pos = 0;
-   
-   // These will give the leftmost and rightmost breaks for the set X.
-   int left, right;
-   
-   // For each block of length 2m in the text.
-   for (int i=0; i<n; i+=m)
-   {
-      // u and v are the start and end of this interval.
-      int u = i;
-      int v = i+2*m;
-   
-      // find the special set X in the text which must contain all the matches.
-      
-      // Find the middle break.
-      int middle=0;
-      while (middle < tn && tbreaks[middle] < u+m){ middle ++; }
-            
-      if (middle-3*k < 0 || tbreaks[middle-3*k] < u) 
-      left = i;      
-      else left = tbreaks[middle-3*k];
-      
-      if (middle+3*k >= tn || tbreaks[middle+3*k] > v) 
-      right = i+2*m;
-      else right = tbreaks[middle+3*k];
-      
-      // These are the start and end values in the pbreaks array.
-      // They give the start and end positions of the breaks
-      // which we consider in the breaks for the text.
-      int X_start=0, X_end=0;
-     
-      // Find the starting position of X in the breaks array.
-      while (tbreaks[X_start] < left) X_start ++;
-      while (tbreaks[X_end]   < right) X_end ++;         
-         
-      // Mark all the possible matching locations: at most 24^3 marks
-      // Go through every pbreak, tbreak pairing, marking the 
-      // possible starting positions.
-      for (int x=X_start; x<X_end; x++)
-      {
-         for (int y=0; y<pn; y++)
-         {
-           // printf("Matching block starting at %d with (p)block starting at %d\n", tbreaks[x], pbreaks[y]);
-            // The start position for this break
-            // given that the breaks overlap at the last character
-            // of the pattern break.           
-            int start = tbreaks[x] - pbreaks[y]-k+1;
-            int end   = start+2*k-1;
-            if (end   <= 0)  continue;
-
-            if (start < 0)      start = 0;
-            
-            if (end   > n-m+1)  end   = n-m+1;
-         
-                 //       printf("   start: %d, end: %d\n", start, end);
-         
-            // Mark all the possible starting locations.
-            for (int z=start; z<end; z++)
-               ++matches[z];
-         
-         }         
-      }
-            
-
-         //  break;
-   } 
-   
-   // Verify the locations: at most 24k^2.
-}
-
-******************************************************************************
-
-void match2(const char *t, int n, int m, int l, int k, int b, int *breaks)
-{
-   // This is the current position in the breaks array.
-   // this means we can look up breaks in O(m) time instead of O(n).
-   int pos=0;
-
-   // Go through blocks of the text of size 2m.
-   for (int i=0; i<n; i+=2*m)
-   {
-      printf("Working with:\n");         
-      displaySubStr(t,i, i+2*m, n, l, breaks, b);
-      printf("\n");      
-   
-      // Seek the index of the last break starting before the middle of the 
-      // current block of the text.
-      int middle=0;
-      int left, right;
-      while (middle < b && breaks[middle] < i+m){ middle++; }
-      printf("middle: %d, chars: %d\n", middle, breaks[middle]);
-
-
-
-      // Find the index 'left'
-      if (middle-3*k < 0 || breaks[middle-3*k] < i) 
-      left = i;
-      else left = breaks[middle-3*k];
-      
-      printf("left: %d\n",left);
-        
-      printf("%d\n", breaks[middle]+3*k);
-
-      printf("breaks: %d\n", middle+3*k);
-      // Find the index 'right'
-      if (middle+3*k >=b || breaks[middle+3*k] > i+2*m) 
-      right = i+2*m;
-      else right = breaks[middle+3*k];
-      
-      printf("right: %d\n",right);
-      
-      
-      displaySubStr(t, i, left, n, l, breaks, b);
-      printf("|");
-      displaySubStr(t, left, right, n, l, breaks, b);
-      printf("|");
-      displaySubStr(t,right, i+2*m, n, l, breaks, b);
-      
-
-      printf("\n");
-      exit(0);
-   
-   }
-   
-   
-}
-*/
 
