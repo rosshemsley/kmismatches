@@ -499,7 +499,6 @@ int algorithm_2(                       int       x,
    {
 
    
-   //   matches[i] = 93;
    
       // If there could be a match here.
       if (matches[i] >= k)
