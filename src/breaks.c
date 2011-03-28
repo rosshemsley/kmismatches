@@ -226,14 +226,14 @@ int verify(int i, int j, int m, int k, const ESA* esa)
       
       mismatches ++;
       
-      if (mismatches > k)
+      if (mismatches > k+1)
       {
-         return m-length-1;
+         return k+1;
       }  
    }
    
    
-   return m-length-1;
+   return mismatches-1;//m-length-1;
 
 }
 
@@ -463,6 +463,8 @@ int algorithm_2(                       int       x,
       
       if ( lookup[f] - lbreaks[i] > n-m+1) continue;
     //  printf("Found: %d (%d)\n", f, lookup[f]);
+    
+    
       if (lookup[f]-lbreaks[i] >=0)
          matches[lookup[f]-lbreaks[i]] ++;
       
@@ -488,16 +490,22 @@ int algorithm_2(                       int       x,
       
    // Perform Verification on the, at most 4 locations with >=k marks //
    
-   
-   for (int i=x; i< x+l-1 && i<n-m+1; i++)
+   for (int i=x; i< x+l && i<n-m+1; i++)
    {
+   if (i== 488) printf("HERE\n");
+   
+   //   matches[i] = 93;
+   
       // If there could be a match here.
       if (matches[i] >= k)
       {
-    //     printf("Verifying: %d\n", i);
-         matches[i] = verify(i, n-1, m,  k, esa);             
+         printf("Verifying: %d\n", i);
+         matches[i] = verify(i, n-1, m,  k, esa);     
+         
+         printf("Found: %d\n", matches[i]);        
       } else 
          matches[i] = k+1;
+     
    }
    
 
@@ -829,11 +837,12 @@ int periodicMatching(            const char*     text,
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
-      for (int i=0; i<n; i+=l)
+
+      for (int i=0; i<n+l; i+=l)
       {
          algorithm_2(i, l, n, m, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
       }
-
+      printf("At pos: %d\n", matches[488]);
       return 1;
    }
    
