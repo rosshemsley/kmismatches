@@ -186,7 +186,7 @@ int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbr
       }
    }
    
-   printf("No such l exists\n");   
+   fprintf(stderr, "ERROR: No such l exists\n");   
    return -1;
 }
 
@@ -533,9 +533,9 @@ int constructLookups(            const int*      breaks,
                                        int*      lookup, 
                                        int*      indicies                      )
 {
+   // Temporary storage.
    int *breakPositions = malloc(sizeof(int)*n);
    int *breakCounts    = calloc(2*k, sizeof(int));
-  // int *dbreaks = malloc(sizeof(int)*bn);
    
    for (int i=0; i<n; i++)
       breakPositions[i] = -1;
@@ -545,24 +545,23 @@ int constructLookups(            const int*      breaks,
    
    for (int i=0; i<2*k; i++)
    {   
-      // printf("Looking for break: %d\n", breaks[i]); 
-      // Find the first instance of this substring.    
+      // Find the first instance of this break.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
-      //printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
-
-      // Assume the esa is a generalised suffix tree, and so we always find a 
-      // match.      
+      // Assume the esa is a generalised suffix tree, so should always match.
       assert(j >= 0);
       
+      // Check for duplicate breaks.
       int non_dup = 0;
+      
       do {
+         
+         // Position of the match.
          int x = esa->SA[j];
        
-         //printf("Match: %d\n", x);
+         // If this is a match from within the text, not the pattern.
          if (x<n-1)
          {
-
             // Duplicate break.
             // Label it in the dbreaks array and continue.
             if (breakPositions[x] != -1)
@@ -573,46 +572,28 @@ int constructLookups(            const int*      breaks,
             
             if (non_dup == 0)
             {
+               // This is the first instance of a new break.            
                count++;
-               //printf("last count:%d\n", breakCounts[count]);
-               // This is a new break.
                dbreaks[i]            = count;
                breakPositions[x]     = count;      
                breakCounts[count]    = 1;         
                non_dup = 1;
-           } else
-           {
+           } else {
+               // Other instances of this new break.
                x = esa->SA[j];
                breakPositions[x]  = count;
                breakCounts[count] ++;
             }
          }
+         
+         // Go to next match.
          ++j;
+         
       } while (j < esa->n  &&  esa->LCP[j] >= l);
    }
-      
+   
    count +=1;
   
-
-   //printf("First 2k distinct breaks:\n");
-//   for(int i=0; i<count; i++)
-  //    printf("%d, %.2s\n", dbreaks[i], pattern + dbreaks[i]);
-   
-   //printf("Break locations:\n");
-  // for (int i=0; i<n; i++)
-  //    if (breakPositions[i] <0)
-         //printf(" ");
-     // else printf("%d", breakPositions[i]);
-  //printf("\n");
- 
-  // printf("Counts: \n");
-  // for (int i=0; i<count; i++)
- //  {
- //     printf("%d\n", breakCounts[i]);
- //  }
- 
- //  printf("\n");
-   
    // breakPositions now contains a look up for all the breaks.
    
    // Create an array which will point to the start positions of the
@@ -620,26 +601,13 @@ int constructLookups(            const int*      breaks,
    // it stores the last value too, to make end caes easier.
    int *breakIndicies = malloc(sizeof(int)*(count+1));
    
-   // Now, set those break indicies to point to placeholders in the
-   // lookup array.
-   
    // The first break starts at index 0.
-   // TODO: think about end case.
    breakIndicies[0]=0;
+   
+   // Calculate the indicies into the lookup array.
    for (int i=1; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
-
-  // printf("Break indicies: \n");
-   
-  // for (int i=0; i<count; i++)
-  //    printf("%d\n", breakIndicies[i]);
-
-   // Allocate just enough space in the lookup table to contain all of
-   // the matches for the breaks.
-   //lookup = malloc(sizeof(int)*  breakIndicies[count]);
-   
-  // printf("Total number of disjoint breaks: %d\n", breakIndicies[count]);
-   
+      
    // We now copy the breaks into the lookup table, keeping them sorted
    // by maintaining pointers into the correct positions in the array.
    int *temp_pointers = malloc(sizeof(int) * count);
@@ -654,24 +622,11 @@ int constructLookups(            const int*      breaks,
    for (int i=0; i<n; i++)
    { 
       if(breakPositions[i]<0) continue;
-     // printf("  break position: %d\n", breakPositions[i]);
-      //printf("  pat position:   %d\n",   dbreaks[breakPositions[i]]);
+
       lookup[temp_pointers[breakPositions[i]]] = i;
       temp_pointers[breakPositions[i]]++;
    }
 
-  // printf("Lookup: (length: %d)\n", breakIndicies[count]);
-   
- //  for (int i=0; i<count; i++)
-   //{
-   //   printf("  Next: \n");
-   //   for (int j=breakIndicies[i]; j<breakIndicies[i+1]; j++)
-   //   {
-    //     printf("%d\n", lookup[j]);
-   //   } 
-      
-//   }
-   
    // We now have a lookup containing all the positions of the disjoint breaks,
    // sorted first by break index, and then by pattern index.
    // We now require n/k sets of 2k (>=count) pointers to index this array in 
@@ -681,11 +636,6 @@ int constructLookups(            const int*      breaks,
    free(breakPositions);
    free(temp_pointers);
       
-//   int partitions = (int)( (float)n/(k+0.5) );
-
-
-      
-     
    // We now set the pointers to give the locations of the start points for
    // each set of breaks within each of the n/k blocks of length k
 
@@ -705,58 +655,31 @@ int constructLookups(            const int*      breaks,
       
       // The first boundary is at 0.
       indiciesArr[0]  = breakIndicies[i];
+      
       for (int j=0; j<length; j++)
       {
-         //printf("Looking at: %d:%d\n",j, breakArr[j]);
-         
          // This is the block within this break should be:
-         int x = breakArr[j]/k;
-         
-         //printf("Fits into block: %d\n", x);
+         int x = breakArr[j]/k;        
          
          // If we have moved to a new boundary.
-         if (x>=boundary)
+         if (x >= boundary)
          {
             // It may be that we have 'skipped a few' of the i's.
-            // We must therefore copy back the correct end value in order
-            // for the algorithm to work properly.
+            // We must therefore copy back the correct end value in order.
             for (int k=boundary; k<=x; k++)
-            {
-               //printf("Setting index: %d to %d\n", k, j);
                indiciesArr[k] = j + breakIndicies[i];         
-            }  
+            
             boundary = x+1;
-         }
-         
-      }
-      
-
+         }        
+      }      
    }
-      // Test output //
-  //    for (int i=0; i<n; i++)      
-     //   printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], (i%(n/k))*k);
+
+   free(breakCounts);
+   free(breakIndicies);
+   
    // Return the number of disjoint breaks found.
-   
-   
-     free(breakCounts);
-     free(breakIndicies);
-   
    return count;
-   
- 
 }
-
-
-/******************************************************************************/
-/*
-// Find the matches in a region of length l.
-int algorithm_2(int x0, char* text, char *pattern, int breaks, int bn, int l, ESA *esa, int k)
-{
-   
-   
-   return 0;
-}
-*/
 
 /******************************************************************************/
 // Try to use the periodicity properties of the pattern to match.
@@ -771,6 +694,7 @@ int periodicMatching(            const char*     text,
                                        int*      matches                       )
 {
 
+   // Zero the matches array as usual.
    memset(matches, 0, sizeof(int)*(n-m+1));
 
    // This is the largest possible value of b.
@@ -780,10 +704,9 @@ int periodicMatching(            const char*     text,
    // Construct the ESA for the text.
    ESA esa;   
    
-   //   printf("%.10s\n", text + n+m-1 );
+
    // We need a generalised suffix array: 
    // Do this by using an auxillary array called tp (text-pattern)
-
    char *tp = malloc( sizeof(char) * ( n+m-1 ) );
 
    // Copy the text (minus the '\0') into tp,
@@ -801,8 +724,7 @@ int periodicMatching(            const char*     text,
    //printf("There are %d pattern breaks\n", pn);
   
    if (pn >= 2*k)
-   {    
-  
+   {      
       printf("There are enough k-breaks\n");        
       // Only use the first 2k kbreaks for matching.
       simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k, &esa);   
@@ -814,39 +736,33 @@ int periodicMatching(            const char*     text,
       printf("Constructing lookup-tables for Algorithm 2\n");
       // ** Initialise the structures for algorithm 2 **
      
-      // 1) Find l-boundary
+      // Find l-boundary
       int  ln;
       int  mn;
       int *lbreaks = malloc(sizeof(n)*n);
       int *mbreaks = malloc(sizeof(n)*n);
       
-      //printf("Finding l-boundary\n");      
       int l = find_l(pattern, m, k, &ln, &mn, lbreaks, mbreaks);
-//      int _m = l+1; 
-      
-      
+
+      if(l<0)
+         return 0;            
    
-      // 2) Create look-up structure.
-   
+      // Create look-up structure.   
       int *lookup   =  calloc(n, sizeof(int));
       int *indicies =  calloc(2*n, sizeof(int));
       int *dbreaks  =  calloc(2*k, sizeof(int));
-      
-      //printf("Constructing look-ups\n");
-
-      displayBreaks(pattern, lbreaks, m, l, ln);
-      //  displaySA(&esa);
-      
-
-      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
+           
+      // displayBreaks(pattern, lbreaks, m, l, ln);      
+      printf("Constructing look-ups\n");
+      constructLookups(lbreaks, ln, text, pattern, &esa, l,k,n,m, dbreaks, 
+                                                                  lookup, 
+                                                                  indicies    );
    
    
-
       for (int i=0; i<n+l; i+=l)
-      {
-         algorithm_2(i, l, n, m, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
-      }
-      printf("At pos: %d\n", matches[488]);
+         algorithm_2(i, l, n, m, k, ln, &esa, lbreaks, dbreaks,   lookup, 
+                                                                  indicies, 
+                                                                  matches     );      
       return 1;
    }
    
