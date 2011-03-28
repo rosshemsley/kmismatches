@@ -314,9 +314,9 @@ void simpleMatcher(              const char*     text,
    for (int i=0;i<n-m+1;i++)
    {
       // If there could be a match here.
-      if (matches[i] >= k)
+      if (matches[i] >= k-1)
       {
-         printf("Verifying: %d\n", i);
+      //   printf("Verifying: %d\n", i);
          matches[i] = verify(i, n-1, m,  k, esa);             
       } else 
          matches[i] = k+1;
@@ -494,7 +494,7 @@ int algorithm_2(                       int       x,
       // If there could be a match here.
       if (matches[i] >= k)
       {
-         printf("Verifying: %d\n", i);
+    //     printf("Verifying: %d\n", i);
          matches[i] = verify(i, n-1, m,  k, esa);             
       } else 
          matches[i] = k+1;
@@ -791,7 +791,7 @@ int periodicMatching(            const char*     text,
    if (pn >= 2*k)
    {    
   
-      //printf("There are enough k-breaks\n");        
+      printf("There are enough k-breaks\n");        
       // Only use the first 2k kbreaks for matching.
       simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k, &esa);   
  
@@ -799,7 +799,7 @@ int periodicMatching(            const char*     text,
    }
    else 
    {
-      //printf("Constructing lookup-tables for Algorithm 2\n");
+      printf("Constructing lookup-tables for Algorithm 2\n");
       // ** Initialise the structures for algorithm 2 **
      
       // 1) Find l-boundary
