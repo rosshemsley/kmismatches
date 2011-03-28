@@ -810,7 +810,7 @@ int periodicMatching(            const char*     text,
       displayBreaks(pattern, mbreaks, m, l, ln);
       //  displaySA(&esa);
       
-      
+      exit(0);
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
