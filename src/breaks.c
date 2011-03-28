@@ -432,7 +432,7 @@ int algorithm_2(                       int       x,
       
       printf("Found: %d\n", f);
       
-      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l);
+      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
       
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
