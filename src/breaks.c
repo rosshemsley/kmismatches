@@ -399,6 +399,9 @@ int algorithm_2(                       int       x,
    // For each of the first 2k breaks.
    for (int i=0; i<2*k; i++)
    {
+   
+      if (x + lbreaks[i] >= n)continue;
+      
       // This is the correct lookup offset for this break (I hope).
       const int* breakArr = indicies + (n/k) * dbreaks[i];   
       int        block    = (x + lbreaks[i])/k;
@@ -406,9 +409,9 @@ int algorithm_2(                       int       x,
       // Figure out which of the disjoint breaks we are looking at.
       
       // This is the index of the distinc break:
-      printf("Looking for break: (lbreak) %d (dbreak) %d\n", lbreaks[i], dbreaks[i]);
+    //  printf("Looking for break: (lbreak) %d (dbreak) %d\n", lbreaks[i], dbreaks[i]);
       // This is the index of the current pattern-break.
-      printf("Looking in block: %d\n", block);
+     // printf("Looking in block: %d\n", block);
       
             
       // This is the block index, it gives the index of the block
@@ -416,8 +419,8 @@ int algorithm_2(                       int       x,
       // up to start at x.     
       
       // Have a peek at the block.
-      for (int z=0; z<k; z++)
-         printf("%d\n", breakArr[ z ]);
+    //  for (int z=0; z<k; z++)
+      //   printf("%d\n", breakArr[ z ]);
             
       // This is the index into the lookup array of the start of this sorted
       // array.      
@@ -435,28 +438,32 @@ int algorithm_2(                       int       x,
       else 
          end = breakArr[ block+1 ];
          
-      printf("Start: %d\n", start);
-      printf("End:   %d\n", end);
-      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
+     // printf("Start: %d\n", start);
+     // printf("End:   %d\n", end);
+     // printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
 
 
-      printf("Doing search on the following:\n");
+  //    printf("Doing search on the following:\n");
       
-      for (int y=start; y<end; y++)
-      {
-         printf("%d\n", (lookup)[y]);
-      }
+   //   for (int y=start; y<end; y++)
+    //  {
+     //    printf("%d\n", (lookup)[y]);
+    //  }
 
       int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]) + start;
       
+      if (f<0) continue;
       
-      printf("Found: %d (%d)\n", f, lookup[f]);
-      matches[lookup[f]-lbreaks[i]] += 1;
+      
+    //  printf("Found: %d (%d)\n", f, lookup[f]);
+      if (lookup[f]-lbreaks[i] >=0)
+         matches[lookup[f]-lbreaks[i]] += 1;
       
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
-         printf("Found: %d (%d)\n", f+1, lookup[f+1]);
-         matches[lookup[f+1]-lbreaks[i]] += 1;
+         //  printf("Found: %d (%d)\n", f+1, lookup[f+1]);
+         if (lookup[f+1] - lbreaks[i] >=0)
+            matches[lookup[f+1]-lbreaks[i]] += 1;
       }
       
       // arr now contains all the pointers to the starts of each instance of this
@@ -466,7 +473,7 @@ int algorithm_2(                       int       x,
       //((x+breaks[i])/k +1)
       
       
-      printf("\n");               
+   //   printf("\n");               
      
       
    }
@@ -522,7 +529,7 @@ int constructLookups(            const int*      breaks,
       // Find the first instance of this substring.    
       int j = findSubstringPosition(pattern + breaks[i], l, 0, esa->n, esa); 
 
-      printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
+      //printf("Location: %d, string; %.10s\n", j, pattern + breaks[i]);
 
       // Assume the esa is a generalised suffix tree, and so we always find a 
       // match.      
@@ -532,7 +539,7 @@ int constructLookups(            const int*      breaks,
       do {
          int x = esa->SA[j];
        
-         printf("Match: %d\n", x);
+         //printf("Match: %d\n", x);
          if (x<n-1)
          {
 
@@ -547,7 +554,7 @@ int constructLookups(            const int*      breaks,
             if (non_dup == 0)
             {
                count++;
-               printf("last count:%d\n", breakCounts[count]);
+               //printf("last count:%d\n", breakCounts[count]);
                // This is a new break.
                dbreaks[i]            = count;
                breakPositions[x]     = count;      
@@ -567,24 +574,24 @@ int constructLookups(            const int*      breaks,
    count +=1;
   
 
-   printf("First 2k distinct breaks:\n");
-   for(int i=0; i<count; i++)
-      printf("%d, %.2s\n", dbreaks[i], pattern + dbreaks[i]);
+   //printf("First 2k distinct breaks:\n");
+//   for(int i=0; i<count; i++)
+  //    printf("%d, %.2s\n", dbreaks[i], pattern + dbreaks[i]);
    
-   printf("Break locations:\n");
-   for (int i=0; i<n; i++)
-      if (breakPositions[i] <0)
-         printf(" ");
-      else printf("%d", breakPositions[i]);
-  printf("\n");
+   //printf("Break locations:\n");
+  // for (int i=0; i<n; i++)
+  //    if (breakPositions[i] <0)
+         //printf(" ");
+     // else printf("%d", breakPositions[i]);
+  //printf("\n");
  
-   printf("Counts: \n");
-   for (int i=0; i<count; i++)
-   {
-      printf("%d\n", breakCounts[i]);
-   }
+  // printf("Counts: \n");
+  // for (int i=0; i<count; i++)
+ //  {
+ //     printf("%d\n", breakCounts[i]);
+ //  }
  
-   printf("\n");
+ //  printf("\n");
    
    // breakPositions now contains a look up for all the breaks.
    
@@ -602,16 +609,16 @@ int constructLookups(            const int*      breaks,
    for (int i=1; i<count+1; i++)
       breakIndicies[i] = breakIndicies[i-1] + breakCounts[i-1];
 
-   printf("Break indicies: \n");
+  // printf("Break indicies: \n");
    
-   for (int i=0; i<count; i++)
-      printf("%d\n", breakIndicies[i]);
+  // for (int i=0; i<count; i++)
+  //    printf("%d\n", breakIndicies[i]);
 
    // Allocate just enough space in the lookup table to contain all of
    // the matches for the breaks.
    //lookup = malloc(sizeof(int)*  breakIndicies[count]);
    
-   printf("Total number of disjoint breaks: %d\n", breakIndicies[count]);
+  // printf("Total number of disjoint breaks: %d\n", breakIndicies[count]);
    
    // We now copy the breaks into the lookup table, keeping them sorted
    // by maintaining pointers into the correct positions in the array.
@@ -633,17 +640,17 @@ int constructLookups(            const int*      breaks,
       temp_pointers[breakPositions[i]]++;
    }
 
-   printf("Lookup: (length: %d)\n", breakIndicies[count]);
+  // printf("Lookup: (length: %d)\n", breakIndicies[count]);
    
-   for (int i=0; i<count; i++)
-   {
-      printf("  Next: \n");
-      for (int j=breakIndicies[i]; j<breakIndicies[i+1]; j++)
-      {
-         printf("%d\n", lookup[j]);
-      } 
+ //  for (int i=0; i<count; i++)
+   //{
+   //   printf("  Next: \n");
+   //   for (int j=breakIndicies[i]; j<breakIndicies[i+1]; j++)
+   //   {
+    //     printf("%d\n", lookup[j]);
+   //   } 
       
-   }
+//   }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
    // sorted first by break index, and then by pattern index.
@@ -706,8 +713,8 @@ int constructLookups(            const int*      breaks,
 
    }
       // Test output //
-      for (int i=0; i<n; i++)      
-        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], (i%(n/k))*k);
+  //    for (int i=0; i<n; i++)      
+     //   printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], (i%(n/k))*k);
    // Return the number of disjoint breaks found.
    return count;
 }
@@ -764,12 +771,12 @@ int periodicMatching(            const char*     text,
    pn = partition(pattern, k, m, breaks);
    
    // displayBreaks(p, breaks, m, k, pn);   
-   printf("There are %d pattern breaks\n", pn);
+   //printf("There are %d pattern breaks\n", pn);
   
    if (pn >= 2*k)
    {    
   
-      printf("There are enough k-breaks\n");        
+      //printf("There are enough k-breaks\n");        
       // Only use the first 2k kbreaks for matching.
       simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k, &esa);   
  
@@ -777,7 +784,7 @@ int periodicMatching(            const char*     text,
    }
    else 
    {
-      printf("Constructing lookup-tables for Algorithm 2\n");
+      //printf("Constructing lookup-tables for Algorithm 2\n");
       // ** Initialise the structures for algorithm 2 **
      
       // 1) Find l-boundary
@@ -786,7 +793,7 @@ int periodicMatching(            const char*     text,
       int *lbreaks = malloc(sizeof(n)*n);
       int *mbreaks = malloc(sizeof(n)*n);
       
-      printf("Finding l-boundary\n");      
+      //printf("Finding l-boundary\n");      
       int l = find_l(pattern, m, k, &ln, &mn, lbreaks, mbreaks);
 //      int _m = l+1; 
       
@@ -798,7 +805,7 @@ int periodicMatching(            const char*     text,
       int *indicies =  malloc(sizeof(int)* 2*n);
       int *dbreaks  =  malloc(sizeof(int)* 2*k);
       
-      printf("Constructing look-ups\n");
+      //printf("Constructing look-ups\n");
 
       displayBreaks(pattern, mbreaks, m, l, ln);
       //  displaySA(&esa);
