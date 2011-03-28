@@ -427,13 +427,22 @@ int algorithm_2(                       int       x,
       
       printf("Start: %d\n", start);
       printf("End:   %d\n", end);
+      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
+
+
+      printf("Doing search on the following:\n");
+      
+      for (int y=start; y<end; y++)
+      {
+         printf("%d\n", (lookup)[y]);
+      }
 
       int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]) + start;
       
       
       printf("Found: %d (%d)\n", f, lookup[f]);
       
-      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
+
       
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
@@ -615,7 +624,7 @@ int constructLookups(            const int*      breaks,
       {
          printf("%d\n", lookup[j]);
       } 
-      break;
+      
    }
    
    // We now have a lookup containing all the positions of the disjoint breaks,
@@ -669,7 +678,7 @@ int constructLookups(            const int*      breaks,
             for (int k=boundary; k<=x; k++)
             {
                //printf("Setting index: %d to %d\n", k, j);
-               indiciesArr[k] = j;         
+               indiciesArr[k] = j + breakIndicies[i];         
              }  
             boundary = x+1;
          }
@@ -680,7 +689,7 @@ int constructLookups(            const int*      breaks,
    }
       // Test output //
       for (int i=0; i<n; i++)      
-        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], i*k);
+        printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], (i%(n/k))*k);
    // Return the number of disjoint breaks found.
    return count;
 }
