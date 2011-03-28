@@ -251,15 +251,6 @@ void simpleMatcher(              const char*     text,
                                  const ESA*      esa   )
 {
 
-   // Zero the matches array.
-
-
-
-   
-   
-   // Go through all of the k-breaks, and mark the starting positions.
-   
-   
    printf("bn is: %d, k is; %d\n", bn, k);
    
    // Loop through all of the k-breaks.
@@ -346,6 +337,7 @@ int set_cmp(int a, int b, int l)
 // There can be at most two matches in this special case we are considering.
 // Thus we look at the previous value, and if it also satisfies the critiera, 
 // we return it. In this way, we always know we have the first.
+
 int binaryBreakSearch(int x, int l, const int *lookup, int n)
 {
    int mid;
@@ -378,9 +370,8 @@ int binaryBreakSearch(int x, int l, const int *lookup, int n)
 }
 
 /******************************************************************************/
-
-
 // Perform matching in O(k log k) for contiguous blocks of length l.
+
 int algorithm_2(                       int       x,
                                        int       l,
                                        int       n,
@@ -725,7 +716,8 @@ int periodicMatching(            const char*     text,
   
    if (pn >= 2*k)
    {      
-      printf("There are enough k-breaks\n");        
+      printf("There are enough k-breaks\n");       
+       
       // Only use the first 2k kbreaks for matching.
       simpleMatcher(text, pattern, breaks, matches, k, n, m, 2*k, &esa);   
  
@@ -734,7 +726,8 @@ int periodicMatching(            const char*     text,
    else 
    {
       printf("Constructing lookup-tables for Algorithm 2\n");
-      // ** Initialise the structures for algorithm 2 **
+      
+      // ** Initialise the structures for algorithm 2 ** //
      
       // Find l-boundary
       int  ln;
@@ -748,7 +741,7 @@ int periodicMatching(            const char*     text,
          return 0;            
    
       // Create look-up structure.   
-      int *lookup   =  calloc(n, sizeof(int));
+      int *lookup   =  calloc(n,   sizeof(int));
       int *indicies =  calloc(2*n, sizeof(int));
       int *dbreaks  =  calloc(2*k, sizeof(int));
            
@@ -756,9 +749,7 @@ int periodicMatching(            const char*     text,
       printf("Constructing look-ups\n");
       constructLookups(lbreaks, ln, text, pattern, &esa, l,k,n,m, dbreaks, 
                                                                   lookup, 
-                                                                  indicies    );
-   
-   
+                                                                  indicies    );      
       for (int i=0; i<n+l; i+=l)
          algorithm_2(i, l, n, m, k, ln, &esa, lbreaks, dbreaks,   lookup, 
                                                                   indicies, 

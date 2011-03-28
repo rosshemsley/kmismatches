@@ -163,7 +163,7 @@ int main(int argc, char **argv)
       printf("Val at position: %d\n", matches[pos]);
       printf("FAILED TEST\n");
       fprintf(stderr, "FAILED TEST\n");
-      exit(1);
+      return 1;
    }   
   
   
