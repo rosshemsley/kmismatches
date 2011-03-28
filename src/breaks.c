@@ -422,9 +422,18 @@ int algorithm_2(                       int       x,
       // array.      
       int start = breakArr[ block ];
       
-      // The following gives us the end point:      
-      int end   = breakArr[ block+1 ];
+      // For now, assume that we go over a break boundary.
+      // This probably doesn't add any overhead.
       
+
+      int end;
+      // The following gives us the end point:      
+      // TODO: CHECK THE LOGIC HERE
+      if (block + 2 <= ln)
+         end = breakArr[ block+2 ];
+      else 
+         end = breakArr[ block+1 ];
+         
       printf("Start: %d\n", start);
       printf("End:   %d\n", end);
       printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l-1);
