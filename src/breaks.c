@@ -652,14 +652,14 @@ int constructLookups(            const int*      breaks,
       int *breakArr = lookup + breakIndicies[i];
       int  length   = breakCounts[i];
       
-      int *indiciesArr = indicies + i * n/k;
+      int *indiciesArr = indicies + i * (n/k);
       
       // We go through all of the break instances, and set pointers every time
       // we go over a block of length k.
       int boundary = 1;
       
       // The first boundary is at 0.
-      indiciesArr[0]  = 0;
+      indiciesArr[0]  = breakIndicies[i];
       for (int j=0; j<length; j++)
       {
          //printf("Looking at: %d:%d\n",j, breakArr[j]);
