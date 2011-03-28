@@ -332,7 +332,7 @@ void simpleMatcher(              const char*     text,
 int set_cmp(int a, int b, int l)
 {
    if (a < b   ) return -1;  
-   if (a > b+l ) return  1;
+   if (a >= b+l ) return  1;
    
    return 0;
   
@@ -432,7 +432,9 @@ int algorithm_2(                       int       x,
       
       printf("Found: %d\n", f);
       
-      if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0)
+      printf("smallest: %d, largest: %d\n" ,x+lbreaks[i], x+lbreaks[i]+l);
+      
+      if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
                printf("Found: %d\n", f+1);
       }
