@@ -181,7 +181,7 @@ int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbr
       {  
          printf("There are %d l-breaks\n", *ln);
          printf("There are %d m-breaks\n", *mn);         
-         printf("DONE: l=%d, k=%d\n",l,k);
+         printf("DONE: l=%d, k=%d\n",l-1,k);
          return l-1;
       }
    }
@@ -431,6 +431,11 @@ int algorithm_2(                       int       x,
       int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]);
       
       printf("Found: %d\n", f);
+      
+      if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0)
+      {
+               printf("Found: %d\n", f+1);
+      }
       
       // arr now contains all the pointers to the starts of each instance of this
       // break for each block of length k
@@ -753,8 +758,8 @@ int periodicMatching(            const char*     text,
       int l = find_l(pattern, m, k, &ln, &mn, lbreaks, mbreaks);
 //      int _m = l+1; 
       
+      printf("l: %d\n",l);
       
-   
       // 2) Create look-up structure.
    
       int *lookup   =  malloc(sizeof(int)* n);
@@ -765,9 +770,9 @@ int periodicMatching(            const char*     text,
 
       displayBreaks(pattern, lbreaks, m, l, ln);
       //  displaySA(&esa);
+         
       
-      
-      constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
+      constructLookups(lbreaks, ln, text, pattern, &esa, m, k, n, m, dbreaks, lookup, indicies);
    
    
       algorithm_2(0, l, n, k, ln, &esa, lbreaks, dbreaks, lookup, indicies, matches);
