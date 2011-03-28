@@ -172,7 +172,7 @@ void displayBreaks(const char *t, const int *breaks, int n, int l, int b)
 int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbreaks)
 {
    // Do a linear search for now. 
-   for (int l=k; l>=2; l--)
+   for (int l=k; l>2; l--)
    {
       *ln = partition(t, l-1, n, lbreaks);
       *mn = partition(t, l,   n, mbreaks);
@@ -450,20 +450,28 @@ int algorithm_2(                       int       x,
      //    printf("%d\n", (lookup)[y]);
     //  }
 
+//      if (end >= ln*(n/k)) end = ln*(n/k)-1;
+
+
+      if (lookup[end] - lookup[start] < 0) continue;
+      
+         //   printf("%d\n", lookup[end]-lookup[start]);
+      
       int f = binaryBreakSearch(x + lbreaks[i], l, lookup + start, lookup[end]-lookup[start]) + start;
       
       if (f<0) continue;
       
-      
+      if ( lookup[f] - lbreaks[i] > n-m+1) continue;
     //  printf("Found: %d (%d)\n", f, lookup[f]);
       if (lookup[f]-lbreaks[i] >=0)
-         matches[lookup[f]-lbreaks[i]] += 1;
+         matches[lookup[f]-lbreaks[i]] ++;
       
       if ( set_cmp(lookup[f+1], x+lbreaks[i], l) == 0 )
       {
+         int t = lookup[f+1] - lbreaks[i];
          //  printf("Found: %d (%d)\n", f+1, lookup[f+1]);
-         if (lookup[f+1] - lbreaks[i] >=0)
-            matches[lookup[f+1]-lbreaks[i]] += 1;
+         if (t >=0 && t < n-m+1)
+            matches[t] ++;
       }
       
       // arr now contains all the pointers to the starts of each instance of this
@@ -481,7 +489,7 @@ int algorithm_2(                       int       x,
    // Perform Verification on the, at most 4 locations with >=k marks //
    
    
-   for (int i=x; i< x+l-1; i++)
+   for (int i=x; i< x+l-1 && i<n-m+1; i++)
    {
       // If there could be a match here.
       if (matches[i] >= k)
@@ -716,7 +724,14 @@ int constructLookups(            const int*      breaks,
   //    for (int i=0; i<n; i++)      
      //   printf("%-3d Boundary: %d, k-value: %d\n", i, indicies[i], (i%(n/k))*k);
    // Return the number of disjoint breaks found.
+   
+   
+     free(breakCounts);
+     free(breakIndicies);
+   
    return count;
+   
+ 
 }
 
 
@@ -801,16 +816,16 @@ int periodicMatching(            const char*     text,
    
       // 2) Create look-up structure.
    
-      int *lookup   =  malloc(sizeof(int)* n);
-      int *indicies =  malloc(sizeof(int)* 2*n);
-      int *dbreaks  =  malloc(sizeof(int)* 2*k);
+      int *lookup   =  calloc(n, sizeof(int));
+      int *indicies =  calloc(2*n, sizeof(int));
+      int *dbreaks  =  calloc(2*k, sizeof(int));
       
       //printf("Constructing look-ups\n");
 
-      displayBreaks(pattern, mbreaks, m, l, ln);
+      displayBreaks(pattern, lbreaks, m, l, ln);
       //  displaySA(&esa);
       
-      exit(0);
+
       constructLookups(lbreaks, ln, text, pattern, &esa, l, k, n, m, dbreaks, lookup, indicies);
    
    
