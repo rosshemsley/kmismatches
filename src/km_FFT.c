@@ -5,6 +5,7 @@
 #include <fftw3.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 
 // #define TEST
 /*******************************************************************************
@@ -42,7 +43,6 @@ static inline void maskText(    double*    r,
                                 const char*      text, 
                                 const int        n                             )
 {
-   printf("text length: %d\n",n);
    for (int i= 0; i<n; i++)
       r[i] = (text[i] == symbol) ? 1.0 : 0.0;
 
@@ -240,19 +240,54 @@ void match_with_FFT(        int  *matches,
 #ifdef TEST
 /******************************************************************************/
 
+void randomStrings(char *text, char *pattern ,int n, int m)
+{	
+   int i;	
+
+   for (i=0; i<n;i++)
+      // random letter from a..b
+      text[i] =  (char)(rand() % 2 + 97);
+   for (i=0;i<m;i++)
+      pattern[i] = (char)(rand() % 2 + 97);
+}
+
+/******************************************************************************/
+
+void naive_matcher(const char *t, const char *p, int n, int m, int *A)
+{
+   int i,j;
+   for (i=0;i<n-m+1;i++)
+   {
+      int matches=0;
+      for (j=0;j<m;j++)
+      {
+         if (i+j > n) continue;
+       
+         if (t[i+j] == p[j])
+            matches ++;
+    }
+    A[i] = matches;
+   }
+}
+
+/******************************************************************************/
+
 // Unit testing. Will return 0 if all tests succeeded.
 int test_FFT_Matching()
 { 
+
+   printf("Testing FFT Matching\n");
+   srand( time(NULL) );
 
    //-------------------------------------------------------------------------//
    // Testing parameters.
    //-------------------------------------------------------------------------//
    // Number of different test cases to try.
-   int repeats = 1e3;
+   int repeats = 3e2;
    
    // the length of the text and pattern.
-   int m       = 19;
-   int n       = 278;
+   int m       = 1e2;
+   int n       = 1e4;
 
    //-------------------------------------------------------------------------//
  
@@ -264,6 +299,7 @@ int test_FFT_Matching()
    char p[m+1];
    p[m] = '\0';
    t[n] = '\0';
+ 
    
    // The output arrays.
    int matches_FFT  [n-m+1];
@@ -275,7 +311,7 @@ int test_FFT_Matching()
       // Generate random text and pattern of length n and m respectively.
       // These will consist only of the letters a and b.
       randomStrings(t,p, n,m);
-      
+
       // zero the FFT matches array.
       for (i=0;i<n-m+1;i++)
          matches_FFT[i]=0; 

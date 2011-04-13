@@ -284,7 +284,6 @@ int findSubstringPosition(       const char*     p,
    int max_p = 0;
       
    int mid;
-
    int x;
 
    do 
@@ -311,8 +310,7 @@ int findSubstringPosition(       const char*     p,
    
       // We found a match.
       else if (c == 0)
-      {
-         
+      {         
          // Find the first instance of it in the suffix array.
          // This takes time proportional to the number of matches.
          while (mid > 0 && esa->LCP[mid] >= m) --mid;
@@ -325,7 +323,121 @@ int findSubstringPosition(       const char*     p,
    // Substring was not found anywhere.
    return -1;
 }
+/******************************************************************************/
 
+/*
+// Find the maximum possible extension of any suffix and this part of the text 
+// and store it in P.
+static inline int extendInterval(const int*      LOOKUP, 
+                                       pTriple*  P, 
+                                 const char*     text,
+                                 const char*     pattern, 
+                                 const int       n,  
+                                 const int       m, 
+                                 const ESA*      esa                           )
+{
+ 
+   // We start with the first l-interval.
+   int i = LOOKUP[(unsigned char)text[0]];
+   int j = esa->accross[i]-1;
+   
+   // This is the current length of the matching prefix of the text.
+   int l = 1;
+   
+   // u is the start of the current l-index.
+   int u = i;   
+   
+   // v is the start of the next l-index.
+   int v = LI_FIRST_CHILD(i, j, esa);
+      
+   // We use this to force a stop on the next iteration.
+   int STOP = 0;
+
+   // Now, keep traversing the tree until we run out of possibilities. 
+   while (1)
+   {
+      
+      // Singleton.
+      // We have reached a leaf node.
+      if (i == j)
+      {  
+        // printf("Singleton interval\n");
+         while  (text[l-1] != '\0' && (pattern + esa->SA[u])[l] == text[l])
+            l++;
+         break;
+      }
+                 
+      // Find the l-value of this l-interval.
+      int lcp = LI_GET_LCP(i,j,esa);
+      
+      // Set this to zero if the matching failed.
+      int match = 1;
+      
+      // This will walk us down branches which are multiple symbols long.
+      for (; l < lcp ; l++)
+      {
+         if ((pattern + esa->SA[u])[l] != text[l])
+         {
+            match = 0;
+            break;
+         }
+      }
+      
+      if (match == 0)
+         break;
+         
+      // Does the start of this l-interval match?
+      if ( (pattern + esa->SA[u])[l] == text[l] )       
+      {
+         // Increment the 'depth' in the text.
+         ++l;      
+         
+         // If we are in the last interval and find a match, then 
+         // we want to continue looking down the tree and so we do not stop yet.
+         STOP = 0;
+
+         // Move down the tree.
+         i = u;
+         j = v-1;m
+         
+         // find the index of the first child interval in the new l-interval.
+         v = LI_FIRST_CHILD(i,j,esa);
+        
+         continue;
+      }  
+      
+      // Move accross the tree to the next child interval.
+      u = v;
+      v = esa->accross[v];
+   
+      // If we have reached the end of this l-interval,
+      // then v will be 0. However, there could still be a match
+      // here, so we use STOP to indicate that the next round should
+      // be the last.
+      // Obviously, if we find a match, STOP should be reset.            
+      if (STOP)
+         break;
+      
+      // We have reached the end of this l-interval.
+      // Setting v=j+1 will mean that the end of the interval will be set to 
+      // j later on.
+      // We want to stop on the next iteration of there are no matches.
+      if (v == 0)
+      {
+         v = j+1;m
+         STOP = 1;
+      }       
+   }
+   
+   // put our 'results' into this p-block.
+   P->l = l;
+   P->j = esa->SA[i];
+
+   // Return the longest match we found.
+   return l;
+
+}
+*/
 /******************************************************************************/
 
 void freeESA(ESA *esa)
@@ -335,4 +447,21 @@ void freeESA(ESA *esa)
    free(esa->SAi);
 }
 
+/*******************************************************************************
+* UNIT TESTING
+*
+* Compile with TEST to run unit tests.
+*
+*******************************************************************************/
+#ifdef TEST
+/******************************************************************************/
+
+int test_ESA()
+{ 
+
+   return 0;
+}
+
+/******************************************************************************/
+#endif
 /******************************************************************************/

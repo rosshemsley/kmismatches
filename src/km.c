@@ -1183,7 +1183,7 @@ void kangaroo(            const char *text,
 #ifdef TEST
 /******************************************************************************/
 
-int main(int argc, char **argv)
+int test()
 { 
 
    int status = 0;
