@@ -137,7 +137,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    esa->LCP = calloc( (n+2), sizeof(int) );
    
    
-   printf("Constructing SA/LCP\n");
+   //printf("Constructing SA/LCP\n");
    // Construct the SA and LCP in linear time.
    sais((unsigned char*)s, esa->SA, esa->LCP, n);
 
@@ -147,7 +147,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    
    if (! (flags & NO_CHILD_TAB) )   
    {
-      printf("Constructing Child table\n");
+      //printf("Constructing Child table\n");
       // Child table, we attempt standard construction first,
       // then optimise it to occupy just one field.
       esa->up      = calloc( (n+2), sizeof(int) );
@@ -161,7 +161,7 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    // Construct the inverse suffix array.
    if (! (flags & NO_INV)  )
    {
-      printf("Constructing SAi\n");
+      //printf("Constructing SAi\n");
       esa->SAi = calloc( (n+2), sizeof(int) );
    
       for (int i=0; i<n; i++)
@@ -171,11 +171,11 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
    // Initialise the RMQ structure.           
    if (! (flags & NO_RMQ) )
    {
-      printf("initialising RMQ\n");
+      //printf("initialising RMQ\n");
       RMQ_succinct(esa->LCP, n);  
    }
    
-   printf("Done ESA\n");
+   //printf("Done ESA\n");
 }
 
 /******************************************************************************/
@@ -183,13 +183,13 @@ void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
 // mle will store the location at which the match fails.
 // In this way we can reduce the number of comparisons we have to do.
 
+// n is the length of a.
+
+
 int str_gth(const char *a, const char *b, int n, int *i)
 {
    for (; *i<n; (*i)++)
-   {      
-      if (a[*i]=='\0') return 0;
-      if (b[*i]=='\0') return 0;
-      
+   {           
       if ((unsigned char)a[*i] > (unsigned char)b[*i]) return 1;
       if ((unsigned char)a[*i] < (unsigned char)b[*i]) return -1;
    }
@@ -228,6 +228,7 @@ int findLongestSubstring(        const char*     p,
 
    do 
    {
+      //printf("Going around\n");
       x = MIN(min_p, max_p);
       
       //printf("x: %d\n", x);
@@ -235,30 +236,37 @@ int findLongestSubstring(        const char*     p,
       mid   = min+(max-min)/2;      
       int c = str_gth(p, esa->t + esa->SA[mid], m, &x);    
       
+      
+      
       if (x>longest_match)
-      {  
+      {           
          longest_match = x;
          longest_pos   = esa->SA[mid];
       }
       
       //  printf("min, max: %d, %d, %d\n", min, max, mid);
-      if (c == 1)
+      if (c > 0)
       {
          min   = mid+1;
          min_p = x;
       }  
-      else if (c == -1)
+      else if (c < 0)
       {
          max   = mid-1;
          max_p = x;
       }  
       else if (c == 0)
       {
+         // Find the first instance of this suffix in the SA.
+         while (mid > 0 && esa->LCP[mid] >= m) --mid;
+         
          *l = longest_match;
          return esa->SA[mid];
-       }  
+      }  
    } while (min <= max);
    
+   // Return the first instance.
+   while (mid > 0 && esa->LCP[mid] >= m) --mid;
    *l = longest_match;
    return longest_pos;
 }
@@ -472,10 +480,13 @@ void _randomStrings(char *text, char *pattern ,int n, int m)
 
 int test_ESA()
 { 
+
+   printf("Testing ESA\n");
    srand( time(NULL) );
          
-   int n=200;
-   int m=20;
+   int n       = 1e3;
+   int m       = 2e2;
+   int repeats = 1e4;
          
    // The text and pattern strings.
    char t[n+1];
@@ -485,12 +496,23 @@ int test_ESA()
       
    ESA esa;
    
-   _randomStrings(t,p,n,m);
+   for (int i=0; i<repeats; i++)
+   {
+      _randomStrings(t,p,n,m);
+    
+      // Throw away p and set it to a substring of t.   
+      memcpy(p,t,sizeof(char)*m);
+            
+      constructESA(t,n+1, &esa, NO_RMQ);
+      int l=0;
+    
+      findLongestSubstring(p, m, &l,0,n, &esa);
+      
+      // A full match should be found.
+      assert(l == m);
+      if (l != m) return 1;
    
-   constructESA(t,n+1, &esa, 0);
-   
-   
-   exit(0);
+   }
    return 0;
 }
 
