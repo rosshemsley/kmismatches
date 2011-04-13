@@ -456,9 +456,41 @@ void freeESA(ESA *esa)
 #ifdef TEST
 /******************************************************************************/
 
+void _randomStrings(char *text, char *pattern ,int n, int m)
+{	
+   int i;	
+
+   for (i=0; i<n;i++)
+      // random letter from a..b
+      text[i] =  (char)(rand() % 2 + 97);
+   for (i=0;i<m;i++)
+      pattern[i] = (char)(rand() % 2 + 97);
+}
+
+/******************************************************************************/
+
+
 int test_ESA()
 { 
-
+   srand( time(NULL) );
+         
+   int n=200;
+   int m=20;
+         
+   // The text and pattern strings.
+   char t[n+1];
+   char p[m+1];
+   p[m] = '\0';
+   t[n] = '\0';
+      
+   ESA esa;
+   
+   _randomStrings(t,p,n,m);
+   
+   constructESA(t,n+1, &esa, 0);
+   
+   
+   exit(0);
    return 0;
 }
 

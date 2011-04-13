@@ -13,7 +13,7 @@
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "./sp_km_unbounded_matcher.h"
-
+#include "esa.h"
 /******************************************************************************/
 //
 // NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
@@ -192,7 +192,8 @@ int main(int argc, char **argv)
 { 
 
    int status = 0;
-   
+      
+   status += test_ESA();
    status += test_FFT_Matching();
    
    if (status==0)
