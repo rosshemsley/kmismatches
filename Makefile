@@ -1,5 +1,5 @@
 CC    = gcc
-flags = -std=c99 -Wall -pedantic -o3 -g #-DNDEBUG
+flags = -std=c99 -Wall -pedantic -o3  -pg#-DNDEBUG
 libs  = -lm -lfftw3
 
 all:

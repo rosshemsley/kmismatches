@@ -68,6 +68,13 @@ int findLongestSubstring(        const char*     p,
                                        int       l0, 
                                        int       r0, 
                                  const ESA*      esa                          );
+//------------------------------------------------------------------------------                                                                           
+int findLongestSubstring_simple(const char*     p,                                
+                                       int       m,   
+                                       int*      l,                                                              
+                                       int       l0, 
+                                       int       r0, 
+                                 const ESA*      esa                          );                                 
 //------------------------------------------------------------------------------                                          
 int findSubstringPosition(       const char*     p,           
                                        int       m,    
@@ -75,7 +82,9 @@ int findSubstringPosition(       const char*     p,
                                        int       r0, 
                                  const ESA*      esa                          );
 //------------------------------------------------------------------------------                                          
-void freeESA(                          ESA*      esa                          );                                   
+void freeESA(                          ESA*      esa                          );   
+
+int getInterval(int *i, int *j, int l, char c, const ESA *esa);                                
 /******************************************************************************/
 #ifdef TEST
 int test_ESA();
