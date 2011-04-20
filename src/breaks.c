@@ -714,5 +714,133 @@ int periodicMatching(            const char*     text,
 }
 
 
+void showSegments(char * t, int *breaks, int l, int b)
+{
+   int z=0;
+   int bad=0;
+   printf("|");
+   for (int i=0; i<strlen(t); i++)
+   {     
+      if (i%4==0)
+      {
+         if (z>0 && breaks[z-1] >= i-l)
+            bad=1;      
+         if (z<b && breaks[z] < i+l)
+         {
+            bad =1;
+            z++;
+         }
+      }         
+      if (bad)
+         printf("#");
+      else            
+         printf("%c", t[i]);                  
+      if (i%4 ==3)
+      {
+         printf("|");
+         bad=0;
+      }      
+   }
+   printf("\n");
+}
+
+/*******************************************************************************
+* UNIT TESTING
+*
+* Compile with TEST to run unit tests.
+*
+*******************************************************************************/
+#ifdef TEST
 /******************************************************************************/
+
+int test_breaks()
+{ 
+
+   return 0; 
+
+   printf("Testing breaks\n");
+
+
+   // Buffer to store the breaks.
+   int breaks[256];
+   
+   
+   int l = 5;
+   int k = 6;
+   
+   char T[] = "abababababababababababababababababababababababab########babababababababababababababababababababababababababababababababababababa";
+   
+   char t[] = "ababacabababcbabacabababcbababcbabababacbababababababababababcabcabcabcabcabcabcabababababab";
+   
+   
+   
+   printf("k=%d\n", k);
+   int c = partition(t,k, strlen(t), breaks);
+   
+   printf("There are %d %d-breaks\n",c, k);
+   displayBreaks(t,breaks, strlen(t), k,c);
+   
+  int b =  partition(t,l, strlen(t), breaks);
+   
+   
+   printf("\nThere are %d %d-breaks\n",b,l);
+   
+   displayBreaks(t, breaks, strlen(t), l, b);
+   
+   
+   printf("\n");
+   
+
+   printf("Bad l-segments marked with #:\n");
+
+   
+   
+   showSegments(t, breaks, l, b);
+   
+   printf("\n");
+   
+   
+   
+   printf("Consider the following text, lined up against the pattern: \n");      
+   printf("|");
+   
+
+   
+   
+   for (int i=0; i<strlen(T); i++)
+   {
+   
+      printf("%c", T[i]);
+      
+      if (i%4 ==3)
+      {
+         printf("|");      
+
+      }   
+   }
+   
+   printf("\n");
+   
+  
+      showSegments(t, breaks, l, b);
+   
+   
+   
+   
+   printf("\n");
+   
+   
+   
+   
+   
+   exit(0);
+   
+   return 1;
+}
+
+/******************************************************************************/
+#endif
+/******************************************************************************/
+
+
 

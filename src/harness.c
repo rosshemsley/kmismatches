@@ -193,7 +193,10 @@ int main(int argc, char **argv)
 
    int status = 0;
       
-   status += test_ESA();
+      
+
+   status += test_ESA();   
+   status += test_breaks();      
    status += test_FFT_Matching();
    
    if (status==0)

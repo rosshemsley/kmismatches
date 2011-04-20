@@ -383,14 +383,14 @@ int findLongestSubstring(        const char*     p,
                                  const ESA*      esa                           )
 {
 
-   int c=0;   
-   int i=0;
-   int j=esa->n-1;
+   int c=*l;   
+   int i=l0;
+   int j=r0;
 
    int fail = 0;        
    
    while (getInterval(&i, &j, c, p[c], esa) && c<m)
-   {      
+   {         
       if (i!=j)
       {
          int lcp = LI_GET_LCP(i,j,esa);
@@ -399,6 +399,7 @@ int findLongestSubstring(        const char*     p,
          fail=0;
          for (;c<lcp; c++)
          {
+            // Unwind the string comparison for speed.
             if ((esa->t + esa->SA[i])[c] != p[c])
             {
                fail=1;
@@ -411,6 +412,7 @@ int findLongestSubstring(        const char*     p,
          fail=0;
          for (;c<m; c++)
          {
+            // Again, we unwind the string comparison for speed.
             if ((esa->t + esa->SA[i])[c] != p[c])
             {
                fail=1;
@@ -463,9 +465,9 @@ void _randomStrings(char *text, char *pattern ,int n, int m)
 
    for (i=0; i<n;i++)
       // random letter from a..b
-      text[i] =  (char)(rand() % 2 + 97);
+      text[i] =  (char)(rand() % 4 + 97);
    for (i=0;i<m;i++)
-      pattern[i] = (char)(rand() % 2 + 97);
+      pattern[i] = (char)(rand() % 4 + 97);
 }
 
 /******************************************************************************/
@@ -489,23 +491,25 @@ int test_ESA()
    
       
    ESA esa;
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
+      
    _randomStrings(t,p,n-1,m-1);
     
             
    constructESA(t,n, &esa, NO_RMQ);
+    
+    
+   
+   int LOOKUP[ ALPHABET_SIZE ]; 
+   
+   
+   
+   for (int i=0; i<n; i++)
+   {
+      // only when the LCP is 0 do we have a new character.
+      if (esa.LCP[i] == 0)
+         LOOKUP[ (unsigned char)(t[esa.SA[i]]) ] = i;   
+   }
+   
     
     
    for (int i=0; i<repeats; i++)
@@ -514,15 +518,19 @@ int test_ESA()
       memcpy(p,t + (rand() % (n-m+1)) ,sizeof(char)*m);
    
    
-    
-      int l=0;
-    
-      findLongestSubstring(p, m, &l,0,n, &esa);
+      int l=1;    
+      int i0 = LOOKUP[ (unsigned char)p[0] ];      
+      int i1 = LI_NEXT_CHILD(i0, (&esa)) -1;
+      if (i1==0) i1 = n-1;
+      
+      findLongestSubstring_simple(p, m, &l, i0, i1, &esa);
 
       assert(l == m);
       if (l != m) return 1;    
     
-     // findLongestSubstring2(p, m, &l,0,n, &esa);
+
+    
+
       
       // A full match should be found.
       assert(l == m);
