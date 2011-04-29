@@ -1190,24 +1190,6 @@ static void randomString(char *t, int n)
 
 /******************************************************************************/
 
-static void naive_matcher(const char *t, const char *p, int n, int m, int *A)
-{
-   int i,j;
-   for (i=0;i<n-m+1;i++)
-   {
-      int matches=0;
-      for (j=0;j<m;j++)
-      {
-         if (i+j >= n) continue;       
-         if (t[i+j] == p[j])
-            matches ++;
-    }
-    A[i] = matches;
-   }
-}
-
-/******************************************************************************/
-
 static int randomisePattern(char *pattern, const char *old_pattern, int m, int k)
 {
    int y;
@@ -1270,14 +1252,11 @@ int test_km()
 
  
    for (int i=0; i<repeats; i++)
-   {
- 
-   
+   {    
       // Generate a randomised text.
       randomString(t, n);
       
-      t[n-1]  = '\0';
-     
+      t[n-1]  = '\0';     
 
       // position of the pattern from the text.
       int x = rand() % (n-m+1);
@@ -1290,9 +1269,7 @@ int test_km()
       // Leave the last character alone though.
       int mismatches = randomisePattern(p, _p, m-1, k);
 
-      p[m-1] = '\0';
-
-      
+      p[m-1] = '\0';      
       
       hamming_naive(t,p,n,m,matches);
       assert(matches[x] == mismatches);      
@@ -1309,18 +1286,9 @@ int test_km()
       kangaroo(t,p,k,n,m,matches);
       assert(matches[x] == mismatches);       
       
-
-
-   
-
-   
-   
-   
-
    }
    
-   return 0;
-  
+   return 0;  
 }
 
 /******************************************************************************/
