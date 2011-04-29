@@ -99,18 +99,14 @@ int partition(const char *t, int l, int n, int *breaks)
          }   
          
          current++;
-      }
-          
-   }   
-   
+      }          
+   }      
    
    // Check that this doesn't go out of bounds etc.
    if (current < n/l)
       breaks[current] = -1;
    return current;
 }
-
-
 
 /******************************************************************************/
 
@@ -162,7 +158,6 @@ void displayBreaks(const char *t, const int *breaks, int n, int l, int b)
       }
    }
    printf("\n");
-
 }
 
 /******************************************************************************/
@@ -760,19 +755,13 @@ int test_breaks()
 
    printf("Testing breaks\n");
 
-
    // Buffer to store the breaks.
-   int breaks[256];
-   
-   
+   int breaks[256];     
    int l = 5;
    int k = 6;
    
-   char T[] = "abababababababababababababababababababababababab########babababababababababababababababababababababababababababababababababababa";
-   
-   char t[] = "ababacabababcbabacabababcbababcbabababacbababababababababababcabcabcabcabcabcabcabababababab";
-   
-   
+   char T[] = "abababababababababababababababababababababababab########babababababababababababababababababababababababababababababababababababa";   
+   char t[] = "ababacabababcbabacabababcbababcbabababacbababababababababababcabcabcabcabcabcabcabababababab";   
    
    printf("k=%d\n", k);
    int c = partition(t,k, strlen(t), breaks);
@@ -780,59 +769,35 @@ int test_breaks()
    printf("There are %d %d-breaks\n",c, k);
    displayBreaks(t,breaks, strlen(t), k,c);
    
-  int b =  partition(t,l, strlen(t), breaks);
-   
-   
+   int b =  partition(t,l, strlen(t), breaks);
+      
    printf("\nThere are %d %d-breaks\n",b,l);
    
-   displayBreaks(t, breaks, strlen(t), l, b);
+   displayBreaks(t, breaks, strlen(t), l, b);   
    
-   
-   printf("\n");
-   
-
+   printf("\n");   
    printf("Bad l-segments marked with #:\n");
-
-   
-   
+      
    showSegments(t, breaks, l, b);
    
-   printf("\n");
-   
-   
-   
+   printf("\n");         
    printf("Consider the following text, lined up against the pattern: \n");      
    printf("|");
-   
-
-   
-   
+        
    for (int i=0; i<strlen(T); i++)
-   {
-   
+   {   
       printf("%c", T[i]);
-      
+            
       if (i%4 ==3)
       {
          printf("|");      
-
       }   
    }
    
+   printf("\n");     
+   showSegments(t, breaks, l, b);          
    printf("\n");
-   
-  
-      showSegments(t, breaks, l, b);
-   
-   
-   
-   
-   printf("\n");
-   
-   
-   
-   
-   
+       
    exit(0);
    
    return 1;
@@ -841,6 +806,4 @@ int test_breaks()
 /******************************************************************************/
 #endif
 /******************************************************************************/
-
-
 

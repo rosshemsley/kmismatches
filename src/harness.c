@@ -28,8 +28,10 @@ int main(int argc, char **argv)
 {
 
    if (argc < 2)
-   {      fprintf(stderr, "harness [test file] ");
-      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs, -kangaroo, -naive_nm -periodic]\n");
+   {      
+      fprintf(stderr, "harness [test file] ");
+      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs,\
+                        -kangaroo, -naive_nm -periodic]\n");
 
       exit(1);
    }
@@ -173,8 +175,7 @@ int main(int argc, char **argv)
    free(matches);   
    // This needs to be fixed.
    // FreeRMQ_succinct();   
-   
-   
+      
    return 0;
    
 }
@@ -192,12 +193,11 @@ int main(int argc, char **argv)
 { 
 
    int status = 0;
-      
-      
-
+            
+   status += test_km();
+   status += test_FFT_Matching();
    status += test_ESA();   
    status += test_breaks();      
-   status += test_FFT_Matching();
    
    if (status==0)
    printf("All tests ran successfully.\n");

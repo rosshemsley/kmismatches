@@ -7,7 +7,6 @@
 #include <string.h>
 #include <time.h>
 
-// #define TEST
 /*******************************************************************************
 *
 *
@@ -135,18 +134,20 @@ void match_with_FFT(        int  *matches,
                             int   m        )
 {
    
-   int transformSize = 2*m;
+   // Pad to a power of two.
+   // Todo: decide whether or not this is faster.
+   int transformSize = 1;
+   while (transformSize < 2*m) transformSize *=2;
    
-	if(transformSize < 2048 && n > 4096){
+   //int transformSize = 2*m;
+   
+	if(transformSize < 2048 && n > 4096)
 	   transformSize = 2048;
-   	}
 	
 	if(!fftw_import_system_wisdom()){
-      printf("Failed to read system wisdom!\n");
+      fprintf(stderr,"Failed to read system wisdom.\n");
 	}
-
-   
-   
+      
    if (N != transformSize)
    {
       N = transformSize;
@@ -157,11 +158,6 @@ void match_with_FFT(        int  *matches,
       _r       =  fftw_malloc(sizeof(double) * N);
       t_masked =  fftw_malloc(sizeof(double) * (n + N ));
       
-      
-    
-         
-         
-
       // Any overflow over the end of the text should be set to zero.
       for (int i=n; i < n + N ; i++)
          t_masked[i] = 0.0;
@@ -180,8 +176,7 @@ void match_with_FFT(        int  *matches,
    } else {
       fftw_execute_r2r(plan_pattern_FFT, x , _p);
    }
-   
-   
+        
    /* MATCHING */
    
    for (int i=0; i<n-m; i += N-m+1)
@@ -189,45 +184,30 @@ void match_with_FFT(        int  *matches,
       // Copy the text into the buffer x.
       memcpy(x, t_masked+i, sizeof(double)*N);
 
-      // FFT x (this block of text) and store it in _t.
-     // if (plan_text_FFT == NULL)
-    //  {
-     //    plan_text_FFT = fftw_plan_r2r_1d(N, x, _t, FFTW_R2HC, FFTW_ESTIMATE);
-     //    fftw_execute(plan_text_FFT);
-    //  } else {
-         fftw_execute_r2r(plan_pattern_FFT, x, _t);
-   //   }
+      // FFT the text.
+      fftw_execute_r2r(plan_pattern_FFT, x, _t);
       
 	   // Point-wise multiply the two vectors _p and _t.
       multiply_half_complex(_r, _t, _p, N);
 
-
-
       // FFTW invert _r and put it into x.
       if (plan_FFT_inverse == NULL)
       {
-         plan_FFT_inverse = fftw_plan_r2r_1d(N, _r,  x, FFTW_HC2R, FFTW_ESTIMATE);
+         plan_FFT_inverse = fftw_plan_r2r_1d(N,_r,x, FFTW_HC2R, FFTW_ESTIMATE);
          fftw_execute(plan_FFT_inverse);
 	   } else {
 	      fftw_execute_r2r(plan_FFT_inverse, _r, x); 
 	   } 
-	   
-
-
-
-   
+	   	      
       // x now contains the matches.
       for (int j=0; j <= N-m; j+=1)
       {
          if (i+j > n-m+1) break;
          
          // Add to matches array.
-         // The matches we are interested in start half way into the array.
-
-        
+         // The matches we are interested in start half way into the array.        
          matches[i+j] += (int)(x[j+m-1]/N + 0.5);
       }
-
    }
 } 
 
@@ -240,7 +220,7 @@ void match_with_FFT(        int  *matches,
 #ifdef TEST
 /******************************************************************************/
 
-void randomStrings(char *text, char *pattern ,int n, int m)
+static void randomStrings(char *text, char *pattern ,int n, int m)
 {	
    int i;	
 
@@ -253,7 +233,7 @@ void randomStrings(char *text, char *pattern ,int n, int m)
 
 /******************************************************************************/
 
-void naive_matcher(const char *t, const char *p, int n, int m, int *A)
+static void naive_matcher(const char *t, const char *p, int n, int m, int *A)
 {
    int i,j;
    for (i=0;i<n-m+1;i++)
@@ -293,7 +273,6 @@ int test_FFT_Matching()
  
    int i,x;
 
-
    // The text and pattern strings.
    char t[n+1];
    char p[m+1];
@@ -327,7 +306,8 @@ int test_FFT_Matching()
       for (i=0;i<n-m+1;i++)
          assert(matches_naive[i] == matches_FFT[i]);    
    }
-        
+   
+
    return 0;
 
 }

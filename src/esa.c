@@ -465,9 +465,9 @@ void _randomStrings(char *text, char *pattern ,int n, int m)
 
    for (i=0; i<n;i++)
       // random letter from a..b
-      text[i] =  (char)(rand() % 4 + 97);
+      text[i] =  (char)(rand() % 26 + 97);
    for (i=0;i<m;i++)
-      pattern[i] = (char)(rand() % 4 + 97);
+      pattern[i] = (char)(rand() % 26 + 97);
 }
 
 /******************************************************************************/
@@ -493,15 +493,10 @@ int test_ESA()
    ESA esa;
       
    _randomStrings(t,p,n-1,m-1);
+               
+   constructESA(t,n, &esa, NO_RMQ /*| NO_CHILD_TAB*/ | NO_INV);
     
-            
-   constructESA(t,n, &esa, NO_RMQ);
-    
-    
-   
-   int LOOKUP[ ALPHABET_SIZE ]; 
-   
-   
+   int LOOKUP[ ALPHABET_SIZE ];       
    
    for (int i=0; i<n; i++)
    {
@@ -509,38 +504,31 @@ int test_ESA()
       if (esa.LCP[i] == 0)
          LOOKUP[ (unsigned char)(t[esa.SA[i]]) ] = i;   
    }
-   
-    
+       
     
    for (int i=0; i<repeats; i++)
    {          
       // Throw away p and set it to a substring of t.   
       memcpy(p,t + (rand() % (n-m+1)) ,sizeof(char)*m);
-   
-   
+         
       int l=1;    
       int i0 = LOOKUP[ (unsigned char)p[0] ];      
       int i1 = LI_NEXT_CHILD(i0, (&esa)) -1;
       if (i1==0) i1 = n-1;
-      
-      findLongestSubstring_simple(p, m, &l, i0, i1, &esa);
+            
+      findLongestSubstring(p, m, &l, i0, i1, &esa);
 
       assert(l == m);
       if (l != m) return 1;    
-    
-
-    
-
       
+      findLongestSubstring_simple(p, m, &l, i0, i1, &esa);
+            
       // A full match should be found.
       assert(l == m);
       if (l != m) return 1;
-      
-
-   
+        
    }
    
-   exit(0);
    return 0;
 }
 

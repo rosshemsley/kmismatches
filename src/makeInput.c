@@ -180,8 +180,8 @@ int main(int argc, char ** argv)
    int p = rand() % (n-m+1);
    
    // Copy the the text from position p into the pattern.
-   for (int i=0; i<m; i++)
-      pattern[i] = data[i+p];
+
+   memcpy(pattern, data+p, i*sizeof(char));
       
    pattern[m] = '\0';
 
@@ -244,16 +244,8 @@ int main(int argc, char ** argv)
    printf("|       Seed: %-10ld                                      |\n",seed);
    printf("|                                                             |\n" );
    printf("===============================================================\n" );
-   
-   
-   
-   
-   
-   
-   
+                     
    return 0;
-
-
 
 }
 
