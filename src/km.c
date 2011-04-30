@@ -378,8 +378,19 @@ void construct_pRepresentation(        pTriple*  P,
       } 
          else
       {       
-         t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
+      
+         int l  = 0;      
+         int i0 = LOOKUP[ (unsigned char)(text+t)[0] ];      
+         int i1 = LI_NEXT_CHILD(i0, (esa)) -1;
+
+         if (i1 == 0) i1 = esa->n-1;      
+
+         P[x].j = findLongestSubstring(text+t, m, &l, i0, i1, esa);
+         P[x].l = l;
+         t+=l;
+
       }
+      
         
       ++x;           
    }
@@ -1034,9 +1045,7 @@ void markMatches(                const int*      lookup,
                                  const int       m                             )
                                        
 {
-  // printf("Doing Marking\n");
-   
-    
+   // printf("Doing Marking\n");       
    for (int i=0; i<n; i++)
    {
       // If this symbol is one of our look-up characters.
@@ -1065,7 +1074,7 @@ void markMatches(                const int*      lookup,
   // printf("Done Marking\n");
 }                                        
 
-
+/******************************************************************************/
 
 void hamming_naive(       const char *text, 
                           const char *pattern,

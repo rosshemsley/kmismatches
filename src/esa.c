@@ -386,8 +386,6 @@ int findLongestSubstring(        const char*     p,
    int c=*l;   
    int i=l0;
    int j=r0;
-
-   int fail = 0;        
    
    while (getInterval(&i, &j, c, p[c], esa) && c<m)
    {         
@@ -396,28 +394,20 @@ int findLongestSubstring(        const char*     p,
          int lcp = LI_GET_LCP(i,j,esa);
          if (lcp > m)
             lcp = m;               
-         fail=0;
          for (;c<lcp; c++)
          {
             // Unwind the string comparison for speed.
             if ((esa->t + esa->SA[i])[c] != p[c])
-            {
-               fail=1;
                break;
-            }
          }         
       } 
       else
       {
-         fail=0;
          for (;c<m; c++)
          {
             // Again, we unwind the string comparison for speed.
             if ((esa->t + esa->SA[i])[c] != p[c])
-            {
-               fail=1;
                break;
-            }
          }                   
          break;  
       }
@@ -425,10 +415,7 @@ int findLongestSubstring(        const char*     p,
       
    *l = c;   
       
-   if (!fail)
-      return esa->SA[i];   
-
-   return -1;
+   return esa->SA[i];      
 
 }                                 
 

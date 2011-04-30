@@ -1,5 +1,5 @@
 CC    = gcc
-flags = -std=c99 -Wall -pedantic -o3#-DNDEBUG
+flags = -std=c99 -Wall -pedantic -o3 -g #-DNDEBUG
 libs  = -lm -lfftw3
 
 all:
@@ -15,6 +15,7 @@ test: src/harness.c src/sp_km.c src/sp_km_unbounded_matcher.c src/stack.c src/RM
 test_maker: src/makeInput.c
 	cd src/ && $(CC) $(flags) -o ../make_input makeInput.c $(libs)
 clean:
+	rm test
 	rm harness
 	rm make_input
 	rm gmon.out
