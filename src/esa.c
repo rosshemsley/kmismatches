@@ -125,6 +125,72 @@ void constructChildValues(ESA *esa)
 
 /******************************************************************************/
 
+void construct_pRepresentation(        pTriple*  P,
+                                 const char*     text, 
+                                 const char*     pattern, 
+                                 const ESA*      esa,
+                                       int       n,
+                                       int       m                             )
+{
+
+   // Look up table for each character, giving first occurence in the SA.
+   int LOOKUP[ALPHABET_SIZE];
+   
+   // Set every item to -1.
+   for (int i=0; i<ALPHABET_SIZE; i++)
+      LOOKUP[i] = -1;
+   
+   // Now, set those characters that appear to the correct value.
+   for (int i=0; i<m; i++)
+   {
+      // only when the LCP is 0 do we have a new character.
+      if (esa->LCP[i] == 0)
+         LOOKUP[ (unsigned char)pattern[esa->SA[i]] ] = i;   
+   }
+
+   // Position in the text.
+   int t = 0;
+   // Position in the p-Representation.
+   int x = 0;
+   
+   // Go through every value in the text.
+   while (t < n-1)
+   {      
+      // Is the symbol in the pattern?
+      if (LOOKUP[(unsigned char)text[t]] == -1)
+      {
+         P[x].j = -1;
+         P[x].l = 1;         
+         ++t;
+      } 
+         else
+      {       
+      
+         int l  = 0;      
+         int i0 = LOOKUP[ (unsigned char)(text+t)[0] ];      
+         int i1 = LI_NEXT_CHILD(i0, (esa)) -1;
+
+         if (i1 == 0) i1 = esa->n-1;      
+
+         P[x].j = findLongestSubstring(text+t, m, &l, i0, i1, esa);
+         P[x].l = l;
+         t+=l;
+
+      }
+      
+        
+      ++x;           
+   }
+      
+   // Terminate the p-representation if it is shorter than the worst case.
+   if (x<n);
+      P[x-1].l = 0;
+      P[x-1].j = -2;
+
+}
+
+/******************************************************************************/
+
 // Construct an extended suffix array for some string of length n.s
 void constructESA(const char *s, int n, ESA *esa, ESA_FLAGS flags)
 {
@@ -462,6 +528,15 @@ void _randomStrings(char *text, char *pattern ,int n, int m)
 
 int test_ESA()
 { 
+
+void load(                       const char*     filename, 
+                                       int*      n, 
+                                       int*      m, 
+                                       int*      k, 
+                                       int*      pos, 
+                                       char**    text, 
+                                       char**    pattern                      );
+   
 
    printf("Testing ESA\n");
    srand( time(NULL) );

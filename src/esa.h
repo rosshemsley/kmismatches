@@ -46,6 +46,15 @@ typedef struct _ESA
    ESA_FLAGS flags;
 } ESA;
 
+// Container for a p-block in the p-representation
+// TODO: it's no longer a triple..
+typedef struct _pTriple
+{
+   int j;
+   int l;
+}  pTriple;
+
+
 /*******************************************************************************
 * Functions:
 *******************************************************************************/
@@ -54,11 +63,18 @@ void displaySA(                  const ESA*      esa                          );
 int LCE(                               int       i, 
                                        int       j, 
                                  const ESA*      esa                          );
-//------------------------------------------------------------------------------                                                                           
+//------------------------------------------------------------------------------
 void constructESA(               const char*     s, 
                                        int       n, 
                                        ESA*      esa,   
                                        ESA_FLAGS flags                        );
+//------------------------------------------------------------------------------
+void construct_pRepresentation(        pTriple*  P,
+                                 const char*     text, 
+                                 const char*     pattern, 
+                                 const ESA*      esa,
+                                       int       n,
+                                       int       m                            );                                       
 //------------------------------------------------------------------------------   
 int str_gth(                     const char*     a, 
                                  const char*     b, 
@@ -86,7 +102,7 @@ int findSubstringPosition(       const char*     p,
                                  const ESA*      esa                          );
 //------------------------------------------------------------------------------                                          
 void freeESA(                          ESA*      esa                          );   
-
+//------------------------------------------------------------------------------
 int getInterval(int *i, int *j, int l, char c, const ESA *esa);                                
 /******************************************************************************/
 #ifdef TEST

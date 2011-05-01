@@ -181,7 +181,7 @@ int main(int argc, char ** argv)
    
    // Copy the the text from position p into the pattern.
 
-   memcpy(pattern, data+p, i*sizeof(char));
+   memcpy(pattern, data+p, m*sizeof(char));
       
    pattern[m] = '\0';
 
