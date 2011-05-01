@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
    
    int error=0;
    
-   if (argc >= 5)
+   if (argc >= 6)
    {
 
       infile  = argv[1];
