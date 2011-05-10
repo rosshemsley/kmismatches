@@ -1,3 +1,5 @@
+
+
 # use from prompt: gnuplot plotTTT
 # This file plots columns of data from a file called "data".
 # There must be 4 columns:
@@ -21,12 +23,11 @@ set key left top
 
 # plot './data' using 1:2 t "Wins with Bolzmann 0.001", 'data' using 1:3 t "Wins by Greedy 0.1", 'data' using 1:4 t "Draws"
 
-set term postscript portrait enhanced color 11
-set output 'out'
+set term postscript portrait enhanced color 11 
+set output "| ps2pdf - out.pdf" 
 set size 1, 0.4
 
 # plot './data' using 1:4 t "Wins by X", 'data' using 1:4 t "Wins by O", 'data' using 1:4 t "Draws"
 
-plot './test_data/naive2.out'   using 1:2 t  "Naive O(nk)",  './test_data/abrahamson_better.out' using 1:2 t  "Abrahamson", './test_data/km2.out' using 1:2 t  "K-mismatches Case 2", './test_data/abrahamson_bs.out' using 1:2 t  "Abrahamson (Ben)"
+plot './data/abrahamson_dna'   using 1:2 t  "Naive O(nk)",  './data/abrahamson_english' using 1:2 t  "Abrahamson", './data/naive_hamming_english' using 1:2 t  "K-mismatches Case 2"
 
-!epstopdf out && rm out

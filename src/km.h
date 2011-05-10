@@ -3,6 +3,8 @@
 #ifndef km_ross_H_
 #define km_ross_H_
 
+#include "esa.h"
+
 /*******************************************************************************
 * Macros
 *******************************************************************************/
@@ -83,7 +85,36 @@ void markMatches(               const int*       lookup,
                                 const char*      text,
                                       int        n,       
                                       int        m                            );
-                            
+//----------------------------------------------------------------------------//                             
+// Verify a match in O(k) given a full generalised suffix array.
+//----------------------------------------------------------------------------//
+int verify(                           int        i, 
+                                      int        j, 
+                                      int        m, 
+                                      int        k, 
+                                const ESA*       esa                          );
+//----------------------------------------------------------------------------//                             
+// Verify a match in O(k) given a location in a p-representation
+//----------------------------------------------------------------------------//                                
+int verifyMatch(                 const pTriple*  pRepresentation,
+                                 const char*     text,
+                                 const char*     pattern,
+                                 const ESA*      esa,                  
+                                       // The position in the p-representation.              
+                                       int       x,    
+                                       int       t,    
+                                       int       i,                            
+                                       // problem-specific variables.
+                                 const int       k,
+                                 const int       n,
+                                 const int       m                            );
+//----------------------------------------------------------------------------//                             
+// Verify a match in O(m).
+//----------------------------------------------------------------------------//                                     
+int verify_naive(                const char*     t, 
+                                 const char*     p, 
+                                       int       m, 
+                                       int       k                            );
                             
 /******************************************************************************/
 #ifdef TEST                                    

@@ -560,13 +560,74 @@ int count_naive(                 const char*     t,
    return count;
    
 }
-/******************************************************************************/
 
+/******************************************************************************/
+// Simple Kangarooing, for when we have a full ESA for the text and
+// not just a p-representation.
+
+// Calcululate the number of mismatches between the substrings
+// starting at i and j respectively. 
+// If there are more than k, return.
+
+// TODO: CHECK END CONDITIONS.
+
+inline int verify(int i, int j, int m, int k, const ESA* esa)
+{
+   // The number of mismatches.
+   int mismatches = 0;
+   
+   // The position in the pattern.
+   int end        = j+m;
+   int length     = 0;
+   
+   while (j < end)
+   {
+      // printf("Finding longest extension\n");
+      // The longest number of shared characters.
+      int l = LCE(i, j, esa);
+      
+      length += l;
+      
+      //printf(" found %d matching chars\n", l);
+      i += l+1;
+      j += l+1;
+      
+      mismatches ++;
+      
+      if (mismatches > k+1)
+         return k+1;
+   }
+   
+   return mismatches - 1;
+}
+
+/******************************************************************************/
+// Naive verification.
+
+inline int verify_naive(const char *t, const char *p, int m, int k)
+{
+   // The number of mismatches.
+   int mismatches = 0;
+   
+   
+   for (int i=0; i<m; i++)
+   {
+      if (mismatches == k) break;      
+      if (t[i] != p[i]) mismatches ++;      
+       
+   }
+   
+   return mismatches-1;
+   
+}
+
+/******************************************************************************/
 // j gives the location in the pattern, 
 // the pair (x,t) give the location in the text (t is the index into the text
 // where the x'th p-triple starts). 
+// verify from a p-representation. TODO: rename to be consistent.
 
-static inline int verifyMatch(   const pTriple*  pRepresentation,
+inline int verifyMatch(          const pTriple*  pRepresentation,
                                  const char*     text,
                                  const char*     pattern,
                                  const ESA*      esa,
@@ -596,6 +657,7 @@ static inline int verifyMatch(   const pTriple*  pRepresentation,
    // NOTE: We assume the last char is \0.
    while (mismatches<=k && j < m-1)
    {   
+      if (block_start ==-2) return mismatches+1;
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
@@ -1167,11 +1229,124 @@ static int randomisePattern(char *pattern, const char *old_pattern, int m, int k
 
 int test_km()
 {
-
    printf("Testing k-mismatches.\n");
 
    srand( time(NULL) );
 
+   // Do some tests.
+   {  
+   
+      int n       = 10e4;
+      int m       = 10e3;
+      int k       = 5e3;
+      
+      
+      
+      char *t, *p;      
+
+      t = malloc(sizeof(char) * n );
+      p = malloc(sizeof(char) * m );
+      
+      
+      for (int i=0; i<n; i++)
+      {
+         if (rand() % 200 == 10)
+            t[i] = 'b';
+         else
+            t[i] = 'a';
+      }
+
+      for (int i=0; i<m; i++)
+         p[i] = 'a';
+
+      p[m-1] = '\0';
+      t[n-1] = '\0';
+      
+      
+      /* Naive method:                            */   
+      
+      printf("NAIVE\n");
+      for (int i=0; i<n-m+1; i++)
+      {    
+         verify_naive(t + i, p, m, k);           
+      }
+      
+      printf("pREP\n");
+            
+      /* p-reresentation method:                  */
+      pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
+   
+   
+      ESA esa;   
+      constructESA(p, m, &esa, 0);
+      //displaySA(&esa);
+
+      construct_pRepresentation(pRepresentation, t, p, &esa, n, m);
+ 
+    // display_pRepresentation(pRepresentation,p, m);
+ 
+ 
+       printf("Done p-rep\n");     
+       int f=0;
+      
+      // Now, go through every position and look for mismatches.
+      for (int i=0,x=0; i<n-m; i++)
+      {
+      
+         // Advance through the p-reprsentation.
+         if (f + pRepresentation[x].l <= i)
+         {
+            f += pRepresentation[x].l;
+            ++x;
+            
+
+         }
+              
+        verifyMatch(pRepresentation, t, p, &esa, x,f,i,k,n,m);
+
+
+       //int b = verify_naive(t + i, p, m, k);  
+       
+       //printf("a: %d, b: %d\n",a,b);
+       
+    //   assert(a==b);
+         
+      }
+     
+      printf("FULL\n");
+      /* Full ESA Method:                         */
+      
+      // Construct the ESA for the text.
+     
+      // We need a generalised suffix array: 
+      // Do this by using an auxillary array called tp (text-pattern)
+      char *tp = malloc( sizeof(char) * ( n+m-1 ) );
+
+      // Copy the text (minus the '\0') into tp,
+      // and the pattern in after the text.
+      memcpy(tp,       t,    sizeof(char) * (n-1) );   
+      memcpy(tp + n-1, p, sizeof(char) *  m    );
+     
+      // Construct the suffix array.
+      constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
+
+
+      for (int i=0; i<n-m+1; i++)
+      {
+        int a = verify(i, n-1, m, k, &esa);
+         
+        //int b = verify_naive(t + i, p, m, k);  
+       
+       //printf("a: %d, b: %d\n",a,b);
+       
+      }
+      
+      
+      exit(1);
+
+
+   }
+   
    //-------------------------------------------------------------------------//
    // Testing parameters.
    //-------------------------------------------------------------------------//

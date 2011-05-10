@@ -186,46 +186,6 @@ int find_l(const char *t, int n, int k, int *ln, int *mn, int *lbreaks, int *mbr
 }
 
 /******************************************************************************/
-// Simple Kangarooing, for when we have a full ESA for the text and
-// not just a p-representation.
-
-// Calcululate the number of mismatches between the substrings
-// starting at i and j respectively. 
-// If there are more than k, return.
-
-// TODO: CHECK END CONDITIONS.
-
-int verify(int i, int j, int m, int k, const ESA* esa)
-{
-   // The number of mismatches.
-   int mismatches = 0;
-   
-   // The position in the pattern.
-   int end        = j+m;
-   int length     = 0;
-   
-   while (j < end)
-   {
-      // printf("Finding longest extension\n");
-      // The longest number of shared characters.
-      int l = LCE(i, j, esa);
-      
-      length += l;
-      
-      //printf(" found %d matching chars\n", l);
-      i += l+1;
-      j += l+1;
-      
-      mismatches ++;
-      
-      if (mismatches > k+1)
-         return k+1;
-   }
-   
-   return mismatches - 1;
-}
-
-/******************************************************************************/
 // When there are at least 2k k breaks, we can do the following in O(n)
 
 void simpleMatcher(              const char*     text,
@@ -674,6 +634,7 @@ int periodicMatching(            const char*     text,
    }
    else 
    {
+      
       printf("Constructing lookup-tables for Algorithm 2\n");
       
       // ** Initialise the structures for algorithm 2 ** //
