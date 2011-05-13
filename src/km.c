@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <limits.h>
 #include <math.h>
-#include <time.h>
 #include <fftw3.h>
 #include <assert.h>
 #include <string.h>
@@ -15,6 +15,9 @@
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "sp_km_unbounded_matcher.h"
+
+
+#include <time.h>
 
 #define DEBUG
 
@@ -30,9 +33,6 @@
 * - Same with LCP
 *
 *******************************************************************************/
-
-
-
 
 
 /******************************************************************************/
@@ -340,61 +340,6 @@ static inline int extendInterval(const int*      LOOKUP,
 }
 
 /******************************************************************************/
-
-void construct_pRepresentation(        pTriple*  P,
-                                 const char*     text, 
-                                 const char*     pattern, 
-                                 const ESA*      esa,
-                                       int       n,
-                                       int       m                             )
-{
-
-   // Look up table for each character, giving first occurence in the SA.
-   int LOOKUP[ALPHABET_SIZE];
-   
-   // Set every item to -1.
-   for (int i=0; i<ALPHABET_SIZE; i++)
-      LOOKUP[i] = -1;
-   
-   // Now, set those characters that appear to the correct value.
-   for (int i=0; i<m; i++)
-   {
-      // only when the LCP is 0 do we have a new character.
-      if (esa->LCP[i] == 0)
-         LOOKUP[ (unsigned char)pattern[esa->SA[i]] ] = i;   
-   }
-
-   // Position in the text.
-   int t = 0;
-   // Position in the p-Representation.
-   int x = 0;
-   
-   // Go through every value in the text.
-   while (t < n-1)
-   {      
-      // Is the symbol in the pattern?
-      if (LOOKUP[(unsigned char)text[t]] == -1)
-      {
-         P[x].j = -1;
-         P[x].l = 1;         
-         ++t;
-      } 
-         else
-      {       
-         t += extendInterval(LOOKUP, &P[x], text + t, pattern, n, m, esa);
-      }
-        
-      ++x;           
-   }
-      
-   // Terminate the p-representation if it is shorter than the worst case.
-   if (x<n);
-      P[x-1].l = 0;
-      P[x-1].j = -2;
-
-}
-
-/******************************************************************************/
 // Old, naive p-representation construction.
 
 void construct_pRepresentation_old(    pTriple*  P,
@@ -494,10 +439,6 @@ void abrahamson_kosaraju(        const char*     text,
    sp_km_count_symbols(pattern, m, lookup);
 
    int threshold =  sqrt( m * log(m)/log(2) );
-         
-   printf("Threshold: %d\n", threshold);
-
-
 
    /*--- Frequent characters ---  */
 
@@ -507,8 +448,8 @@ void abrahamson_kosaraju(        const char*     text,
    {
       if (lookup[i] >= threshold)
       {  
-         printf("Method 1\n");      
-         printf("%c\n", i);
+        // printf("Method 1\n");      
+         //printf("%c\n", i);
 
          match_with_FFT(matches, i, text, pattern,  n, m);
       }
@@ -538,8 +479,8 @@ void abrahamson_kosaraju(        const char*     text,
    { 
       if (lookup[i] < threshold && lookup[i] > 0)
       {
-         printf("Method 2\n");
-         printf("%c\n", i);
+         //printf("Method 2\n");
+         //printf("%c\n", i);
 
          LOOKUP[(unsigned char)i] = block*threshold;
                      
@@ -547,7 +488,7 @@ void abrahamson_kosaraju(        const char*     text,
          // matrix.
          createLookup(symbol_lookup + block*threshold ,i,pattern, m, threshold);
          
-         printf("Creating block: %d\n", block);
+         //printf("Creating block: %d\n", block);
          block ++;
       }   
          
@@ -555,7 +496,7 @@ void abrahamson_kosaraju(        const char*     text,
       // or when we are at the end of the alphabet)
       if (block >= block_size || i == ALPHABET_SIZE-1)
       {
-         printf("REACHED END OF BLOCK SIZE: %d\n", block);
+         //printf("REACHED END OF BLOCK SIZE: %d\n", block);
                
          markMatches(LOOKUP, symbol_lookup, threshold, matches, text, n,m);
       
@@ -618,13 +559,74 @@ int count_naive(                 const char*     t,
    return count;
    
 }
-/******************************************************************************/
 
+/******************************************************************************/
+// Simple Kangarooing, for when we have a full ESA for the text and
+// not just a p-representation.
+
+// Calcululate the number of mismatches between the substrings
+// starting at i and j respectively. 
+// If there are more than k, return.
+
+// TODO: CHECK END CONDITIONS.
+
+inline int verify(int i, int j, int m, int k, const ESA* esa)
+{
+   // The number of mismatches.
+   int mismatches = 0;
+   
+   // The position in the pattern.
+   int end        = j+m;
+   int length     = 0;
+   
+   while (j < end)
+   {
+      // printf("Finding longest extension\n");
+      // The longest number of shared characters.
+      int l = LCE(i, j, esa);
+      
+      length += l;
+      
+      //printf(" found %d matching chars\n", l);
+      i += l+1;
+      j += l+1;
+      
+      mismatches ++;
+      
+      if (mismatches > k+1)
+         return k+1;
+   }
+   
+   return mismatches - 1;
+}
+
+/******************************************************************************/
+// Naive verification.
+
+inline int verify_naive(const char *t, const char *p, int m, int k)
+{
+   // The number of mismatches.
+   int mismatches = 0;
+   
+   
+   for (int i=0; i<m; i++)
+   {
+      if (mismatches == k) break;      
+      if (t[i] != p[i]) mismatches ++;      
+       
+   }
+   
+   return mismatches-1;
+   
+}
+
+/******************************************************************************/
 // j gives the location in the pattern, 
 // the pair (x,t) give the location in the text (t is the index into the text
 // where the x'th p-triple starts). 
+// verify from a p-representation. TODO: rename to be consistent.
 
-static inline int verifyMatch(   const pTriple*  pRepresentation,
+inline int verifyMatch(          const pTriple*  pRepresentation,
                                  const char*     text,
                                  const char*     pattern,
                                  const ESA*      esa,
@@ -654,6 +656,7 @@ static inline int verifyMatch(   const pTriple*  pRepresentation,
    // NOTE: We assume the last char is \0.
    while (mismatches<=k && j < m-1)
    {   
+      if (block_start ==-2) return mismatches+1;
       // Ignore filtered characters:
       // TODO: allow blocks of length > 1 for ignored characters.
       if (block_start == -1)
@@ -823,40 +826,7 @@ void k_mismatches_case2(  const char *text,
    constructESA(pattern, m, &esa, 0);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
-   //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
-   //display_pRepresentation(pRepresentation_old,     pattern, n);
-   //display_pRepresentation(pRepresentation, pattern, n);
-   
-   /*
-     printf("%d\n", n);
-   for (int i=0; i<n; i++)
-   {
-      if (pRepresentation[i].j != pRepresentation_old[i].j)
-      {
-         
-         printf("j FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         
-         exit(0);
-      }
-      
-      if (pRepresentation[i].l != pRepresentation_old[i].l)
-      {
-         printf("l FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].l, pRepresentation_old[i].l);
-                  printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         exit(0);
-      }
-      
-      if (pRepresentation[i].j == -2)
-      {
-         break;
-      }
-   
-   }
-   
-  
-   */
+ 
    
    printf("Done\n");
    
@@ -928,16 +898,16 @@ void kmismatches(         const char *text,
    // Number of appearances required for a character to be classed 'frequent'.
    int sqrt_k = (int)(sqrt((double)k)+0.5 );
    
-   printf("Threshold: \\sqrt k %d.\n", sqrt_k);
+  // printf("Threshold: \\sqrt k %d.\n", sqrt_k);
 
    int num_freq_chars = count_frequent_symbols(frequency_table, sqrt_k);
    
-   printf("There are %d frequent characters\n", num_freq_chars);
+   //printf("There are %d frequent characters\n", num_freq_chars);
 
    // Which k-mismatches case to perform.
    if (num_freq_chars < 2* sqrt_k)
    {
-      printf("CASE 1\n");
+     // printf("CASE 1\n");
       
       /*--- Frequent characters ---*/
 
@@ -947,8 +917,8 @@ void kmismatches(         const char *text,
       {
          if (frequency_table[i] >= sqrt_k)
          {  
-            printf("Method 1\n");      
-            printf("%c\n", i);
+           // printf("Method 1\n");      
+            //printf("%c\n", i);
 
             match_with_FFT(matches, i, text, pattern,  n, m);
          }
@@ -977,8 +947,8 @@ void kmismatches(         const char *text,
       { 
          if (frequency_table[i] < sqrt_k && frequency_table[i] > 0)
          {
-            printf("Method 2\n");
-            printf("'%c'\n", i);
+           // printf("Method 2\n");
+           // printf("'%c'\n", i);
 
             LOOKUP[(unsigned char)i] = block*sqrt_k;
                         
@@ -986,7 +956,7 @@ void kmismatches(         const char *text,
             // matrix.
             createLookup(symbol_lookup + block*sqrt_k,i,pattern,m,sqrt_k);                      
             
-            printf("Creating block: %d\n", block);
+           // printf("Creating block: %d\n", block);
             block ++;
          }   
             
@@ -994,7 +964,7 @@ void kmismatches(         const char *text,
          // or when we are at the end of the alphabet)
          if (block >= block_size || (i == ALPHABET_SIZE-1 && block > 0))
          {
-            printf("REACHED END OF BLOCK SIZE: %d\n", block);
+          //  printf("REACHED END OF BLOCK SIZE: %d\n", block);
                   
             markMatches(LOOKUP, symbol_lookup, sqrt_k, matches, text, n,m);
          
@@ -1015,7 +985,7 @@ void kmismatches(         const char *text,
          
    } else {
    
-      printf("CASE 2\n");
+     // printf("CASE 2\n");
       k_mismatches_case2(text, pattern, frequency_table, k, n, m, matches);
    
    }
@@ -1037,9 +1007,7 @@ void markMatches(                const int*      lookup,
                                  const int       m                             )
                                        
 {
-   printf("Doing Marking\n");
-   
-    
+   // printf("Doing Marking\n");       
    for (int i=0; i<n; i++)
    {
       // If this symbol is one of our look-up characters.
@@ -1065,10 +1033,10 @@ void markMatches(                const int*      lookup,
       }
    }
    
-   printf("Done Marking\n");
+  // printf("Done Marking\n");
 }                                        
 
-
+/******************************************************************************/
 
 void hamming_naive(       const char *text, 
                           const char *pattern,
@@ -1103,9 +1071,13 @@ void kmismatches_naive(   const char *text,
    memset(matches, 0, sizeof(int)*(n-m+1));
    for (int i=0; i<n-m+1; i++)
    {
-      int mismatches =0;
-      for (int j=0; j<m-1; j++)
+      int mismatches = 0;
+      for (int j=0; j<m; j++)
       {
+      
+         // TODO: CHECK THIS IS SAME BEHAVIOUR OVERALL 
+         
+         if (pattern[j]=='\0') break;
          if (pattern[j] != text[i+j]) 
          { 
             mismatches ++;
@@ -1137,21 +1109,17 @@ void kangaroo(            const char *text,
    // Construct the extended suffix array.
    ESA esa;   
    constructESA(pattern, m, &esa, 0);   
-   printf("Done ESA\n");
   
    RMQ_succinct(esa.LCP, esa.n); 
-   printf("Done RMQ\n");
 
    pTriple *pRepresentation = malloc(sizeof(pTriple) * n);  
   
    // Construct the p-representation.
-   printf("Constructing p-Representation.\n");
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m); 
    
    int t=0;
    
    // Now, go through every position and look for mismatches.
-   printf("Looking for k-Mismatches.\n");
    for (int i=0,x=0; i<n-m+1; i++)
    {
      // loadBar(i,n,100,40);
@@ -1165,7 +1133,7 @@ void kangaroo(            const char *text,
            
       int v = verifyMatch(pRepresentation, text, pattern, &esa, x,t,i,k,n,m);
 
-      matches[i] = m-v;
+      matches[i] = v;
       
    }
    
@@ -1182,19 +1150,116 @@ void kangaroo(            const char *text,
 *******************************************************************************/
 #ifdef TEST
 /******************************************************************************/
+/* The following functions allow the construction of randomised unit tests    */
+/******************************************************************************/
 
-int main(int argc, char **argv)
-{ 
+static void randomString(char *t, int n)
+{	
+   for (int i=0; i<n;i++)
+      t[i] =  (char)(rand() % 2 + 97);
+}
 
-   int status = 0;
+/******************************************************************************/
+
+static int randomisePattern(char *pattern, const char *old_pattern, int m, int k)
+{
+   int y;
+   int x  = rand() % m;      
+   // The first character to be transposed.
+   char c     = pattern[x]; 
+   int  first = x;
+
+   for (int i=0; i<k; i++)
+   {
+      // Choose other index for the transposition.
+      while( (y = rand() % m) == x );      
+      // Do the transposition.
+      SWAP(pattern[x], pattern[y]);      
+      x=y;
+   }
    
-   status += test_FFT_Matching();
+   // Undo the first transposition.
+   pattern[first] = c;
+
+   int mismatches=0;
+   // Count the mismatches.
+   for (int i=0; i<m;i++)
+   {
+      if (pattern[i] != old_pattern[i])
+         mismatches ++;
+   }
+   return mismatches;
+}
    
-   if (status==0)
-   printf("All tests ran successfully.\n");
+/******************************************************************************/
+
+int test_km()
+{
+   printf("Testing k-mismatches.\n");
+
+   srand( time(NULL) );
+
    
-   return status;
-  
+   //-------------------------------------------------------------------------//
+   // Testing parameters.
+   //-------------------------------------------------------------------------//
+   // Number of different test cases to try.
+   int repeats = 1e2;
+   
+   // the length of the text and pattern.
+   int m       = 2e2;
+   int k       = m/4;
+   int n       = 1e4;
+
+   //-------------------------------------------------------------------------//
+ 
+
+
+   // The text and pattern strings.
+   char  t[n];
+   char _p[m];
+   char  p[m];
+   int  matches[n-m+1];
+
+ 
+   for (int i=0; i<repeats; i++)
+   {    
+      // Generate a randomised text.
+      randomString(t, n);
+      
+      t[n-1]  = '\0';     
+
+      // position of the pattern from the text.
+      int x = rand() % (n-m+1);
+      
+      // Create a random pattern.
+      memcpy(_p, t+x,  m*sizeof(char));
+      memcpy(p,  t+x,  m*sizeof(char));      
+   
+      // randomise the pattern to create some mismatches.
+      // Leave the last character alone though.
+      int mismatches = randomisePattern(p, _p, m-1, k);
+
+      p[m-1] = '\0';      
+      
+      hamming_naive(t,p,n,m,matches);
+      assert(matches[x] == mismatches);      
+            
+      abrahamson_kosaraju(t,p,n,m,matches);
+      assert(matches[x] == mismatches);       
+
+      kmismatches_naive(t,p,k,n,m,matches);  
+      assert(matches[x] == mismatches);                             
+      
+      kmismatches(t,p,k,n,m,matches);    
+      assert(matches[x] == mismatches);                     
+      
+      kangaroo(t,p,k,n,m,matches);
+      assert(matches[x] == mismatches);       
+      
+   }
+   
+   return 0;  
 }
 
 /******************************************************************************/

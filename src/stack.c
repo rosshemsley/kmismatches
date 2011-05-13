@@ -7,10 +7,14 @@
 /*******************************************************************************
 * This is a simple array-based implementation of a stack, implementing
 * pop, push, isEmpty, size and empty.
+*
 * We use isEmpty to tell whether we can keep popping pointers (because we could
 * pop a NULL pointer to the stack). We use the empty function to reset the
 * stack to zero without popping any elements. This maintains the memory
 * associated with the stack.
+* 
+* Created by Ross Hemsley.
+*
 *******************************************************************************/
 
 stack *newStack()

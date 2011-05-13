@@ -2,9 +2,22 @@
 | Kmismatches                                                                  |
 |                                                                              |
 | - Created by Ross Hemsley 2011-                                              |
-|                                                                              |   ================================================================================
+|                                                                              |
+================================================================================
                                                                               
- Currently very much under-construction.
+ Currently in 'alpha'. To run unit tests, compile with flag 'test':
+ 
+   $ make test
+   $ ./test
+   
+ To compile for normal use:
+ 
+   $ make
+ 
+ This will construct the test harness 'harness', and a test input construction
+ program, 'make_input'. This will require that the FFTW is installed.
+ 
+================================================================================ 
  
  'make_input'  Can be used to construct test intstances from arbitrary input
                data. 
@@ -32,5 +45,6 @@
 
  'plot'        A Gnuplot plotting script intended to load output from the test
                script. See file for usage details
+
 
 ================================================================================

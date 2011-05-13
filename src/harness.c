@@ -7,19 +7,20 @@
 #include <assert.h>
 #include <string.h>
 #include "km.h"
+#include "km_FFT.h"
 #include "stack.h"
 #include "breaks.h"
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "./sp_km_unbounded_matcher.h"
-
+#include "esa.h"
 /******************************************************************************/
 //
 // NOTE: SAIS APPEARS TO FAIL WITH INPUT 'aacdbbcca', 'dddbbcddc'
 //
 /******************************************************************************/
 
-
+#ifndef TEST
 
 /******************************************************************************/
 
@@ -27,8 +28,10 @@ int main(int argc, char **argv)
 {
 
    if (argc < 2)
-   {      fprintf(stderr, "harness [test file] ");
-      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs, -kangaroo, -naive_nm -periodic]\n");
+   {      
+      fprintf(stderr, "harness [test file] ");
+      fprintf(stderr, "[-naive, -abrahamson, -abrahamson_bs,\
+                        -kangaroo, -naive_nm -periodic]\n");
 
       exit(1);
    }
@@ -159,9 +162,11 @@ int main(int argc, char **argv)
    
    
    if (!pass)
-   {
+   {     
+      printf("Val at position: %d\n", matches[pos]);
+      printf("FAILED TEST\n");
       fprintf(stderr, "FAILED TEST\n");
-      exit(1);
+      return 1;
    }   
   
   
@@ -170,11 +175,38 @@ int main(int argc, char **argv)
    free(matches);   
    // This needs to be fixed.
    // FreeRMQ_succinct();   
-   
-   
+      
    return 0;
    
 }
 
+/*******************************************************************************
+* UNIT TESTING
+*
+* Compile with TEST to run unit tests.
+*
+*******************************************************************************/
+#else
+/******************************************************************************/
+
+int main(int argc, char **argv)
+{ 
+
+   int status = 0;
+            
+   status += test_km();
+   status += test_FFT_Matching();
+   status += test_ESA();   
+   status += test_breaks();      
+   
+   if (status==0)
+   printf("All tests ran successfully.\n");
+   
+   return status;
+  
+}
+
+/******************************************************************************/
+#endif
 /******************************************************************************/
 

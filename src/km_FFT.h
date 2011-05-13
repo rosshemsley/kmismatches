@@ -13,7 +13,7 @@ void match_with_FFT(        int  *matches,
  //                           const double  *b, 
   //                                int      N  );
           
-          
+int test_FFT_Matching();          
           
 
 void match_with_FFT(        int  *matches, 
