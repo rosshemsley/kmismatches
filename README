@@ -15,7 +15,7 @@
    $ make
  
  This will construct the test harness 'harness', and a test input construction
- program, 'make_input'.
+ program, 'make_input'. This will require that the FFTW is installed.
  
 ================================================================================ 
  
