@@ -172,10 +172,7 @@ void construct_pRepresentation(        pTriple*  P,
 
          if (i1 == 0) i1 = esa->n-1;      
 
-         P[x].j = findLongestSubstring_simple(text+t, m, &l, i0, i1, esa);
-       //  printf("Longest substring: %d\n", l);
-         
-        // exit(0);  
+         P[x].j = findLongestSubstring(text+t, m, &l, i0, i1, esa);
          
          P[x].l = l;
          t+=l;
@@ -461,12 +458,10 @@ int findLongestSubstring(        const char*     p,
    
    while (getInterval(&i, &j, c, p[c], esa) && c<m)
    {
-      printf("Interval : %d, %d\n", i, j);  
       if (i!=j)
       {
          int lcp = LI_GET_LCP(i,j,esa);
          
-         printf("LCP: %d\n", lcp);
          if (lcp > m)
             lcp = m;               
          for (;c<lcp; c++)
@@ -478,13 +473,8 @@ int findLongestSubstring(        const char*     p,
       } 
       else
       {
-         printf("HERE\n");
          for (;c<m; c++)
-         {  
-            printf("c: %d, m: %d\n", c, m);
-            printf(" GOING AROUND\n");
-            printf("%.20s, %.20s\n", esa->t + esa->SA[i], p);
-            
+         {              
             // Again, we unwind the string comparison for speed.
             if ((esa->t + esa->SA[i])[c] != p[c])
                break;

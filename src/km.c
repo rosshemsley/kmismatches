@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <limits.h>
 #include <math.h>
-#include <time.h>
 #include <fftw3.h>
 #include <assert.h>
 #include <string.h>
@@ -15,6 +15,9 @@
 #include "loadTest.h"
 #include "RMQ_succinct.h"
 #include "sp_km_unbounded_matcher.h"
+
+
+#include <time.h>
 
 #define DEBUG
 
@@ -436,10 +439,6 @@ void abrahamson_kosaraju(        const char*     text,
    sp_km_count_symbols(pattern, m, lookup);
 
    int threshold =  sqrt( m * log(m)/log(2) );
-         
-   //printf("Threshold: %d\n", threshold);
-
-
 
    /*--- Frequent characters ---  */
 
@@ -827,40 +826,7 @@ void k_mismatches_case2(  const char *text,
    constructESA(pattern, m, &esa, 0);
    construct_pRepresentation(pRepresentation, text, pattern, &esa, n, m);
    
-   //construct_pRepresentation_old(pRepresentation_old, text, pattern, &esa, n, m);   
-   //display_pRepresentation(pRepresentation_old,     pattern, n);
-   //display_pRepresentation(pRepresentation, pattern, n);
-   
-   /*
-     printf("%d\n", n);
-   for (int i=0; i<n; i++)
-   {
-      if (pRepresentation[i].j != pRepresentation_old[i].j)
-      {
-         
-         printf("j FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         
-         exit(0);
-      }
-      
-      if (pRepresentation[i].l != pRepresentation_old[i].l)
-      {
-         printf("l FAILED HERE: %d\n",i);
-         printf("found: %d, expected: %d\n", pRepresentation[i].l, pRepresentation_old[i].l);
-                  printf("found: %d, expected: %d\n", pRepresentation[i].j, pRepresentation_old[i].j);
-         exit(0);
-      }
-      
-      if (pRepresentation[i].j == -2)
-      {
-         break;
-      }
-   
-   }
-   
-  
-   */
+ 
    
    printf("Done\n");
    
@@ -1224,7 +1190,7 @@ static int randomisePattern(char *pattern, const char *old_pattern, int m, int k
    }
    return mismatches;
 }
-
+   
 /******************************************************************************/
 
 int test_km()
@@ -1233,119 +1199,6 @@ int test_km()
 
    srand( time(NULL) );
 
-   // Do some tests.
-   {  
-   
-      int n       = 10e4;
-      int m       = 10e3;
-      int k       = 5e3;
-      
-      
-      
-      char *t, *p;      
-
-      t = malloc(sizeof(char) * n );
-      p = malloc(sizeof(char) * m );
-      
-      
-      for (int i=0; i<n; i++)
-      {
-         if (rand() % 200 == 10)
-            t[i] = 'b';
-         else
-            t[i] = 'a';
-      }
-
-      for (int i=0; i<m; i++)
-         p[i] = 'a';
-
-      p[m-1] = '\0';
-      t[n-1] = '\0';
-      
-      
-      /* Naive method:                            */   
-      
-      printf("NAIVE\n");
-      for (int i=0; i<n-m+1; i++)
-      {    
-         verify_naive(t + i, p, m, k);           
-      }
-      
-      printf("pREP\n");
-            
-      /* p-reresentation method:                  */
-      pTriple *pRepresentation = malloc(sizeof(pTriple) * n);
-   
-   
-      ESA esa;   
-      constructESA(p, m, &esa, 0);
-      //displaySA(&esa);
-
-      construct_pRepresentation(pRepresentation, t, p, &esa, n, m);
- 
-    // display_pRepresentation(pRepresentation,p, m);
- 
- 
-       printf("Done p-rep\n");     
-       int f=0;
-      
-      // Now, go through every position and look for mismatches.
-      for (int i=0,x=0; i<n-m; i++)
-      {
-      
-         // Advance through the p-reprsentation.
-         if (f + pRepresentation[x].l <= i)
-         {
-            f += pRepresentation[x].l;
-            ++x;
-            
-
-         }
-              
-        verifyMatch(pRepresentation, t, p, &esa, x,f,i,k,n,m);
-
-
-       //int b = verify_naive(t + i, p, m, k);  
-       
-       //printf("a: %d, b: %d\n",a,b);
-       
-    //   assert(a==b);
-         
-      }
-     
-      printf("FULL\n");
-      /* Full ESA Method:                         */
-      
-      // Construct the ESA for the text.
-     
-      // We need a generalised suffix array: 
-      // Do this by using an auxillary array called tp (text-pattern)
-      char *tp = malloc( sizeof(char) * ( n+m-1 ) );
-
-      // Copy the text (minus the '\0') into tp,
-      // and the pattern in after the text.
-      memcpy(tp,       t,    sizeof(char) * (n-1) );   
-      memcpy(tp + n-1, p, sizeof(char) *  m    );
-     
-      // Construct the suffix array.
-      constructESA(tp, n+m-1, &esa, NO_CHILD_TAB);  
-
-
-      for (int i=0; i<n-m+1; i++)
-      {
-        int a = verify(i, n-1, m, k, &esa);
-         
-        //int b = verify_naive(t + i, p, m, k);  
-       
-       //printf("a: %d, b: %d\n",a,b);
-       
-      }
-      
-      
-      exit(1);
-
-
-   }
    
    //-------------------------------------------------------------------------//
    // Testing parameters.
