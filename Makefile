@@ -18,4 +18,3 @@ clean:
 	rm test
 	rm harness
 	rm make_input
-	rm gmon.out
