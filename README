@@ -1,7 +1,9 @@
 ================================================================================
 | Kmismatches                                                                  |
 |                                                                              |
-| - Created by Ross Hemsley 2011-                                              |
+| - Created by Ross Hemsley 2011                                               |
+| - includes code by Ben Smithers for Comparison                               |
+| - Uses Sais and FFTW                                                         |
 |                                                                              |
 ================================================================================
                                                                               
